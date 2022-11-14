@@ -1,5 +1,6 @@
-      subroutine deriv_nonloc(x,rshift,rvec_en,r_en,detu,detd,slmui,slmdi,vpsp,dvpsp)
+      subroutine deriv_nonloc(x,rshift,rvec_en,r_en,vpsp,dvpsp)
 ! Written by Claudia Filippi, modified by Cyrus Umrigar
+! Called in all 3 kinds of optimizaton runs.
       use all_tools_mod
       use constants_mod
       use control_mod
@@ -18,10 +19,11 @@
       use qua_mod
       use slatn2_mod
       use contrl_opt_mod
+!     use slater_mod, only: detu, detd, slmui, slmdi
       implicit real*8(a-h,o-z)
 
-      dimension x(3,*),rshift(3,nelec,ncent),rvec_en(3,nelec,ncent),r_en(nelec,ncent) &
-     &,detu(*),detd(*),slmui(nupdn_square,*),slmdi(nupdn_square,*)
+      dimension x(3,*),rshift(3,nelec,ncent),rvec_en(3,nelec,ncent),r_en(nelec,ncent)
+!    &,detu(*),detd(*),slmui(nupdn_square,*),slmdi(nupdn_square,*)
       dimension rr_en(nelec,ncent),rr_en2(nelec,ncent),rr_en_sav(ncent),rr_en2_sav(ncent) &
      &,xsav(3),rshift_sav(3,ncent),rvec_en_sav(3,ncent),r_en_sav(ncent) &
      &,vpot(MPS_L),dvpot(MPS_L,nparm),dvpsp(nparm),gn(nparmjs)
@@ -167,7 +169,7 @@
               electron = iel !JT
               call object_modified_by_index (electron_index) !JT
 
-              call nonlocd(iel,x(1,i),rvec_en,r_en,detu,detd,slmui,slmdi,deter)
+              call nonlocd(iel,x(1,i),rvec_en,r_en,deter)
 !             call deriv_nonlocj(iel,x,rshift,rr_en,rr_en2,dk_en,dk_en2,value,gn)
 ! WAS
               call deriv_nonlocj(iel,x,rshift,r_en,rr_en,rr_en2,dk_en,dk_en2,value,gn)

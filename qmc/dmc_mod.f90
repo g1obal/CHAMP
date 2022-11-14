@@ -8,10 +8,7 @@ module dmc_mod
   use restart_mod
   use allocations_mod
   use walkers_mod
-
-#ifndef NOEINSPLINE
   use projector, only : interface_projector
-#endif
 
 ! Declaration of global variables and default values
 
@@ -120,10 +117,7 @@ module dmc_mod
    call open_files
   endif
 
-
-#ifndef NOEINSPLINE
   if(idmc.eq.3) call interface_projector(nctype, ncent, iwctype, cent, znuc, nelec, nup, tau, etrial)
-#endif
 
   end subroutine dmc_init
 
@@ -202,7 +196,7 @@ module dmc_mod
 
 ! initial printing
   write(6,*)
-  write(6,'(a)') '***************************************** START DMC CALCULATION ******************************************'
+  write(6,'(a)') '*********** START DMC CALCULATION  ***********'
 
 ! request average of local energy
   call object_average_request ('eloc_av')
@@ -242,6 +236,9 @@ module dmc_mod
   call alloc ('wt', wt, MWALK)
 
   call alloc ('div_vow', div_vow, nelec, MWALK)
+
+  call alloc ('quadr', quadr,       nquad*ncent, nelec, MWALK)
+  call alloc ('quadx', quadx, ndim, nquad*ncent, nelec, MWALK)
   
   call alloc ('slmuiw', slmuiw, nup_square, ndetup, MWALK)
   call alloc ('slmdiw', slmdiw, ndn_square, ndetdn, MWALK)

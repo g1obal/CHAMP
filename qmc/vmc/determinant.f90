@@ -20,7 +20,6 @@
       use contr3_mod
       use optimo_mod
       use kinet_mod
-      !use derivatives_fast_mod
       implicit real*8(a-h,o-z)
 
 ! Routine to calculate the value, gradient and Laplacian of the
@@ -260,25 +259,25 @@
 ! Inverse of full sum of determinants
       detinv=one/determ
 
+! If detinv is infinite set it to largest number
+!     if(isinf(detinv)) then ! should also work
+      if(0.1*detinv==detinv) then
+        write(6,'(''determinant: determ, detinv1='',9es12.4)') determ, detinv
+        determ=tiny(determ)
+        detinv=1/determ
+        determ=0
+        write(6,'(''determinant: determ, detinv2='',9es12.4)') determ, detinv
+      endif
+
 ! multiply through to set up logarithmic first and second derivatives
       d2lndet=d2lndet*detinv
-      !call object_alloc('grd_det_over_det_legacy',grd_det_over_det_legacy,ndim,nelec)
-      !lap_det_over_det_legacy=0.d0
       do 120 i=1,nelec
         div_vd(i)=ekinen(i)*detinv
         ekinen(i)=-half*ekinen(i)*detinv
-        !lap_det_over_det_legacy=lap_det_over_det_legacy+ekinen(i)
         do 120 k=1,ndim
           ddet_det(k,i)=ddet_det(k,i)*detinv
-          !grd_det_over_det_legacy(k,i)=ddet_det(k,i)
           div_vd(i)=div_vd(i)-ddet_det(k,i)**2
   120     d2lndet=d2lndet-ddet_det(k,i)**2
-      !call object_modified_by_index (grd_det_over_det_legacy_index) !BM
-      !call object_modified_by_index (lap_det_over_det_legacy_index) !BM
-      !if (l_fast_determinants) then
-      !  call object_provide ('grd_det_over_det_fast')
-      !  call object_provide ('lap_det_over_det_fast')
-      !endif
 
 ! Derivatives wrt to csf_coefs for optimizing them
 ! Note that the arrays that are needed for vmc and dmc are over ndet but
@@ -325,16 +324,14 @@
         endif
 
 ! JT beg : deti_det for first csf (needed for unitary parametrization)
-! MJO also needed for CSF rotations.
-! WARNING! FIXME! icsf=1 assumes that the first csf is the static one
-         icsf=1
-         det1_det=0
-         do idet_in_csf=1,ndet_in_csf(icsf)
-           idet=iwdet_in_csf(idet_in_csf,icsf)
-           term=detu(idet)*detd(idet)*cdet_in_csf(idet_in_csf,icsf)*detinv
-           det1_det=det1_det+term
-         enddo
-         call object_modified_by_index (det1_det_index)
+!          icsf=1
+!          det1_det=0
+!          do idet_in_csf=1,ndet_in_csf(icsf)
+!            idet=iwdet_in_csf(idet_in_csf,icsf)
+!            term=detu(idet)*detd(idet)*cdet_in_csf(idet_in_csf,icsf)*detinv
+!            det1_det=det1_det+term
+!          enddo
+!          call object_modified_by_index (det1_det_index)
 ! JT end
 
 

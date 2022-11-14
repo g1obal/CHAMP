@@ -6,6 +6,7 @@
       use slater_mod
       use slaterw_mod
       use const_mod
+      use qua_mod, only: quadx, quadr
       implicit real*8(a-h,o-z)
 
       do 45 idet=1,ndetup
@@ -62,6 +63,8 @@
       return
       entry splitjdet(iw,iw2)
 
+      quadr(:,:,iw2)=quadr(:,:,iw) !TA
+      quadx(:,:,:,iw2)=quadx(:,:,:,iw) !TA
       do 125 idet=1,ndetup
         detuw(idet,iw2)=detuw(idet,iw)
         do 120 j=1,nup

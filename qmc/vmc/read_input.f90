@@ -471,6 +471,10 @@
 !                -5,-10 r/{1+(scalek(1)*r)**2}**.5
 
 ! 3) 0 0 0 0 i3body,irewgt,iaver,istrech (rarely used)
+! irewgt      = 0 do not reweight the local energy differences in fit
+!             > 0 reweight by psi_currrent^2/psi_sampled^2, but limit the weights to wtmax=iabs(mod(irewgt,100))
+!               This option allows the nodes of the wavefn. to go from one side of a sampled config to the other.
+!               Without it, the divergence in the local energy at the node blocks it.
 ! 4) 0 0 0 0 0 0 0 0 0 0 ipos,idcds,idcdr,idcdt,id2cds,id2cdr,id2cdt,idbds,idbdr,idbdt (rarely used)
 ! 5) 0 0 0 0 0 1 1 1 1 0 1 1 0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 0 1 1 0 0 0 0 0 1 1 0 1 1 0 0 0 (lo(iorb),iorb=1,norb) (calculated internally if necn < 0)
 
@@ -563,9 +567,11 @@
       iwf = 1
       call object_modified ('iwf')
 
-      write(fmt,'(''(a,a'',i3,'')'')') len_trim(mode)
-      write(6,fmt) 'CHAMP version 3.08.0, mode=', mode
+!     write(fmt,'(''(a,a'',i3,'')'')') len_trim(mode)
+!     write(6,fmt) 'CHAMP version 3.08.0, mode=', mode
+!     write(6,'(''Running in mode: '',a)') trim(mode)
 
+      write(6,*)
       if(mode.eq.'fit') write(6,'(''Wavefn. optimization'')')
       if(mode.eq.'fit_mpi') write(6,'(''Wavefn. optimization mpi'')')
       if(mode.eq.'vmc') write(6,'(''Variational MC'')')
@@ -1773,21 +1779,12 @@
         write(6,*) '**Warning irewgt=1 reset to irewgt=10'
         irewgt=irewgt+9
       endif
-!     do 404 i=1,ndata
-! 404   wght(i)=one
-      write(6,'(''i3body,irewgt,iaver,istrch'',9i5)') &
-     &i3body,irewgt,iaver,istrch
+      write(6,'(''i3body,irewgt,iaver,istrch'',9i5)') i3body,irewgt,iaver,istrch
       call systemflush(6)
 
-      read(5,*) ipos,idcds,idcdu,idcdt,id2cds,id2cdu,id2cdt,idbds, &
-     &idbdu,idbdt
-      if(ipos+idcds+idcdu+idcdt+id2cds+id2cdu+id2cdt+idbds+idbdu+idbdt &
-     &.gt.0.and.(ijas.ne.2)) &
+      read(5,*) ipos,idcds,idcdu,idcdt,id2cds,id2cdu,id2cdt,idbds,idbdu,idbdt
+      if(ipos+idcds+idcdu+idcdt+id2cds+id2cdu+id2cdt+idbds+idbdu+idbdt.gt.0 .and. (ijas.ne.2)) &
      &stop 'ipos+...>0 checkjas2 exists only be used with Jastrow2'
-      if(mod(irewgt,100).eq.1) then
-        write(6,*) '**Warning irewgt=1 reset to irewgt=10'
-        irewgt=irewgt+9
-      endif
 !     do 404 i=1,ndata
 ! 404   wght(i)=one
       write(6,'(''ipos,idcds,idcdu,idcdt,id2cds,id2cdu,id2cdt,idbds,idbdu,idbdt'',10i8)') &

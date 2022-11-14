@@ -23,7 +23,7 @@
             ddeti_deti(2,i,idet)=ddeti_detin(2,i,idet)
    60       ddeti_deti(3,i,idet)=ddeti_detin(3,i,idet)
 
-       else
+      else
 
         ikel=ndn*(iel-nup-1)
         do 80 idet=1,ndetdn

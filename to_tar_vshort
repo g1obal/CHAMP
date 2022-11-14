@@ -1,0 +1,17 @@
+#!/bin/sh
+# tars up everything except examples and lib
+tar -cvf /tmp/champ.tar \
+makefile.inc to_tar* documentation \
+qmc/MED_tools/*90 \
+qmc/revision_and_date.sh \
+qmc/[01]* qmc/Makefile qmc/make* qmc/to_* qmc/*.h qmc/commons/*.f90 qmc/*.f90 qmc/*.f qmc/*.c \
+qmc/vmc/*.f90 qmc/vmc/*.h qmc/vmc/[01]* qmc/vmc/Makefile qmc/vmc/lob.dat qmc/vmc/aa* qmc/vmc/sss \
+qmc/vmc/vmc_elec/*.f90 qmc/vmc/vmc_elec/*.h qmc/vmc/vmc_elec/[01]* qmc/vmc/vmc_elec/Makefile \
+qmc/vmc/MPI/*.f90 qmc/vmc/MPI/*.h qmc/vmc/MPI/[01]* qmc/vmc/MPI/Makefile \
+qmc/fit/*.f90 qmc/fit/*.h qmc/fit/[01]* qmc/fit/Makefile qmc/fit/aa* qmc/fit/sss \
+qmc/fit/MPI/*.f90 qmc/fit/MPI/*.h qmc/fit/MPI/[01]* qmc/fit/MPI/Makefile \
+qmc/dmc/*.f90 qmc/dmc/*.h qmc/dmc/[01]* qmc/dmc/Makefile qmc/dmc/aa* qmc/dmc/sss \
+qmc/dmc/dmc_elec/*.f90 qmc/dmc/dmc_elec/*.h qmc/dmc/dmc_elec/[01]* qmc/dmc/dmc_elec/Makefile \
+qmc/dmc/dmc_elec/MPI/*.f90 qmc/dmc/dmc_elec/MPI/*.h qmc/dmc/dmc_elec/MPI/[01]* qmc/dmc/dmc_elec/MPI/Makefile \
+qmc/dmc/dmc_elec/MPI_global_pop_big/*.f90 qmc/dmc/dmc_elec/MPI_global_pop_big/*.h qmc/dmc/dmc_elec/MPI_global_pop_big/[01]* qmc/dmc/dmc_elec/MPI_global_pop_big/Makefile \
+qmc/dmc/dmc_elec/MPI_global_pop/*.f90 qmc/dmc/dmc_elec/MPI_global_pop/*.h qmc/dmc/dmc_elec/MPI_global_pop/[01]* qmc/dmc/dmc_elec/MPI_global_pop/Makefile

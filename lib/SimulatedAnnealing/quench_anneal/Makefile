@@ -8,8 +8,8 @@ include ../../../makefile.inc
 
 ifndef FFLAGS
 FC = gfortran
-#FFLAGS=-finit-local-zero -O0 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check -g -fbacktrace
-FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
+FFLAGS=-finit-local-zero -O0 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check -g -fbacktrace
+#FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
 endif
 
 export FC FFLAGS LDFLAGS FC_MPI FFLAGS_MPI LDFLAGS_MPI

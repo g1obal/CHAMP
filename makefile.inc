@@ -336,43 +336,6 @@ ifeq ($(hostname),clastos.lct.jussieu.fr)
 
 endif
 
-# MESU in Paris
-#for MPI compilation, one needs to do "module load mpt"
-ifeq ($(hostname),mesu0)
-
-  CC=gcc
-  CXX=g++
-  CC_MPI=mpicc
-  F95=gfortran
-  F95_MPI=mpif90
-  F95_FAST_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -DNOEINSPLINE
-  F77_FAST_FLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -DNOEINSPLINE
-  LD=gfortran
-  LD_FLAGS=-O3
-  LD_MPI=mpif90
-  EINSPLINE=
-  LIBS_MAKE= $(LIBHOME)/lib/libcyrus.a $(LIBHOME)/lib2/blas/libblas.a $(LIBHOME)/lib2/lapack/liblapack.a $(LIBHOME)/lib2/linpack/liblinpack.a $(LIBHOME)/lib2/pspline/pspline/libpspline.a $(LIBHOME)/SimulatedAnnealing/quench_anneal/lib/libquench.a $(LIBHOME)/SimulatedAnnealing/quench_anneal/lib/libquench_seq.a
-
-endif
-
-# master in Paris
-ifeq ($(hostname),master.lct.jussieu.fr)
-
-  CC=gcc
-  CXX=g++
-  CC_MPI=mpicc
-  F95=gfortran
-  F95_MPI=mpif90
-  F95_FAST_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -DNOEINSPLINE
-  F77_FAST_FLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -DNOEINSPLINE
-  LD=gfortran
-  LD_FLAGS=-O3
-  LD_MPI=mpif90
-  EINSPLINE=
-  LIBS_MAKE= $(LIBHOME)/lib/libcyrus.a $(LIBHOME)/lib2/blas/libblas.a $(LIBHOME)/lib2/lapack/liblapack.a $(LIBHOME)/lib2/linpack/liblinpack.a $(LIBHOME)/lib2/pspline/pspline/libpspline.a $(LIBHOME)/SimulatedAnnealing/quench_anneal/lib/libquench.a $(LIBHOME)/SimulatedAnnealing/quench_anneal/lib/libquench_seq.a
-
-endif
-
 # deuterium in Paris
 ifeq ($(hostname),deuterium.lct.jussieu.fr)
 
@@ -957,34 +920,3 @@ ifeq ($(hostname),condor.internal.phy.duke.edu)
   EINSPLINE=
   LIBS_MAKE= $(LIBHOME)/lib/libcyrus.a $(LIBHOME)/lib2/blas/libblas.a $(LIBHOME)/lib2/lapack/liblapack.a $(LIBHOME)/lib2/linpack/liblinpack.a $(LIBHOME)/lib2/pspline/pspline/libpspline.a $(LIBHOME)/SimulatedAnnealing/quench_anneal/lib/libquench.a $(LIBHOME)/SimulatedAnnealing/quench_anneal/lib/libquench_seq.a
 endif
-
-#BM, personnal computer 1
-ifeq ($(hostname),antares)
-  CC=gcc
-  CXX=g++
-  CC_MPI=mpicc
-  F95=gfortran
-  F95_MPI=mpif90
-  F95_FAST_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -DNOEINSPLINE
-  F77_FAST_FLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -DNOEINSPLINE
-  LD=gfortran
-  LD_FLAGS=-O3
-  LD_MPI=mpif90
-  EINSPLINE=
-endif
-
-#BM, personnal computer 2
-ifeq ($(hostname),antaresICS)
-  CC=gcc
-  CXX=g++
-  CC_MPI=mpicc
-  F95=gfortran
-  F95_MPI=mpif90
-  F95_FAST_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -DNOEINSPLINE
-  F77_FAST_FLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -DNOEINSPLINE
-  LD=gfortran
-  LD_FLAGS=-O3
-  LD_MPI=mpif90
-  EINSPLINE=
-endif
-

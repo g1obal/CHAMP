@@ -1,5 +1,6 @@
-      subroutine deriv_nonloc_pot(x,rshift,rvec_en,r_en,detu,detd,deti_det,slmui,slmdi,vpsp,psid,pe,dpe,ifr)
+      subroutine deriv_nonloc_pot(x,rshift,rvec_en,r_en,vpsp,psid,pe,dpe,ifr)
 ! Written by Claudia Filippi; modified by Cyrus Umrigar
+! Called in all 3 kinds of optimizaton runs.
 ! Calculates non-local potential and its derivatives wrt Jastrow parameters
 ! V_1=A/B, where V_1 is the nonlocal part of the potential on electron 1
 ! A=(1/N_quad) \sum_l (2l+1) (V_l-V_L) \sum_j^{N_quad} P_l(cos \theta_j) Psi(r_1j,...)
@@ -21,10 +22,11 @@
       use contrl_per_mod
       use derivjas_mod
       use contrl_opt_mod
+      use slater_mod, only: detu, detd, deti_det
       implicit real*8(a-h,o-z)
 
       dimension x(3,*),rshift(3,nelec,ncent),rvec_en(3,nelec,ncent),r_en(nelec,ncent) &
-     &,detu(*),detd(*),deti_det(nparmd),slmui(nupdn_square,*),slmdi(nupdn_square,*) &
+!    &,detu(*),detd(*),deti_det(nparmd),slmui(nupdn_square,*),slmdi(nupdn_square,*) &
      &,dvpsp(nparm),dpe(nparm)
 
       do 20 i=1,nelec
@@ -51,7 +53,7 @@
       call object_modified_by_index (eloc_pot_loc_index)  !JT
 
 ! non-local component and its derivative (division by the Jastrow already in nonloc)
-      call deriv_nonloc(x,rshift,rvec_en,r_en,detu,detd,slmui,slmdi,vpsp,dvpsp)
+      call deriv_nonloc(x,rshift,rvec_en,r_en,vpsp,dvpsp)
       do 35 iparm=1,nparmcsf
   35    dpe(iparm)=(dvpsp(iparm)-vpsp*deti_det(iparm))/psid
       if(ipr.ge.4) write(6,'(''dvpsp2(iparm)'',30d12.4)') (dvpsp(iparm),iparm=1,nparmcsf)

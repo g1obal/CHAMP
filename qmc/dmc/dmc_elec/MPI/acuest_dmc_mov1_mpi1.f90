@@ -470,6 +470,8 @@
 ! It works with optimization option -O2. It also works when a write statement is added in the loop as done below!
 !     write(6,'(/,''These lines are printed out just because otherwise it gets stuck here with ifort 10.1 -O3'')')
       do 80 iw=1,nconf
+        current_walker = iw !TA
+        call object_modified_by_index (current_walker_index) !TA
 !       write(6,'(''iw='',i4)') iw
         wt(iw)=one
         if(istrech.eq.0) then

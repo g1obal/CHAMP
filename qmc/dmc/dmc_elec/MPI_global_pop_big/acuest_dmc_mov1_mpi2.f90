@@ -469,6 +469,8 @@
    70   ff(i)=one
 
       do 80 iw=1,nconf
+        current_walker = iw !TA
+        call object_modified_by_index (current_walker_index) !TA
         wt(iw)=one
         if(istrech.eq.0) then
           do 71 ifr=2,nforce

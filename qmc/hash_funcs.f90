@@ -62,8 +62,7 @@
 !       placed a pointer is inserted into chain_list to hook the
 !       values together.
 !
-        subroutine hash_init(name_list,chain_list,list_length,num_list,
-     *                       hash_table,hash_length)
+        subroutine hash_init(name_list,chain_list,list_length,num_list,hash_table,hash_length)
 !
 !       initialization routine for a hash table controlled list
 !          name_list   -- a list of character strings
@@ -83,10 +82,8 @@
            enddo
            return
            end
-        subroutine
-     *  hash_find(name,name_list,chain_list,list_length,num_list,
-     *                       hash_table,hash_length,ifind)
-!
+        subroutine hash_find(name,name_list,chain_list,list_length,num_list,hash_table,hash_length,ifind)
+
 !       search routine for a hash table controlled list
 !          name        -- string to find
 !          name_list   -- a list of character strings
@@ -96,7 +93,7 @@
 !          hash_table  -- the initial hashed pointers
 !          hash_length -- the size of the hash table
 !          ifind       -- returned index or 0
-!
+
            character*(*) name
            integer hash_length
            character*(*) name_list(list_length)
@@ -116,10 +113,8 @@
              go to 100
            endif
            end
-        subroutine
-     *  hash_store(name,name_list,chain_list,list_length,num_list,
-     *                       hash_table,hash_length,ifind)
-!
+        subroutine hash_store(name,name_list,chain_list,list_length,num_list, hash_table,hash_length,ifind)
+
 !       store routine for a hash table controlled list
 !          name        -- string to find
 !          name_list   -- a list of character strings
@@ -129,7 +124,7 @@
 !          hash_table  -- the initial hashed pointers
 !          hash_length -- the size of the hash table
 !          ifind       -- index of entry or 0 (table full)
-!
+
            character*(*) name
            character*(*) name_list(list_length)
            integer hash_length
@@ -152,8 +147,7 @@
            endif
 !JT 200       if (num_list.lt.list_length) then
  200       if (num_list.eq.list_length) then !JT
-            write(6,*) 'hash_store: limit list_length=',list_length, !§JT
-     *     ' reached. Increase it!'                                  ! JT
+            write(6,*) 'hash_store: limit list_length=',list_length, ' reached. Increase it!' ! JT
            endif !JT
              num_list=num_list+1
              name_list(num_list)=name
@@ -171,7 +165,7 @@
 !JT           endif
            end
       integer function hash_value(name,hash_length)
-!
+
 !     function to return a hash value of string name to fit
 !     a hash table of length hash_length
       character*(*) name
@@ -190,4 +184,3 @@
       enddo
       return
       end
-

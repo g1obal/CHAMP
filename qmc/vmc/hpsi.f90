@@ -275,9 +275,9 @@
         if(nloc.gt.0) then
 !         if((igradhess.eq.0 .and. index(mode,'fit').eq.0) .or. ifr.gt.1) then
           if((igradhess.eq.0 .or. ifr.gt.1) .and. .not. l_opt) then
-            call nonloc_pot(coord,rshift,rvec_en,r_en,detu,detd,slmui,slmdi,vpsp,psid,pe)
+            call nonloc_pot(coord,rshift,rvec_en,r_en,vpsp,psid,pe)
           else
-            call deriv_nonloc_pot(coord,rshift,rvec_en,r_en,detu,detd,deti_det,slmui,slmdi,vpsp,psid,pe,dpe,ifr)
+            call deriv_nonloc_pot(coord,rshift,rvec_en,r_en,vpsp,psid,pe,dpe,ifr)
           endif
         endif
 

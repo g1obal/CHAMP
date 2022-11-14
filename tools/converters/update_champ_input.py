@@ -16,7 +16,7 @@ import string
 import re
 import operator
 import getopt
-from numpy import *
+from Numeric import *
 
 # ========================================================
 # Global variables and initializations

@@ -34,6 +34,10 @@
         nax2=nmesht
       endif
       term=1/(passes*del1*del2)
+      
+      ! Reference mesh point
+      imfix1 = nint(delxi(1) * xfix(1)) !GO
+      imfix2 = nint(delxi(2) * xfix(2)) !GO
 
       if(ifixe.gt.0) then          ! fixed electron pair-density
         if(ifixe.le.nup) then
@@ -59,9 +63,9 @@
 ! verify the normalization later...
         do in1=-nax1,nax1
           do in2=-nax2,nax2
-            write(41,'(2g19.8,g19.8)') in1*del1,in2*del2,den2d_t(in1,in2)*term
-            write(42,'(2g19.8,g19.8)') in1*del1,in2*del2,den2d_d(in1,in2)*term
-            write(43,'(2g19.8,g19.8)') in1*del1,in2*del2,den2d_u(in1,in2)*term
+            write(41,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,den2d_t(in1,in2)*term
+            write(42,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,den2d_d(in1,in2)*term
+            write(43,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,den2d_u(in1,in2)*term
           enddo
 ! following spaces are for gnuplot convention:
           write(41,*)
@@ -115,12 +119,12 @@
 ! verify the normalization later...
         do in1=-nax1,nax1
           do in2=-nax2,nax2
-            write(41,'(2g19.8,g19.8)') in1*del1,in2*del2,den2d_t(in1,in2)*term
-            write(42,'(2g19.8,g19.8)') in1*del1,in2*del2,den2d_d(in1,in2)*term
-            write(43,'(2g19.8,g19.8)') in1*del1,in2*del2,den2d_u(in1,in2)*term
-            write(44,'(2g19.8,g19.8)') in1*del1,in2*del2,pot_ee2d_t(in1,in2)/passes
-            write(45,'(2g19.8,g19.8)') in1*del1,in2*del2,pot_ee2d_d(in1,in2)/passes
-            write(46,'(2g19.8,g19.8)') in1*del1,in2*del2,pot_ee2d_u(in1,in2)/passes
+            write(41,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,den2d_t(in1,in2)*term
+            write(42,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,den2d_d(in1,in2)*term
+            write(43,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,den2d_u(in1,in2)*term
+            write(44,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,pot_ee2d_t(in1,in2)/passes
+            write(45,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,pot_ee2d_d(in1,in2)/passes
+            write(46,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,pot_ee2d_u(in1,in2)/passes
           enddo
           write(41,*)
           write(42,*)
@@ -160,31 +164,34 @@
             open(42,status='scratch')
             open(43,status='scratch')
           endif
-          do in0=0,NAX
-            if(icoosys.eq.1) then
-              r0=in0*dely
-              if(in0.lt.nint(xfix(1)/dely) .or. in0.gt.nint(xfix(2)/dely)) cycle
-              write(41,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0
-              write(42,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0
-              write(43,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0
-            else
-              r0=in0*dely + xfix(1)
-              if(r0.gt.xfix(2)) exit
-              write(41,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0-rmean
-              write(42,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0-rmean
-              write(43,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0-rmean
-            endif
+          !do in0=0,NAX !GO
+            !if(icoosys.eq.1) then
+              !r0=in0*dely
+              !if(in0.lt.nint(xfix(1)/dely) .or. in0.gt.nint(xfix(2)/dely)) cycle
+              !write(41,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0
+              !write(42,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0
+              !write(43,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0
+              write(41, '("Grid index:",i4,1x,i4,", xfix=",G20.8E3,1x,G20.8E3,1x,G20.8E3)') imfix1, imfix2, xfix(1), xfix(2), xfix(3) !GO
+              write(42, '("Grid index:",i4,1x,i4,", xfix=",G20.8E3,1x,G20.8E3,1x,G20.8E3)') imfix1, imfix2, xfix(1), xfix(2), xfix(3)
+              write(43, '("Grid index:",i4,1x,i4,", xfix=",G20.8E3,1x,G20.8E3,1x,G20.8E3)') imfix1, imfix2, xfix(1), xfix(2), xfix(3)            
+            !else
+              !r0=in0*dely + xfix(1)
+              !if(r0.gt.xfix(2)) exit
+              !write(41,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0-rmean
+              !write(42,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0-rmean
+              !write(43,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0-rmean
+            !endif
             do in1=-NAX,NAX
               do in2=-NAX,NAX
-                write(41,'(2g19.8,g19.8)') in1*del1,in2*del2,xx0probut(in0,in1,in2)*term
-                write(42,'(2g19.8,g19.8)') in1*del1,in2*del2,xx0probud(in0,in1,in2)*term
-                write(43,'(2g19.8,g19.8)') in1*del1,in2*del2,xx0probuu(in0,in1,in2)*term
+                write(41,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,xx0probut(0,in1,in2)*term
+                write(42,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,xx0probud(0,in1,in2)*term
+                write(43,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,xx0probuu(0,in1,in2)*term
               enddo
               write(41,*)
               write(42,*)
               write(43,*)
             enddo
-          enddo
+          !enddo
           close(41)
           close(42)
           close(43)
@@ -212,31 +219,34 @@
             open(43,status='scratch')
           endif
 
-          do in0=0,NAX
-            if(icoosys.eq.1) then
-              r0=in0*dely
-              if(in0.lt.nint(xfix(1)/dely) .or. in0.gt.nint(xfix(2)/dely)) cycle
-              write(41,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0
-              write(42,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0
-              write(43,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0
-            else
-              r0=in0*dely + xfix(1)
-              if(r0.gt.xfix(2)) exit
-              write(41,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0-rmean
-              write(42,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0-rmean
-              write(43,'(''# Grid point:'',i4,''  r0 ='',g19.8)') in0,r0-rmean
-            endif
+          !do in0=0,NAX
+            !if(icoosys.eq.1) then
+              !r0=in0*dely
+              !if(in0.lt.nint(xfix(1)/dely) .or. in0.gt.nint(xfix(2)/dely)) cycle
+              !write(41,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0
+              !write(42,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0
+              !write(43,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0
+              write(41, '("Grid index:",i4,1x,i4,", xfix=",G20.8E3,1x,G20.8E3,1x,G20.8E3)') imfix1, imfix2, xfix(1), xfix(2), xfix(3) !GO
+              write(42, '("Grid index:",i4,1x,i4,", xfix=",G20.8E3,1x,G20.8E3,1x,G20.8E3)') imfix1, imfix2, xfix(1), xfix(2), xfix(3)
+              write(43, '("Grid index:",i4,1x,i4,", xfix=",G20.8E3,1x,G20.8E3,1x,G20.8E3)') imfix1, imfix2, xfix(1), xfix(2), xfix(3)
+            !else
+              !r0=in0*dely + xfix(1)
+              !if(r0.gt.xfix(2)) exit
+              !write(41,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0-rmean
+              !write(42,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0-rmean
+              !write(43,'(''# Grid point:'',i4,''  r0 ='',G20.8E3)') in0,r0-rmean
+            !endif
             do in1=-NAX,NAX
               do in2=-NAX,NAX
-                write(41,'(2g19.8,g19.8)') in1*del1,in2*del2,xx0probdt(in0,in1,in2)*term
-                write(42,'(2g19.8,g19.8)') in1*del1,in2*del2,xx0probdd(in0,in1,in2)*term
-                write(43,'(2g19.8,g19.8)') in1*del1,in2*del2,xx0probdu(in0,in1,in2)*term
+                write(41,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,xx0probdt(0,in1,in2)*term
+                write(42,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,xx0probdd(0,in1,in2)*term
+                write(43,'(2G20.8E3,G20.8E3)') in1*del1,in2*del2,xx0probdu(0,in1,in2)*term
               enddo
               write(41,*)
               write(42,*)
               write(43,*)
             enddo
-          enddo
+          !enddo
           close(41)
           close(42)
           close(43)
@@ -291,9 +301,9 @@
           endif
           do in2=0,nmeshk1
             fk=delk1*in2
-            write(41,'(2g19.8,g19.8)') ri,fk,fourierrk_t(in1,in2)*term/ri2
-            write(42,'(2g19.8,g19.8)') ri,fk,fourierrk_d(in1,in2)*term/ri2
-            write(43,'(2g19.8,g19.8)') ri,fk,fourierrk_u(in1,in2)*term/ri2
+            write(41,'(2G20.8E3,G20.8E3)') ri,fk,fourierrk_t(in1,in2)*term/ri2
+            write(42,'(2G20.8E3,G20.8E3)') ri,fk,fourierrk_d(in1,in2)*term/ri2
+            write(43,'(2G20.8E3,G20.8E3)') ri,fk,fourierrk_u(in1,in2)*term/ri2
           enddo
           write(41,*)
           write(42,*)
@@ -327,9 +337,9 @@
 ! verify the normalization later...
         do in1=-NAK2,NAK2
           do in2=-NAK2,NAK2
-            write(41,'(2g19.8,g19.8)') in1*delk2,in2*delk2,fourierkk_t(in1,in2)/passes
-            write(42,'(2g19.8,g19.8)') in1*delk2,in2*delk2,fourierkk_d(in1,in2)/passes
-            write(43,'(2g19.8,g19.8)') in1*delk2,in2*delk2,fourierkk_u(in1,in2)/passes
+            write(41,'(2G20.8E3,G20.8E3)') in1*delk2,in2*delk2,fourierkk_t(in1,in2)/passes
+            write(42,'(2G20.8E3,G20.8E3)') in1*delk2,in2*delk2,fourierkk_d(in1,in2)/passes
+            write(43,'(2G20.8E3,G20.8E3)') in1*delk2,in2*delk2,fourierkk_u(in1,in2)/passes
           enddo
           write(41,*)
           write(42,*)
@@ -382,18 +392,18 @@
         do in2=0,nax2
           zznorm = sum(zzpairden_t(:,in2))
           !if(in2.eq.0) then
-          !  write(41,'(g19.8,g19.8)') in2*delxt,zzcorr(in2)/(zznorm+passes)/delxt
+          !  write(41,'(G20.8E3,G20.8E3)') in2*delxt,zzcorr(in2)/(zznorm+passes)/delxt
           !else
-          !  write(41,'(g19.8,g19.8)') in2*delxt,zzcorr(in2)/passes/delxt
+          !  write(41,'(G20.8E3,G20.8E3)') in2*delxt,zzcorr(in2)/passes/delxt
           !endif
-          write(41,'(g19.8,g19.8)') in2*delxt,zzcorr(in2)/passes/delxt
-          write(47,'(g19.8,g19.8)') in2*delxt,yycorr(in2)/passes/delxt
-          write(45,'(g19.8,g19.8)') in2*delxt*10./dble(nelec),znncorr(in2)/passes
-          write(46,'(g19.8,g19.8)') in2*delxt*10./dble(nelec),zn2ncorr(in2)/passes
+          write(41,'(G20.8E3,G20.8E3)') in2*delxt,zzcorr(in2)/passes/delxt
+          write(47,'(G20.8E3,G20.8E3)') in2*delxt,yycorr(in2)/passes/delxt
+          write(45,'(G20.8E3,G20.8E3)') in2*delxt*10./dble(nelec),znncorr(in2)/passes
+          write(46,'(G20.8E3,G20.8E3)') in2*delxt*10./dble(nelec),zn2ncorr(in2)/passes
         enddo
         do ine = 0,nelec-1
-          write(42,'(i8,g19.8)') ine,zzcorrij(ine)/passes
-          write(48,'(i8,g19.8)') ine,yycorrij(ine)/passes
+          write(42,'(i8,G20.8E3)') ine,zzcorrij(ine)/passes
+          write(48,'(i8,G20.8E3)') ine,yycorrij(ine)/passes
         enddo
 
         if(izigzag.eq.2) then
@@ -414,10 +424,10 @@
 
           do in1=-nax1,nax1
             do in2 = -nax2,nax2
-              write(43,'(2g19.8,g19.8)') in1*zzdelyr,in2*delxt,zzpairden_t(in1,in2)/(passes*zzdelyr*delxt)
+              write(43,'(2G20.8E3,G20.8E3)') in1*zzdelyr,in2*delxt,zzpairden_t(in1,in2)/(passes*zzdelyr*delxt)
             enddo
             do ine = 0,nelec-1
-              write(44,'(g19.8,i8,g19.8)') in1*zzdelyr,ine,zzpairdenij_t(in1,ine)/(passes*zzdelyr)
+              write(44,'(G20.8E3,i8,G20.8E3)') in1*zzdelyr,ine,zzpairdenij_t(in1,ine)/(passes*zzdelyr)
             enddo
             write(43,*)
             write(44,*)

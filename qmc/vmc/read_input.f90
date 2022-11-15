@@ -67,8 +67,12 @@
       character*30 section
       character*10 eunit
       character*80000 input_line
+      
+      logical insidelist !GO
 
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+      common /cyldot/ cyldot_v, cyldot_s, cyldot_rho !GO
+      common /gndot/ gndot_v0, gndot_rho, gndot_s, gndot_k !GO
       common /dotcenter/ dot_bump_height, dot_bump_radius, dot_bump_radius_inv2
       common /wire/ wire_w,wire_length,wire_length2,wire_radius2, wire_potential_cutoff,wire_prefactor,wire_root1
       common /circularmesh/ rmin,rmax,rmean,delradi,delti,nmeshr,nmesht,icoosys
@@ -82,7 +86,7 @@
 !     namelist /opt_list/ igradhess
       namelist /opt_list/ iring_coulomb, iantiferromagnetic, iper_gaussian_type, xmax,xfix,fmax1,fmax2,rring,ifixe,nv,idot,ifourier &
      &,iperturb,ang_perturb,amp_perturb,shrp_perturb,omg_perturb,rmin,rmax,nmeshr,nmesht,icoosys,dot_bump_height,dot_bump_radius &
-     &,nmeshk1,izigzag,zzdelyr
+     &,nmeshk1,izigzag,zzdelyr,gndot_k
 
       common /jel_sph1/ dn_background,rs_jel,radius_b ! RM
 
@@ -143,6 +147,8 @@
 ! tau        time-step in dmc
 ! nloc       external potential (a positive value => nonlocal pseudopotential)
 !            -9 numerical dot potential read in from potential_num (not yet implemented)
+!            -7 gaussian dot potential, gndot_v0*dexp(-(r**2 / gndot_rho**2)**gndot_s)  !GO 
+!            -6 cylindrical dot potential, 0.5d0*cyldot_v*( tanh(cyldot_s*(r+cyldot_rho)) - tanh(cyldot_s*(r-cyldot_rho)) ) !GO
 !            -5 quadratic dot potential 0.5*w0^2*r^2 with barrier at center
 !                (dot_bump_height)*exp(1 - 1/(1-(x/dot_bump_radius)^2))
 !            -4 quantum wire, if finite:   Vwire(x) + 0.5 w0 * y^2
@@ -204,6 +210,13 @@
 ! emagsz     "magnetic energy" due to B-Sz coupling=-0.5*B*glande*Sz (favor spin up)
 ! glande     effective lande factor (only for quantum dots) considered positive
 ! nquad      number of angular quadrature points for nonlocal psp.
+! cyldot_v   height of the cylindrical quantum dot !GO
+! cyldot_s   stiffness parameter of the cylindrical quantum dot !GO
+! cyldot_rho radius of the cylindrical quantum dot !GO
+! gndot_v0   height of the gaussian quantum dot !GO
+! gndot_rho  radius of the gaussian quantum dot !GO
+! gndot_s    stiffness parameter of the gaussian quantum dot !GO
+! gndot_k    strength of optional quadratic gate potential centered on the origin, default is 0, k*r^2
 ! nelec      number of electrons
 ! nup        number of up-spin electrons
 ! npoly,np,cutg,cutg_sim,cutg_big,cutg_sim_big
@@ -306,7 +319,12 @@
 !          -3: calculate full 2d pair density  AND 2d density.
 ! xfix(3)  can represent 2 different things:
 !          if ifixe>0   :  coordinates of fixed electron
-!                  -2/-3:  full pair-densities is written for x1 coord. between xfix(1) and xfix(2)
+!                  -2/-3:  full pair-densities is written. 
+!                          xfix(1) and xfix(2) are x and y coordinates of the fixed mesh point. !GO
+!                          xfix(3) is lookup intervals in degrees. Rotation angle between fixed points. !GO
+!                          For example; if xfix(3)=360 (no symmetry), only one mesh point is fixed.
+!                                       if xfix(3)=60 (hexagon symmetry) 6 mesh points are fixed, the angle between the points is 60 degrees.   
+!                                       if xfix(3)<0.6 (circular symmetry) 600 mesh points are fixed.
 ! icoosys  coordinate system for calculating 2d density/pairdensity
 !          1: cartesian
 !          2: circular
@@ -738,7 +756,7 @@
       write(6,'(''nloc,numr ='',t31,4i5)') nloc,numr
       write(6,'(''nforce,nefp ='',t31,4i5)') nforce,nefp
 !     if(numr.gt.0) write(6,'(/,''numerical basis functions used'')')
-      if(nloc.lt.-5 .or. nloc.gt.6) stop 'nloc must be between -5 and 6 inclusive'
+      if(nloc.lt.-7 .or. nloc.gt.6) stop 'nloc must be between -7 and 6 inclusive' !GO
       if(nloc.ge.2) then
         read(5,*) nquad
         write(6,'(''nquad='',t31,i4)') nquad
@@ -772,6 +790,24 @@
         write(6,'(''applied magnetic field., bext='',t31,f10.5)') bext
         write(6,'(''effective spring const., we='',t31,f10.5)') we
         write(6,'(''Lande factor, glande='',t31,f10.5)') glande
+       elseif(nloc.eq.-6) then
+        read(5,*) cyldot_v,cyldot_s,cyldot_rho !GO
+        w0 = 0.d0 ! in order to use gaussian orbitals
+        bext = 0.d0 ! in order to use gaussian orbitals
+        glande = 0.d0 ! in order to use gaussian orbitals
+        we = 1.d0 ! in order to use gaussian orbitals
+        write(6,'(''height cyldot pot., cyldot_v='',t31,f10.5)') cyldot_v
+        write(6,'(''stiff. cyldot pot., cyldot_s='',t31,f10.5)') cyldot_s
+        write(6,'(''rad. cyldot pot., cyldot_rho='',t31,f10.5)') cyldot_rho
+       elseif(nloc.eq.-7) then 
+        read(5,*) gndot_v0,gndot_rho,gndot_s !GO
+        w0 = 0.d0 ! in order to use gaussian orbitals
+        bext = 0.d0 ! in order to use gaussian orbitals
+        glande = 0.d0 ! in order to use gaussian orbitals
+        we = 1.d0 ! in order to use gaussian orbitals
+        write(6,'(''height gndot pot., gndot_v0='',t31,f10.5)') gndot_v0
+        write(6,'(''rad. gndot pot., gndot_rho='',t31,f10.5)') gndot_rho
+        write(6,'(''stiff. gndot pot., gndot_s='',t31,f10.5)') gndot_s
       endif
 
       call object_modified ('nloc') ! JT
@@ -929,8 +965,8 @@
 !       if(iperiodic.eq.3) then
 !         do 40 k=1,ndim
 !  40       cent(k,ic)=cent(k,ic)*alattice
-!       endif
-   50   if(iperiodic.eq.0 .or. iperiodic.eq.1) write(6,'(''center'',i4,1x,''('',3f8.5,'')'')') ic,(cent(k,ic),k=1,ndim)
+!       endif   
+   50   if(iperiodic.eq.0 .or. iperiodic.eq.1) write(6,'(''center'',i4,1x,''('',3f13.5,'')'')') ic,(cent(k,ic),k=1,ndim) ! quick fix for large systems !GO
 
 ! Convert center positions from primitive lattice vector units to cartesian coordinates
       if(iperiodic.eq.3) then
@@ -1013,7 +1049,7 @@
         call alloc ('iwftype', iwftype, nforce)
         iwftype(1)=1
       endif
-
+      
 ! Determinantal section
       read(5,*) section
       write(6,'(/,a30,/)') section
@@ -1493,7 +1529,7 @@
       xmax=5.d0
       xfix(1)=0.d0
       xfix(2)=0.d0
-      xfix(3)=0.d0
+      xfix(3)=360.d0 !GO
       rring=0.d0
       iring_coulomb=0
       iperturb=0
@@ -1521,6 +1557,7 @@
       else
         iantiferromagnetic = 0
       endif
+      gndot_k=0.d0 !GO
 !     default values of dot_bump_height and dot_bump_radius are set above
 !        where w0, etc... are read in
 
@@ -1572,6 +1609,41 @@
         delxi(1)=NAX/xmax
         delxi(2)=delxi(1)
       endif
+      if (abs(xfix(1)) .gt. xmax) stop 'abs(xfix(1)) should be less equal than xmax' !GO
+      if (abs(xfix(2)) .gt. xmax) stop 'abs(xfix(2)) should be less equal than xmax'
+      if ((xfix(1) .eq. 0d0) .and.  (xfix(2) .eq. 0d0) .and. xfix(3) .ne. 360) then
+        stop 'xfix(3) must be equal to 360 if xfix(1) and xfix(2) equal to 0.' 
+      end if  
+      if (xfix(3) .le. 0 .or. xfix(3) .gt. 360) stop 'xfix(3) must be 0 < xfix(3) <= 360' 
+      allocate(imeshfix1(0))
+      allocate(imeshfix2(0))
+      allocate(thetafix(0))
+      ! Append first fixed mesh point with angle 0
+      call append(imeshfix1, nint(delxi(1) * xfix(1)))
+      call append(imeshfix2, nint(delxi(2) * xfix(2)))
+      call append(thetafix, 0d0)
+      ! Append other mesh points according to desired symmetry
+      ithetafix = nint(360 / xfix(3))
+      do itheta = 1, ithetafix - 1
+        thetafixtemp = pi * (itheta * xfix(3)) / 180 
+        call rotate(thetafixtemp, xfix(1), xfix(2), xfix1rot, xfix2rot)
+        ixfix1rot = nint(delxi(1) * xfix1rot)
+        ixfix2rot = nint(delxi(2) * xfix2rot)
+        ! Check if this point inside the fixed mesh point list. If not add to the list.
+        insidelist = .false.
+        do imesh = 1, size(imeshfix1)
+          if (ixfix1rot .eq. imeshfix1(imesh) .and. ixfix2rot .eq. imeshfix2(imesh)) then
+            insidelist = .true.
+            exit
+          end if    
+        end do
+        if (.not. insidelist) then
+          call append(imeshfix1, ixfix1rot)
+          call append(imeshfix2, ixfix2rot)
+          call append(thetafix, thetafixtemp)
+        end if
+      end do
+      ithetafix = size(thetafix) !GO
 
 ! fourier transform :
       if(ifourier.lt.0 .or. ifourier.gt.3 ) stop 'ifourier must be 0,1,2, or 3'

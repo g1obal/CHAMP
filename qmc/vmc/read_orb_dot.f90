@@ -122,11 +122,12 @@
 !-----------------------------------------------------------------------
 
       subroutine read_orb_dot_gauss
-      use control_mod
 ! Written by A.D.Guclu, Apr 2006.
+! Edited by Gokhan Oztarhan, Feb 2022.
 ! Reads in quantum dot orbitals in gaussian basis set
 ! the witdh of gaussians is given by zex*we
 
+      use control_mod
       use coefs_mod
       use const_mod
       use contrl_per_mod
@@ -134,8 +135,13 @@
       use forcepar_mod
       use orbpar_mod
       use periodic_1d_mod
+      use pseudo_mod !GO
+      use files_tools_mod !GO
+      use dets_mod !GO
       implicit real*8(a-h,o-z)
-
+      
+      integer orb_file_unit !GO
+      
 
       write(6,'(/,''Reading floating gaussian orbitals for dots'')')
       call alloc ('oparm', oparm, notype, nbasis, nwf)
@@ -191,19 +197,34 @@
         endif
       enddo
 
-      if(norb.ne.nbasis) stop &
-     &  'norb must be equal to nbasis in read_orb_dot_gauss'
-
-
 ! read orbital coefficients
 !      write(6,'(/,(12a10))') (n_fd(j),m_fd(j),j=1,nbasis)
-      write(6,'(''orbital coefficients'')')
-
-!      if(norb.le.100) then     !  we don't need a linear combination of gaussians.
-!        do 20 iorb=1,norb     !  turn this feature on if ever needed.
-!          read(5,*) (coef(j,iorb,1),j=1,nbasis)
-!   20   enddo
-!      else
+!      if(norb.le.100) then
+     
+      write(6,*)
+      
+      ! For backward compatibility with the older inputs, if 'orb_dot_coef' file exists, 
+      ! program reads the orbital coefficients from the file. Otherwise, basis set=orbitals.
+      if ( (nloc.eq.-6 .or. nloc.eq.-7) .and. file_exist('orb_dot_coef') ) then !GO
+      
+        write(6,'(''orbital coefficients - rows: norb, columns: nbasis'')')
+      
+        orb_file_unit = -1 ! -1 is here to get a unique file unit
+        call open_file_or_die('orb_dot_coef', orb_file_unit)
+        
+        do iorb=1,norb 
+            read(orb_file_unit,*) (coef(j,iorb,1),j=1,nbasis)
+            write(6,'(10000f12.6)') (coef(j,iorb,1),j=1,nbasis)
+        enddo
+   
+        close(orb_file_unit)
+        
+      else
+      
+        if(norb.ne.nbasis) stop &
+     &  'norb must be equal to nbasis in read_orb_dot_gauss'
+     
+        write(6,'(''orbital coefficients'')')
         write(6,'(''Assuming basis set=orbitals for 2D-gaussian orbitals'')')
         do 40 iorb=1,norb
           do 30 j=1,nbasis
@@ -215,7 +236,7 @@
    30     enddo
    40   enddo
 
-!      endif
+      endif
 
       return
       end

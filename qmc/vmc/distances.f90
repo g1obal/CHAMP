@@ -16,6 +16,8 @@
       implicit real*8(a-h,o-z)
 
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+      common /cyldot/ cyldot_v, cyldot_s, cyldot_rho !GO
+      common /gndot/ gndot_v0, gndot_rho, gndot_s, gndot_k !GO
       common /dotcenter/ dot_bump_height, dot_bump_radius, dot_bump_radius_inv2
       common /wire/ wire_w,wire_length,wire_length2,wire_radius2, wire_potential_cutoff,wire_prefactor,wire_root1
       common /angularpert/ ang_perturb,amp_perturb,shrp_perturb,omg_perturb,iperturb
@@ -106,7 +108,23 @@
 !              write(6,*) 'wire_radius2, wire_length, wire_prefactor ', wire_radius2, wire_length, wire_prefactor
 !              write(6,*) 'i,x(1,i),x(2,i),pe_x,pe_y=',i,x(1,i),x(2,i),pe_x,pe_y
             endif
+            if(nloc.eq.-6) then
+              pe_en=pe_en + 0.5d0*cyldot_v*( dtanh(cyldot_s*(r_en(i,ic)+cyldot_rho)) &
+     &                                     - dtanh(cyldot_s*(r_en(i,ic)-cyldot_rho)) ) !GO
+            endif
+            if(nloc.eq.-7) then
+              pe_en=pe_en + dexp(-((r_en(i,ic)*r_en(i,ic))/(gndot_rho*gndot_rho))**gndot_s) !GO
+            endif
    26   continue
+   
+      if(nloc.eq.-7) then !GO
+        pe_en = pe_en * gndot_v0
+        if (gndot_k .ne. 0.d0) then
+            do i=1,nelec
+                pe_en = pe_en + gndot_k * (x(1,i)*x(1,i) + x(2,i)*x(2,i))
+            end do
+        end if
+      end if 
 
 ! Calculate e-e inter-particle distances
         pe_ee=0.d0

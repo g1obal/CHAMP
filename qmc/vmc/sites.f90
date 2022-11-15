@@ -19,7 +19,9 @@
 ! when they are too close.
 
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
-       common /wire/ wire_w,wire_length,wire_length2,wire_radius2, wire_potential_cutoff,wire_prefactor,wire_root1
+      common /cyldot/ cyldot_v, cyldot_s, cyldot_rho !GO
+      common /gndot/ gndot_v0, gndot_rho, gndot_s, gndot_k !GO
+      common /wire/ wire_w,wire_length,wire_length2,wire_radius2, wire_potential_cutoff,wire_prefactor,wire_root1
 
       dimension x(3,*),nsite(*)
 
@@ -59,6 +61,10 @@
             znucc=zconst
            elseif(nloc.eq.-4) then ! quantum wire
             znucc=dsqrt(wire_w)
+           elseif(nloc.eq.-6) then ! cylindrical quantum dot !GO
+            znucc = cyldot_rho
+           elseif(nloc.eq.-7) then ! gaussian quantum dot !GO
+            znucc = gndot_rho 
            else ! atoms and molecules
             if(znuc(iwctype(i)).eq.0.d0) stop 'znuc should not be 0 in sites for atoms and molecules'
             znucc=znuc(iwctype(i))
@@ -69,6 +75,8 @@
             if(ielec.gt.nelec) return
             if(nloc.eq.-1 .or. nloc.eq.-5 .or. nloc.eq.-4) then
               sitsca=1/znucc
+             elseif(nloc.eq.-6 .or. nloc.eq.-7) then
+              sitsca=znucc/2 !GO
              elseif(j.eq.1) then
               sitsca=1/max(znucc,1.d0)
              elseif(j.le.5) then
@@ -108,6 +116,21 @@
 !               x(1,ielec)=(sitsca*site+rring)*dcos(angle)
 !               x(2,ielec)=(sitsca*site+rring)*dsin(angle)
               endif
+! sample position gaussian around center   
+! G.Oztarhan 06/2021: for cylindrical and gaussian quantum dots, make sure that electrons are
+!                     located around centers of dots within an effective radius, 
+!                     for gaussian basis set ensure that electrons are within the width of the floating gaussians,
+!                     might not work if there is more than 1 slater determinant
+            elseif(nloc.eq.-6 .or. nloc.eq.-7) then
+              site = dsqrt(-dlog(rannyu(0)))
+              if(ibasis.eq.4) then
+                 site = site*min(sitsca,1.d0/dsqrt(oparm(3, iworbd(ielec,1), iwf)))
+              else
+                 site = site*sitsca
+              endif
+              angle = 2.0d0*pi*rannyu(0)
+              x(1,ielec) = site*dcos(angle) + cent(1,iworbd(i,1))
+              x(2,ielec) = site*dsin(angle) + cent(2,iworbd(i,1))
             else
                do 5 k=1,ndim
 ! sample position from exponentials or gaussian around center

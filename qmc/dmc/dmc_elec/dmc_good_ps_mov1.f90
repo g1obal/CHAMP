@@ -214,8 +214,8 @@
             call getvps_champ(r_en,i)
            elseif(nloc.eq.6) then
             call getvps_gauss(r_en,i)
-           else
-            stop 'nloc < 1 or 6 < nloc'
+           !else !GO
+            !stop 'nloc < 1 or 6 < nloc' !GO
           endif
         enddo
 

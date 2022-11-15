@@ -50,8 +50,10 @@ CC_MPI_FLAGS=$(CC_FLAGS)
 # Fortran compilation ------------------------------------------------------
 
 # These are defaults using the gfortran
-F95=gfortran
-F95_MPI=mpif90
+# F95=gfortran
+# F95_MPI=mpif90
+F95=gfortran -fallow-argument-mismatch # for gcc versions > 10
+F95_MPI=mpif90 -fallow-argument-mismatch # for gcc versions > 10
 
 # F95_FAST_FLAGS= -zero -r8 -pad -align all -fpp -ip -O3
 #F95_FAST_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -Wall  -DNOEINSPLINE

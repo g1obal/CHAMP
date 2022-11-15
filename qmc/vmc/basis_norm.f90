@@ -71,8 +71,11 @@
           if(numr.le.0 .and. ibasis.lt.4) then
 !         if(iwrwf2(ib).le.nrbas_analytical(ict) .and. ibasis.lt.4) then
             anorm(ib)=sqrt((2*zex(ib,iwf))**(2*n)*min(abs(m)+1,2)/(fact(2*n-1)*2*pi))
+           elseif(numr.le.0 .and. (ibasis.eq.4)) then !GO
+            anorm(ib)=1.d0/(2.d0*pi) !GO
+           elseif(numr.le.0 .and. (ibasis.gt.4 .and. ibasis.le.7)) then !GO
 ! The following change is not necessary at this time and has not been tested.
-           elseif(numr.le.0 .and. (ibasis.ge.4 .and. ibasis.le.7)) then
+!          elseif(numr.le.0 .and. (ibasis.ge.4 .and. ibasis.le.7)) then
 !          elseif(iwrwf2(ib).le.nrbas_analytical(ict) .and. (ibasis.ge.4 .and. ibasis.le.7)) then
             anorm(ib)=dsqrt(1/pi)
            else

@@ -629,7 +629,7 @@
       end
 !-------------------------------------------------------------------------
 
-      subroutine basis_fns_2dgauss(iel,rvec_en,r_en)
+      subroutine basis_fns_2dgauss_old(iel,rvec_en,r_en)
 
 ! Written by A.D.Guclu, Apr 2006
 ! 2-dimensional localized gaussian basis set.
@@ -704,7 +704,7 @@
       end
 !--------------------------------------------------------------------------
 
-      subroutine deriv_2dgauss(rvec_en,r_en)
+      subroutine deriv_2dgauss_old(rvec_en,r_en)
 
 ! Written by A.D.Guclu, Apr 2006
 ! 2-dimensional localized gaussian basis set,
@@ -815,6 +815,193 @@
       return
       end
 
+!--------------------------------------------------------------------------
+
+      subroutine basis_fns_2dgauss(iel,rvec_en,r_en)
+
+! Written by A.D.Guclu, Apr 2006
+! Edited by Gokhan Oztarhan, Jun 2021
+! 2-dimensional localized gaussian basis set.
+! Main purpose is the study 2d wigner crystal.
+
+! arguments: iel=0 -> all electron
+!               >0 -> only electron iel
+!            rvec_en=vector electron-nucleus
+!                    (or electron-dot center in this context)
+
+! output: phin,dphin, and d2phin are calculated
+
+! Wave functions are given by (except the normalization 1/(2.d0*pi)):
+! phi=(we*xg3)*exp(-0.5d0*(we*xg3)*((x1-xg1)^2+(x2-xg2)^2))
+
+! x1,x2 are the electronic positions, xg1 xg2 are the gaussian positions.
+! normalization is taken care in (basis_norm)
+
+      use atom_mod
+      use coefs_mod
+      use const_mod
+      use wfsec_mod
+      use phifun_mod
+      use orbpar_mod
+      implicit real*8(a-h,o-z)
+
+
+!     common /dim/ ndim
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+
+      dimension rvec_en(3,nelec,*),r_en(nelec,*)
+
+! Decide whether we are computing all or one electron
+      if(iel.eq.0) then
+        nelec1=1
+        nelec2=nelec
+      else
+        nelec1=iel
+        nelec2=iel
+      endif
+
+      ic=1
+
+      do ie=nelec1,nelec2
+        x1=rvec_en(1,ie,ic) + cent(1,ic)
+        x2=rvec_en(2,ie,ic) + cent(2,ic)
+
+        do ib=1,nbasis
+          wez=we*oparm(3,ib,iwf)
+          x1rel=x1-oparm(1,ib,iwf)
+          x1rel2=x1rel*x1rel
+          x2rel=x2-oparm(2,ib,iwf)
+          x2rel2=x2rel*x2rel
+          rrel2=x1rel2+x2rel2
+
+          phin(ib,ie)=wez*dexp(-0.5d0*wez*rrel2) !GO
+
+          dphin(1,ib,ie)=-wez*x1rel*phin(ib,ie)
+          dphin(2,ib,ie)=-wez*x2rel*phin(ib,ie)
+
+          d2phin(ib,ie)=wez*(wez*rrel2-2.d0)*phin(ib,ie)
+
+        enddo
+      enddo
+
+      return
+      end
+!--------------------------------------------------------------------------
+
+      subroutine deriv_2dgauss(rvec_en,r_en)
+
+! Written by A.D.Guclu, Apr 2006
+! Edited by Gokhan Oztarhan, Jun 2021
+! 2-dimensional localized gaussian basis set,
+! and his derivatives wrt parameters.
+! Main purpose is the study of 2d wigner crystal.
+
+! arguments:
+!            rvec_en=vector electron-nucleus
+!                    (or electron-dot center in this context)
+
+! output: phin,dphin,d2phin  = wfs and coo. derivatives
+!         dparam, d2param  = parameter derivatives
+
+! Wave functions are given by (except the normalization 1/(2.d0*pi)):
+! phi=(we*xg3)*exp(-0.5d0*(we*xg3)*((x1-xg1)^2+(x2-xg2)^2))
+
+! x1,x2 are the electronic positions, xg1 xg2 are the gaussian positions.
+! normalization is taken care in (basis_norm)
+
+! parameter xg1,xg2,xg3 correspond to nparmo1,nparmo2,nparmo3 respectively.
+
+      use atom_mod
+      use coefs_mod
+      use const_mod
+      use wfsec_mod
+      use phifun_mod
+      use orbpar_mod
+      use deriv_phifun_mod
+      implicit real*8(a-h,o-z)
+
+
+!     common /dim/ ndim
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+
+      dimension rvec_en(3,nelec,*),r_en(nelec,*)
+
+      nelec1=1
+      nelec2=nelec
+
+      ic=1
+      
+      do ie=nelec1,nelec2
+        x1=rvec_en(1,ie,ic) + cent(1,ic)
+        x2=rvec_en(2,ie,ic) + cent(2,ic)
+
+! in the following we are losing some efficiency by calculating all the
+! gaussians for each electron. Because up and down electrons do not share
+! the same gaussian in crystals we could restrict the calculations...
+! I will however keep it this way in case we are interested in other
+! application than crystals.
+        do ib=1,nbasis
+          if(oparm(3,ib,iwf).lt.0.d0) then
+            stop 'oparm(3,ib,iwf).lt.0.d0 in deriv_2dgauss. '
+          endif
+! pre-defined variables
+          wez=we*oparm(3,ib,iwf)
+          xg3i=1.d0/oparm(3,ib,iwf)
+          x1rel=x1-oparm(1,ib,iwf)
+          x1rel2=x1rel*x1rel
+          x2rel=x2-oparm(2,ib,iwf)
+          x2rel2=x2rel*x2rel
+          rrel2=x1rel2+x2rel2
+          
+		  wez2=wez*wez
+          wez_rrel2_4=wez*rrel2-4.d0
+
+! wfs and coo. derivatives:
+          phin(ib,ie)=wez*dexp(-0.5d0*wez*rrel2) !GO
+
+          dphin(1,ib,ie)=-wez*x1rel*phin(ib,ie)
+          dphin(2,ib,ie)=-wez*x2rel*phin(ib,ie)
+
+          d2phin(ib,ie)=wez*(wez*rrel2-2.d0)*phin(ib,ie)
+
+! parameter derivatives:
+          dparam(1,ib,ie)=-dphin(1,ib,ie)                                  ! wrt xg1
+          dparam(2,ib,ie)=-dphin(2,ib,ie)                                  ! wrt xg2
+          dparam(3,ib,ie)=0.5d0*xg3i*(2.d0-wez*rrel2)*phin(ib,ie)          ! wrt xg3
+
+          d2param(1,1,ib,ie)=(wez2*x1rel2-wez)*phin(ib,ie)                 ! wrt xg1,xg1
+          d2param(2,2,ib,ie)=(wez2*x2rel2-wez)*phin(ib,ie)                 ! wrt xg2,xg2
+          d2param(3,3,ib,ie)=0.25d0*we*xg3i*rrel2*wez_rrel2_4 &
+     &                       *phin(ib,ie)                                  ! wrt xg3,xg3
+     
+          d2param(1,2,ib,ie)=wez2*x1rel*x2rel*phin(ib,ie)                  ! wrt xg1,xg2
+          temp=-0.5d0*we*wez_rrel2_4*phin(ib,ie) 
+          d2param(1,3,ib,ie)=x1rel*temp                                    ! wrt xg1,xg3
+          d2param(2,3,ib,ie)=x2rel*temp                                    ! wrt xg2,xg3
+          d2param(2,1,ib,ie)=d2param(1,2,ib,ie)
+          d2param(3,1,ib,ie)=d2param(1,3,ib,ie)
+          d2param(3,2,ib,ie)=d2param(2,3,ib,ie)
+
+! coo. derivatives of parameter derivatives:
+          ddparam(1,1,ib,ie)=-d2param(1,1,ib,ie)                           ! wrt x1,xg1
+          ddparam(2,1,ib,ie)=-d2param(1,2,ib,ie)                           ! wrt x2,xg1
+
+          ddparam(1,2,ib,ie)=ddparam(2,1,ib,ie)                            ! wrt x1,xg2
+          ddparam(2,2,ib,ie)=-d2param(2,2,ib,ie)                           ! wrt x2,xg2
+
+          ddparam(1,3,ib,ie)=-d2param(1,3,ib,ie)                           ! wrt x1,xg3
+          ddparam(2,3,ib,ie)=-d2param(2,3,ib,ie)                           ! wrt x2,xg3
+
+          d2dparam(1,ib,ie)=wez*wez_rrel2_4*dparam(1,ib,ie)                ! laplacian of dparam(1,ib,ie)
+          d2dparam(2,ib,ie)=wez*wez_rrel2_4*dparam(2,ib,ie)                ! laplacian of dparam(2,ib,ie)
+          d2dparam(3,ib,ie)=-0.5d0*we*(wez*rrel2*(wez*rrel2-8.d0) &
+     &                      +8.d0)*phin(ib,ie)                             ! laplacian of dparam(3,ib,ie)
+
+        enddo
+      enddo
+
+      return
+      end
 !--------------------------------------------------------------------------
 
       subroutine basis_fns_polargauss(iel,rvec_en,r_en)

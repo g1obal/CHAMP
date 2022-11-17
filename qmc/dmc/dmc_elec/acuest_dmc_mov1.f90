@@ -224,7 +224,7 @@
 
         if(ifr.eq.1) then
           if(ndim.eq.2) then
-            write(6,'(f12.7,5(f12.7,''('',i7,'')''),17x,3i10)') egnow,egave, &
+            write(6,'(f12.7,1x,5(f12.7,1x,"( ",i7," )",1x),17x,3(i10,1x))') egnow,egave, & !GO
      &       iegerr,peave,ipeerr,tpbave,itpber,tjfave,itjfer,emave,iemerr, &
      &       npass,nint(wgsum(ifr)),ioldest
            else

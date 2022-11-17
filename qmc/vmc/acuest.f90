@@ -223,7 +223,7 @@
           endif
 
           if(ndim.eq.2) then
-            write(6,'(f12.7,5(f12.7,''('',i7,'')''),17x,f10.5,i10)') &
+            write(6,'(f12.7,1x,5(f12.7,1x,"( ",i7," )",1x),17x,f10.5,1x,i10)') & !GO
      &      enow,eave,ieerr,peave,ipeerr,tpbave,itpber,tjfave,itjfer,emave,iemerr, &
      &      accave,it
            elseif(nloc.eq.-3) then !MS Jellium

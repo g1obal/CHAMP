@@ -466,17 +466,18 @@
 !     write(6,'(''nconf_global*passes'',t19,''passes  nconf_global nstep  nblk nblkeq
 !    & nproc  tau    taueff'',/,2f12.0,2i6,i7,2i5,2f9.5)')
 !    &eval,passes,nconf_global,nstep,iblk,nblkeq,nproc,tau,taucum(1)/wgcum(1)
-      write(6,'(''physical variable         average     rms error   sigma*T_cor  sigma   T_cor'')')
+      write(6,'(a21,1x,a14,1x,"  ",1x,a11,1x,2(a11,1x),a8)') & !GO
+     & 'physical variable    ','average','rms error','sigma*T_cor','sigma','T_cor'
       if(idmc.ge.0) then
-        write(6,'(''weights ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
+        write(6,'("weights =            ",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') & !GO
      &  wave,werr,werr*rtpass_proc1,werr1*rtpass_proc1,(werr/werr1)**2
-        write(6,'(''wts with f ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
+        write(6,'("wts with f =         ",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') & !GO
      &  wfave,wferr,wferr*rtpass_proc1,wferr1*rtpass_proc1,(wferr/wferr1)**2
         do 20 ifr=1,nforce
           wgave=wgcum(ifr)/pass_proc
           wgerr=errw(wgcum(ifr),wgcm2(ifr))
           wgerr1=errw1(wgcum1(ifr),wgcm21(ifr))
-          write(6,'(''wts with fs ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
+          write(6,'("wts with fs =        ",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') & !GO
      &    wgave,wgerr,wgerr*rtpass_proc1,wgerr1*rtpass_proc1,(wgerr/wgerr1)**2
   20    continue
         call object_provide('ovlp_trial_fn')
@@ -485,10 +486,10 @@
         write(6,'(a,f10.8)') 'unnormalized overlap of FN and trial wave functions= ', ovlp_trial_fn_over_ovlp_trial
 
 ! Mixed energy estimators
-        write(6,'(''total energy (   0) ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
-     &  eave,eerr,eerr*rteval_proc_eff1,eerr1*rteval_proc_eff1,(eerr/eerr1)**2
-        write(6,'(''total energy (   1) ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
-     &  efave,eferr,eferr*rtevalf_proc_eff1,eferr1*rtevalf_proc_eff1,(eferr/eferr1)**2
+        write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') &  !GO
+     &  0, eave,eerr,eerr*rteval_proc_eff1,eerr1*rteval_proc_eff1,(eerr/eerr1)**2
+        write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') &  !GO
+     &  1, efave,eferr,eferr*rtevalf_proc_eff1,eferr1*rtevalf_proc_eff1,(eferr/eferr1)**2
       endif
       call alloc ('eloc_tc', eloc_tc, nforce) !JT
       do 30 ifr=1,nforce
@@ -501,7 +502,7 @@
         energy_sigma(ifr)=egerr1*rtevalg_proc_eff1
         energy_err(ifr)=egerr
         if(nforce.eq.1) then
-          write(6,'(''total energy ('',i4,'') ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
+          write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') &  !GO
      &    nfprod,egave,egerr,egerr*rtevalg_proc_eff1,egerr1*rtevalg_proc_eff1,(egerr/egerr1)**2
          else
           write(6,'(''total energy ('',i4,'')'',i1,''='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
@@ -532,15 +533,15 @@
           peerr=peerr*(1-temp)+peierr*temp
         endif
 
-        write(6,'(''potential energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') peave,peerr,peerr*rtevalg_proc_eff1
-        write(6,'(''interaction energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') peiave,peierr,peierr*rtevalg_proc_eff1
-        write(6,'(''jf kinetic energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') tjfave,tjferr,tjferr*rtevalg_proc_eff1
-        write(6,'(''pb kinetic energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') tpbave,tpberr,tpberr*rtevalg_proc_eff1
+        write(6,'("potential energy =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') peave,peerr,peerr*rtevalg_proc_eff1 !GO
+        write(6,'("interaction energy = ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') peiave,peierr,peierr*rtevalg_proc_eff1 !GO
+        write(6,'("jf kinetic energy =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') tjfave,tjferr,tjferr*rtevalg_proc_eff1 !GO
+        write(6,'("pb kinetic energy =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') tpbave,tpberr,tpberr*rtevalg_proc_eff1 !GO
 
         if(ndim.eq.2) then
-          write(6,'(''radial mag. energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') tmave,tmerr,tmerr*rtevalg_proc_eff1
-          write(6,'(''orbital mag. energy ='',t22,f14.7)') emaglz+emagv
-          write(6,'(''Zeeman energy ='',t22,f14.7)') emagsz
+          write(6,'("radial mag. energy = ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') tmave,tmerr,tmerr*rtevalg_proc_eff1 !GO
+          write(6,'("orbital mag. energy =",1x,f14.7)') emaglz+emagv !GO
+          write(6,'("Zeeman energy =      ",1x,f14.7)') emagsz !GO
         endif
   40  continue
       do 50 ifr=2,nforce

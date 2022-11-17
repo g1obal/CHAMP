@@ -165,11 +165,14 @@
         write(6,'(a,f12.0,a,i6,a,i6,a,i6,a)') 'Final results after ',passes,' passes (nstep = ',nstep,', nproc = ',nproc,', nblk = ' &
      &  ,iblk,')'
       endif
-      write(6,'(''physical variable'',t20,''average'',t34,''rms error'' &
-     &,t47,''rms er*rt(pass)'',t65,''sigma'',t86,''Tcor'')')  !JT
+     ! write(6,'(''physical variable'',t20,''average'',t34,''rms error'' &
+     !&,t47,''rms er*rt(pass)'',t65,''sigma'',t86,''Tcor'')')  !JT
+
+      write(6,'(a17,1x,a14,1x,"  ",1x,a11,1x,a9,1x,a11,1x,a9,1x,"  ",1x,a9,1x,a8)') & !GO
+     & 'physical variable','average','rms error','rms','er*rt(pass)','sigma','','Tcor'
 
       if(nforce.eq.1) then
-        write(6,'(''total E ='',f19.7,'' +-'',f11.7,3f9.5,'' +-'',f9.5,f8.2)') &
+        write(6,'("total E =        ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5,1x,f11.5,1x,f9.5,1x,"+-",1x,f9.5,1x,f8.2)') & !GO
      &  efin,eerr,eerr*rtpass,eerr1*rtpass,sigma,error_sigma,tcsq*tcsq
 
 !MS Jellium sphere
@@ -219,14 +222,10 @@
        &ifr,efin,eerr,eerr*rtpass,sigma,tcsq*tcsq
   110   write(6,'(''E_diff'',i3,'' ='',t13,f16.7,'' +-'',f11.7,f9.5)') &
      &  ifr,ffin,ferr,ferr*rtpass
-      write(6,'(''potential E ='',t14,f15.7 &
-     &,'' +-'',f11.7,f9.5)') pefin,peerr,peerr*rtpass
-      write(6,'(''interaction E ='',t16,f13.7 &
-     &,'' +-'',f11.7,f9.5)') peifin,peierr,peierr*rtpass
-      write(6,'(''jf kinetic E ='',t15,f14.7,'' +-'' &
-     &,f11.7,f9.5)') tjffin,tjferr,tjferr*rtpass
-      write(6,'(''pb kinetic E ='',t15,f14.7,'' +-'' &
-     &,f11.7,f9.5)') tpbfin,tpberr,tpberr*rtpass
+      write(6,'("potential E =    ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') pefin,peerr,peerr*rtpass !GO
+      write(6,'("interaction E =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') peifin,peierr,peierr*rtpass !GO
+      write(6,'("jf kinetic E =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tjffin,tjferr,tjferr*rtpass !GO
+      write(6,'("pb kinetic E =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tpbfin,tpberr,tpberr*rtpass !GO
 !JT         write(6,'(a,f12.7,a,f11.7)') 'Potential energy    =',pefin,' +-',peerr
 !JT         write(6,'(a,f12.7,a,f11.7)') 'Kinetic energy (JF) =',tjffin,' +-',tjferr
 !JT         write(6,'(a,f12.7,a,f11.7)') 'Kinetic energy (PB) =',tpbfin,' +-',tpberr
@@ -234,10 +233,9 @@
       call object_modified ('eloc_tc')
 
       if(ndim.eq.2) then
-        write(6,'(''radial mag. E ='',t17,f12.7,'' +-'' &
-     &  ,f11.7,f9.5)') tmfin,tmerr,tmerr*rtpass
-        write(6,'(''orbital mag. E ='',t17,f12.7)') emaglz+emagv
-        write(6,'(''Zeeman E ='',t17,f12.7)') emagsz
+        write(6,'("radial mag. E =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tmfin,tmerr,tmerr*rtpass !GO
+        write(6,'("orbital mag. E = ",1x,f14.7)') emaglz+emagv !GO
+        write(6,'("Zeeman E =       ",1x,f14.7)') emagsz !GO
       endif
 
       if(iperiodic.eq.0.and.ncent.eq.1) then
@@ -262,7 +260,8 @@
       if(print_radial_probability .and. index(mode,'mov1').ne.0.and.iperiodic.eq.0.and.ncent.eq.1) then
         write(6,'(''acceptance          ='',t17,2f12.7)') accfin,sucsum/trysum
        else
-        write(6,'(''acceptance          ='',t17,2f12.7)') accfin
+        !write(6,'(''acceptance          ='',t17,2f12.7)') accfin
+        write(6,'("acceptance       ",1x,f14.7)') accfin !GO
       endif
 
       if(ifixe.ne.0 .or. ifourier.ne.0 .or. izigzag.ne.0) call den2dwrt(passes,r1fin)

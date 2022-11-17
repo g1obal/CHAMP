@@ -307,7 +307,7 @@
 
         if(ifr.eq.1) then
           if(ndim.eq.2) then
-            write(6,'(f12.7,5(f12.7,''('',i7,'')''),17x,3i10)') egcollect(ifr)/wgcollect(ifr), &
+            write(6,'(f12.7,1x,5(f12.7,1x,"( ",i7," )",1x),17x,3(i10,1x))') egcollect(ifr)/wgcollect(ifr), & !GO
      &      egave,iegerr,peave,ipeerr,tpbave,itpber,tjfave,itjfer,emave,iemerr,npass,nint(wgcollect(ifr)/nproc),ioldest
            else
             write(6,'(f10.5,4(f10.5,''('',i5,'')''),17x,3i10)') egcollect(ifr)/wgcollect(ifr), &

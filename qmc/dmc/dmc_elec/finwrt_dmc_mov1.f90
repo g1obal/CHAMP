@@ -196,16 +196,17 @@
       endif
 
       write(6,'(''nconf*passes     passes   nconf nstep  nblk nblkeq  tau    taueff'',/, &
-     & 2f12.0,2i6,i7,i5,2f9.5)') eval,passes,nconf_global,nstep,iblk,nblkeq,tau,taucum(1)/wgcum(1)
-      write(6,'(''physical variable         average     rms error   sigma*T_cor  sigma   T_cor'')')
+     & 2f12.0,2i6,i7,i5,2f9.5)') eval,passes,nconf_global,nstep,iblk,nblkeq,tau,taucum(1)/wgcum(1)    
+      write(6,'(a21,1x,a14,1x,"  ",1x,a11,1x,2(a11,1x),a8)') & !GO
+     & 'physical variable    ','average','rms error','sigma*T_cor','sigma','T_cor'
       if(idmc.ge.0) then
-        write(6,'(''weights ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') wave,werr,werr*rtpass1,werr1*rtpass1,(werr/werr1)**2
-        write(6,'(''wts with f ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') wfave,wferr,wferr*rtpass1,wferr1*rtpass1,(wferr/wferr1)**2
+        write(6,'("weights =            ",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') wave,werr,werr*rtpass1,werr1*rtpass1,(werr/werr1)**2 !GO
+        write(6,'("wts with f =         ",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') wfave,wferr,wferr*rtpass1,wferr1*rtpass1,(wferr/wferr1)**2 !GO
         do 20 ifr=1,nforce
           wgave=wgcum(ifr)/passes
           wgerr=errw(wgcum(ifr),wgcm2(ifr))
           wgerr1=errw1(wgcum1(ifr),wgcm21(ifr))
-          write(6,'(''wts with fs ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
+          write(6,'("wts with fs =        ",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') & !GO
      &    wgave,wgerr,wgerr*rtpass1,wgerr1*rtpass1,(wgerr/wgerr1)**2
   20    continue
         call object_provide('ovlp_trial_fn')
@@ -214,10 +215,10 @@
         write(6,'(a,f15.8)') 'unnormalized overlap of FN and trial wave functions= ', ovlp_trial_fn_over_ovlp_trial
 
 ! Mixed energy estimators
-        write(6,'(''total energy (   0) ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
-     &  eave,eerr,eerr*rteval_eff1,eerr1*rteval_eff1,(eerr/eerr1)**2
-        write(6,'(''total energy (   1) ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
-     &  efave,eferr,eferr*rtevalf_eff1,eferr1*rtevalf_eff1,(eferr/eferr1)**2
+        write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') &  !GO
+     &  0, eave,eerr,eerr*rteval_eff1,eerr1*rteval_eff1,(eerr/eerr1)**2
+        write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') &  !GO
+     &  1, efave,eferr,eferr*rtevalf_eff1,eferr1*rtevalf_eff1,(eferr/eferr1)**2
       endif
       call alloc ('eloc_tc', eloc_tc, nforce) !JT
       do 30 ifr=1,nforce
@@ -230,7 +231,7 @@
         energy_sigma(ifr)=egerr1*rtevalg_eff1
         energy_err(ifr)=egerr
         if(nforce.eq.1) then
-          write(6,'(''total energy ('',i4,'') ='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
+          write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,2(f11.5,1x),f8.2)') &  !GO
      &    nfprod,egave,egerr,egerr*rtevalg_eff1,egerr1*rtevalg_eff1,(egerr/egerr1)**2
          else
           write(6,'(''total energy ('',i4,'')'',i1,''='',t22,f14.7,'' +-'',f11.7,2f10.5,f8.2)') &
@@ -240,9 +241,9 @@
       call object_modified ('eloc_tc') !JT
 ! Growth energy estimators
       if(idmc.ge.0) then
-        write(6,'(''total energy (   0) ='',t22,f14.7,'' +-'',f11.7,f10.5)') e1ave,e1err,e1err*rteval_eff1
-        write(6,'(''total energy ('',i4,'') ='',t22,f14.7,'' +-'',f11.7,f10.5)') nfprod-1,e2ave,e2err,e2err*rtevalg_eff1
-        write(6,'(''total energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') e3ave,e3err,e3err*rteval_eff1
+        write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') 0, e1ave,e1err,e1err*rteval_eff1 !GO
+        write(6,'("total energy (",i4,") =",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') nfprod-1,e2ave,e2err,e2err*rtevalg_eff1 !GO
+        write(6,'("total energy =       ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') e3ave,e3err,e3err*rteval_eff1 !GO
       endif
 
 !JT      ovlp_ovlp_fn_av = ovlp_ovlp_fn_cum / (passes*nwalk)
@@ -269,15 +270,15 @@
           peerr=peerr*(1-temp)+peierr*temp
         endif
 
-        write(6,'(''potential energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') peave,peerr,peerr*rtevalg_eff1
-        write(6,'(''interaction energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') peiave,peierr,peierr*rtevalg_eff1
-        write(6,'(''jf kinetic energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') tjfave,tjferr,tjferr*rtevalg_eff1
-        write(6,'(''pb kinetic energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') tpbave,tpberr,tpberr*rtevalg_eff1
+        write(6,'("potential energy =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') peave,peerr,peerr*rtevalg_eff1 !GO
+        write(6,'("interaction energy = ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') peiave,peierr,peierr*rtevalg_eff1 !GO
+        write(6,'("jf kinetic energy =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') tjfave,tjferr,tjferr*rtevalg_eff1 !GO
+        write(6,'("pb kinetic energy =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') tpbave,tpberr,tpberr*rtevalg_eff1 !GO
 
         if(ndim.eq.2) then
-          write(6,'(''radial mag. energy ='',t22,f14.7,'' +-'',f11.7,f10.5)') tmave,tmerr,tmerr*rtevalg_eff1
-          write(6,'(''orbital mag. energy ='',t22,f14.7)') emaglz+emagv
-          write(6,'(''Zeeman energy ='',t22,f14.7)') emagsz
+          write(6,'("radial mag. energy = ",1x,f14.7,1x,"+-",1x,f11.7,1x,f11.5)') tmave,tmerr,tmerr*rtevalg_eff1 !GO
+          write(6,'("orbital mag. energy =",1x,f14.7)') emaglz+emagv !GO
+          write(6,'("Zeeman energy =      ",1x,f14.7)') emagsz !GO
         endif
 
   40  continue

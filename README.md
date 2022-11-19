@@ -50,8 +50,8 @@ $ make clean
 $ make mpi
 ```
 
-Between serial and MPI version compilations, `$ make clean` should be done so 
-that MPI and serial objects are not mixed.
+***Serial and MPI objects should not be mixed. Use `$ make clean` between serial
+and MPI version compilations.***
 
 If a file is added/deleted or module dependencies are modified, generate a new 
 makefile using: `$ make make`

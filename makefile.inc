@@ -7,6 +7,9 @@ hostname := $(shell uname -n)
 uname := $(shell uname)
 machine := $(shell uname -m)
 
+# check gcc version
+gfortran_version_ge_10 := $(shell expr `gfortran -dumpversion | cut -f1 -d.` \>= 10)
+
 ####################### DEFAULTS ########################################
 
 # Libraries --------------------------------------------------------------
@@ -50,16 +53,21 @@ CC_MPI_FLAGS=$(CC_FLAGS)
 # Fortran compilation ------------------------------------------------------
 
 # These are defaults using the gfortran
-# F95=gfortran
-# F95_MPI=mpif90
-F95=gfortran -fallow-argument-mismatch # for gcc versions > 10
-F95_MPI=mpif90 -fallow-argument-mismatch # for gcc versions > 10
+F95=gfortran
+F95_MPI=mpif90
 
 # F95_FAST_FLAGS= -zero -r8 -pad -align all -fpp -ip -O3
 #F95_FAST_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -Wall  -DNOEINSPLINE
 F95_FAST_FLAGS=-O3 -ffree-line-length-none -x f95-cpp-input -DNOEINSPLINE
 F95_PROF_FLAGS=-finit-local-zero -O3 -ffree-line-length-none -x f95-cpp-input -Wall  -DNOEINSPLINE -pg
 F95_DEBUG_FLAGS=-finit-local-zero -O0 -ffree-line-length-none -x f95-cpp-input -Wall -DNOEINSPLINE -g -fbounds-check -fbacktrace
+
+# for gcc versions >= 10, use -fallow-argument-mismatch flag
+ifeq "$(gfortran_version_ge_10)" "1"
+    F95_FAST_FLAGS += -fallow-argument-mismatch
+    F95_PROF_FLAGS += -fallow-argument-mismatch
+    F95_DEBUG_FLAGS += -fallow-argument-mismatch
+endif
 
 # by default, compilation for f77 is the same than for f95
 F77=$(F95)
@@ -69,6 +77,13 @@ F77_MPI=$(F95_MPI)
 F77_FAST_FLAGS=-O3 -ffixed-line-length-none -x f77-cpp-input  -DNOEINSPLINE
 F77_PROF_FLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall  -DNOEINSPLINE -pg
 F77_DEBUG_FLAGS=-finit-local-zero -O0 -ffixed-line-length-132 -x f77-cpp-input -Wall -DNOEINSPLINE -g -fbounds-check -fbacktrace
+
+# for gcc versions >= 10, use -fallow-argument-mismatch flag
+ifeq "$(gfortran_version_ge_10)" "1"
+    F77_FAST_FLAGS += -fallow-argument-mismatch
+    F77_PROF_FLAGS += -fallow-argument-mismatch
+    F77_DEBUG_FLAGS += -fallow-argument-mismatch
+endif
 
 # by default, fast options
 F95_FLAGS=$(F95_FAST_FLAGS)

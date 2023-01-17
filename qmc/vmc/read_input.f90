@@ -926,7 +926,7 @@
    26   ncent_ctype(ict)=0
       do 27 ic=1,ncent
    27   ncent_ctype(iwctype(ic))=ncent_ctype(iwctype(ic))+1
-      write(6,'(''Number of centers of each centertype:'',20i3)') (ncent_ctype(ict),ict=1,nctype)
+      write(6,'(''Number of centers of each centertype: '',20(i4,1x))') (ncent_ctype(ict),ict=1,nctype) !GO
 
       call alloc ('znuc', znuc, nctype)
 
@@ -2156,7 +2156,7 @@
       if(iconstrain_gauss_orbs.eq.1) then  !read in constraints for orbital optimization
         call alloc ('norb_constraints', norb_constraints, notype)
         read(5,*) (norb_constraints(it),it=1,notype)
-        write(6,'(''Number of constraints applied to each type of orbital: '',4i3)') (norb_constraints(it),it=1,notype)
+        write(6,'(''Number of constraints applied to each type of orbital: '',4(i4,1x))') (norb_constraints(it),it=1,notype) !GO
         call alloc ('orb_constraints', orb_constraints, notype, norb-1, 2)
         do it=1,notype  ! read in constraints
           if(norb_constraints(it).lt.0 .or. norb_constraints(it).gt.(norb-1)) then

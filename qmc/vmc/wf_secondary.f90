@@ -752,7 +752,7 @@
 
       if(nparmot.gt.0) then
         do it=1,notype
-          write(fmt,'(''(''i2,''f15.8,a)'')') nbasis
+          write(fmt,'(''(''i4,''f15.8,a)'')') nbasis !GO
           if(ibasis.eq.5) then
             if(it.eq.1) then
               write(6,fmt) (oparm_best(it,i),i=1,nbasis),' (floating_gauss_rad_pos_best(it,i),i=1,nbasis)'

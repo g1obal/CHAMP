@@ -1100,7 +1100,7 @@
         enddo
       endif
       do it=1,notype
-        write(fmt,'(''('',i3,''f15.8,a)'')') nbasis
+        write(fmt,'(''('',i4,''f15.8,a)'')') nbasis !GO
         if(ipr_new.eq.0 .or. (ipr_new.eq.1 .and. iflag.ne.0)) then
           if(ibasis.eq.5) then
             if(it.eq.1) then

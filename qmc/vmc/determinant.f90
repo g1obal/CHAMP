@@ -735,7 +735,7 @@
       dimension deti_det_temp(nparmd), ddeti_det_temp(3,nelec,nparmd)
       dimension d2deti_det_temp(nparmd), detij_det_temp(nparmd, nparmd)
 !      dimension detij_partial_temp(nparmd,nparmcsf+4*nbasis)
-      dimension iwo_temp(norb,notype)
+      dimension iwo_temp(nbasis,notype) !GO
 ! ACM: For optimized constraints, we shall run deriv_det_orb as if we were
 !  varying each orbital parameter separately, so we must change the values of
 !  nparmo(it), nparmot, nparmd, and iwo(ip,it).  We calculate overall derivatives using

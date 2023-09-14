@@ -8,10 +8,6 @@ Julien Toulouse with major contributions by Devrim Guclu and Frank Petruzielo
 and smaller contributions by other postdocs, students, and collaborators.
 
 ## Fork Information
-Currently, CHAMP is maintained and distributed via a Subversion repository. 
-If you wish to use the most recent version of this program, please contact one 
-of the principal authors.
-
 This fork is created for 2D systems of quantum dots starting from CHAMP version 
 3.08.2 (SVN Revision: 733). It is specifically modified and tested for finite
 sized artificial superlattices. 

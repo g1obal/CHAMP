@@ -911,6 +911,12 @@
       write(6,'(/,''nctype,ncent ='',t31,i3,i5)') nctype,ncent
       call object_modified ('nctype')
       call object_modified ('ncent')
+      
+      if (nloc .eq. -6 .or. nloc .eq. -7) then !GO
+        if (nelec .gt. 2 * ncent) then
+          stop 'nelec cannot be greater than 2 * ncent for nloc = -6 and -7'
+        endif
+      endif
 
       call alloc ('iwctype', iwctype, ncent)
       read(5,*) (iwctype(i),i=1,ncent)
@@ -1914,9 +1920,9 @@
      &  (nparmo(it),it=1,notype)
         do it=1,notype
           nparmot=nparmot+iabs(nparmo(it))
-          if(nparmo(it).lt.(1-norb) .or. nparmo(it).gt.norb) then
-            write(6, '(''nparmo must be between (-norb+1) and norb'')')
-            stop 'nparmo must be between (-norb+1) and norb'
+          if(nparmo(it).lt.(1-nbasis) .or. nparmo(it).gt.nbasis) then !GO
+            write(6, '(''nparmo must be between (-nbasis+1) and nbasis'')')
+            stop 'nparmo must be between (-nbasis+1) and nbasis'
           elseif(nparmo(it).lt.0) then  !some orbitals of type 'it' constrained
             iconstrain_gauss_orbs = 1
             write(6,'(''Constraint imposed in optimization over orbital parameters.'')')
@@ -2007,6 +2013,7 @@
       if(nparme.gt.nbasis) stop 'nparme > nbasis'
       if(nparme.gt.0 .and. numr.gt.0) stop 'nparme > 0 and numr > 0'
       if(nparme.gt.0 .and. ibasis.eq.3 .and. idot.ne.0) stop 'for quantum dots, nparme.gt.0 only possible for Fock-Darwin states'
+      if(nparme.gt.0 .and. ibasis.eq.4) stop 'nparme > 0' !GO
       if(nparml.lt.0 .or. nparmj.lt.0 .or. nparmcsf.lt.0 .or. nparms.lt.0 .or.nparmg.lt.0) stop 'nparm? must be >= 0'
       if(nparms.gt.1) stop 'nparms must be 0 or 1'
       nparmjs=nparmj+nparms !JT
@@ -2017,7 +2024,7 @@
 !JT      endif
       call systemflush(6)
 
-      call alloc ('iwo', iwo, norb, notype)
+      call alloc ('iwo', iwo, nbasis, notype) !GO
       do it=1,notype
         read(5,*) (iwo(iparm,it),iparm=1,iabs(nparmo(it)))
         if(nparmo(it).lt.0) then  !constrained orbital optimization
@@ -2025,7 +2032,7 @@
         endif
         write(6,'(''orbital parameters varied='',10(2i3,2x))')(iwo(iparm,it),iparm=1,iabs(nparmo(it)))
         do iparm=1,iabs(nparmo(it))
-          if(iwo(iparm,it).lt.0 .or. iwo(iparm,it).gt.norb) then
+          if(iwo(iparm,it).lt.0 .or. iwo(iparm,it).gt.nbasis) then
             stop 'Incorrect value for iwo.'
           endif
         enddo
@@ -2157,10 +2164,10 @@
         call alloc ('norb_constraints', norb_constraints, notype)
         read(5,*) (norb_constraints(it),it=1,notype)
         write(6,'(''Number of constraints applied to each type of orbital: '',4(i4,1x))') (norb_constraints(it),it=1,notype) !GO
-        call alloc ('orb_constraints', orb_constraints, notype, norb-1, 2)
+        call alloc ('orb_constraints', orb_constraints, notype, nbasis-1, 2) !GO
         do it=1,notype  ! read in constraints
-          if(norb_constraints(it).lt.0 .or. norb_constraints(it).gt.(norb-1)) then
-            write(6, '(''There must be between 0 and (norb-1) constraints'')')
+          if(norb_constraints(it).lt.0 .or. norb_constraints(it).gt.(nbasis-1)) then !GO
+            write(6, '(''There must be between 0 and (nbasis-1) constraints'')')
             stop 'Invalid number of constraints.'
           endif
           if(norb_constraints(it).eq.0 .and. nparmo(it).lt.0) then
@@ -2189,8 +2196,8 @@
           endif
           do icon=1,norb_constraints(it)  ! check that constraints are ok
             write(6,'(''Constraining orbitals: '',2i5)') (orb_constraints(it,icon,j),j=1,2)
-            if (orb_constraints(it,icon,1).le.0 .or. orb_constraints(it,icon,1).gt.norb) then
-              write(6,'(''Constrained orbital must be between 1 and norb'')')
+            if (orb_constraints(it,icon,1).le.0 .or. orb_constraints(it,icon,1).gt.nbasis) then !GO
+              write(6,'(''Constrained orbital must be between 1 and nbasis'')')
               stop 'Constrained orbital out of range'
             endif
             is_first_ok = 1 ! check to see if first orbital of pair is one that we aren't optimizing

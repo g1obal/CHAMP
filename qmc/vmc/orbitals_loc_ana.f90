@@ -106,6 +106,7 @@
       subroutine deriv_orbitals(rvec_en,r_en,orb,dorb,ddorb,dporb,d2porb &
      &          ,ddporb,d2dporb)
 ! Written by A.D.Guclu (Apr 2005) starting from orbitals_loc_ana.f
+! Modified by Gokhan Oztarhan (Oct 2023)
 ! Calculate localized orbitals, coo. and parameter derivatives for all electrons
       use control_mod
       use coefs_mod
@@ -121,8 +122,8 @@
 
       dimension rvec_en(3,nelec,ncent),r_en(nelec,ncent)
       dimension orb(nelec,norb),dorb(3,nelec,norb),ddorb(nelec,norb)
-      dimension dporb(notype,nelec,norb),d2porb(notype,notype,nelec,norb)
-      dimension ddporb(3,notype,nelec,norb),d2dporb(notype,nelec,norb)
+      dimension dporb(notype,nbasis,nelec,norb),d2porb(notype,notype,nbasis,nelec,norb)
+      dimension ddporb(3,notype,nbasis,nelec,norb),d2dporb(notype,nbasis,nelec,norb)
 
       nelec1=1
       nelec2=nelec
@@ -150,30 +151,20 @@
       else
         stop 'deriv_orbitals: ibasis must be 4, 5, 6, or 7'
       endif
-
+      
+      ! GO: following are array assignments
+      orb = 0
+      dorb = 0
+      ddorb = 0
+      dporb = 0
+      d2dporb = 0
+      ddporb = 0
+      d2porb = 0
+      
       do iorb=1,norb
         do ie=nelec1,nelec2
 
-          orb(ie,iorb)=0
-          do idim=1,ndim
-            dorb(idim,ie,iorb)=0
-          enddo
-          ddorb(ie,iorb)=0
-          do ip=1,notype
-            dporb(ip,ie,iorb)=0
-            d2dporb(ip,ie,iorb)=0
-            do idim=1,ndim
-              ddporb(idim,ip,ie,iorb)=0
-            enddo
-          enddo
-          do ip=1,notype
-            do jp=1,notype
-              d2porb(ip,jp,ie,iorb)=0
-            enddo
-          enddo
-
           do m=1,nbasis
-
             orb(ie,iorb)=orb(ie,iorb)+coef(m,iorb,iwf)*phin(m,ie)
 !            write(6,*) 'ie,iorb,m,coef(m,iorb,iwf),phin(m,ie)='
 !     &,ie,iorb,m,coef(m,iorb,iwf),phin(m,ie)
@@ -182,17 +173,16 @@
             enddo
             ddorb(ie,iorb)=ddorb(ie,iorb)+coef(m,iorb,iwf)*d2phin(m,ie)
 
-            do ip=1,notype
-              dporb(ip,ie,iorb)=dporb(ip,ie,iorb)+coef(m,iorb,iwf)*dparam(ip,m,ie)
-              d2dporb(ip,ie,iorb)=d2dporb(ip,ie,iorb)+coef(m,iorb,iwf)*d2dparam(ip,m,ie)
+            do it=1,notype
+              dporb(it,m,ie,iorb)=coef(m,iorb,iwf)*dparam(it,m,ie)
+              d2dporb(it,m,ie,iorb)=coef(m,iorb,iwf)*d2dparam(it,m,ie)
               do idim=1,ndim
-                ddporb(idim,ip,ie,iorb)=ddporb(idim,ip,ie,iorb) &
-     &           +coef(m,iorb,iwf)*ddparam(idim,ip,m,ie)
+                ddporb(idim,it,m,ie,iorb)=coef(m,iorb,iwf)*ddparam(idim,it,m,ie)
               enddo
             enddo
-            do ip=1,notype
-              do jp=1,notype
-                d2porb(ip,jp,ie,iorb)=d2porb(ip,jp,ie,iorb)+coef(m,iorb,iwf)*d2param(ip,jp,m,ie)
+            do it=1,notype
+              do jt=1,notype
+                d2porb(it,jt,m,ie,iorb)=coef(m,iorb,iwf)*d2param(it,jt,m,ie)
               enddo
             enddo
           enddo

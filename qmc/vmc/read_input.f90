@@ -86,7 +86,7 @@
 !     namelist /opt_list/ igradhess
       namelist /opt_list/ iring_coulomb, iantiferromagnetic, iper_gaussian_type, xmax,xfix,fmax1,fmax2,rring,ifixe,nv,idot,ifourier &
      &,iperturb,ang_perturb,amp_perturb,shrp_perturb,omg_perturb,rmin,rmax,nmeshr,nmesht,icoosys,dot_bump_height,dot_bump_radius &
-     &,nmeshk1,izigzag,zzdelyr,gndot_k
+     &,nmeshk1,izigzag,zzdelyr,gndot_k,gauss_width_max
 
       common /jel_sph1/ dn_background,rs_jel,radius_b ! RM
 
@@ -384,7 +384,10 @@
 ! amp_perturb  amplitude of the angular perturbation
 ! shrp_perturb sharpness of the angular perturbation
 ! omg_perturb  omega for upside down parabola perturbation
-
+!
+! gauss_width_max  maximum width for 2d floating gaussian basis set (ibasis=4), optional parameter
+!                  < 0: no limit (default)
+!                  >= 0: limit with the value of gauss_width_max
 
 ! Optimization parameters:
 
@@ -1564,6 +1567,7 @@
         iantiferromagnetic = 0
       endif
       gndot_k=0.d0 !GO
+      gauss_width_max = -1 ! GO
 !     default values of dot_bump_height and dot_bump_radius are set above
 !        where w0, etc... are read in
 
@@ -2261,6 +2265,14 @@
 
         endif
       endif
+      
+      ! the default value of oparm3_max is the maximum value of a real*8 variable
+      ! so that other basis sets using oparm(3,:,:) would not be affected during the optimization.
+      oparm3_max = huge(oparm3_max) ! GO
+      if (ibasis .eq. 4 .and. gauss_width_max .ge. 0d0) then
+        oparm3_max = gauss_width_max
+      endif
+      write(6,'(/,''oparm3_max = '',G20.8E3,/)') oparm3_max
 
       write(6,'(''ipr in read_input'',i5)') ipr
       call systemflush(6)

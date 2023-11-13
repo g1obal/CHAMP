@@ -1037,6 +1037,11 @@
      &           '' iflag=1. This is a bad move because oparm(3,..) < 0'')') iadd_diag,add_diag(1)
               iflag=1
             endif
+            if (oparm(3,ib,iadd_diag) .gt. oparm3_max) then !GO
+              write(6,'(''iadd_diag='',i2,d12.4, &
+     &           '' iflag=1. This is a bad move because oparm(3,..) > oparm3_max'')') iadd_diag,add_diag(1)
+              iflag=1
+            endif
           enddo
         endif
       endif

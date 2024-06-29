@@ -323,43 +323,39 @@
 
       implicit real*8(a-h,o-z)
       
-      dimension coefsum(nbasis,ndet)
+      dimension coefsum(nbasis)
       dimension indcoefavailup(nbasis), indcoefavaildn(nbasis)
 
       coefsum = 0
       do i = 1, nbasis
         do j = 1, ndet
           do k = 1, nup
-            coefsum(i,j) = coefsum(i,j) + coef(i,iworbd(k,j),1)**2
+            coefsum(i) = coefsum(i) + coef(i,iworbd(k,j),1)**2
           enddo
         enddo
       enddo
       
       indcoefavailup = 1
       do i = 1, nbasis
-        do j = 1, ndet
-          if (coefsum(i,j) .eq. 0d0) then
-            indcoefavailup(i) = 0
-          endif
-        enddo
+        if (coefsum(i) .eq. 0d0) then
+          indcoefavailup(i) = 0
+        endif
       enddo
 
       coefsum = 0
       do i = 1, nbasis
         do j = 1, ndet
           do k = nup + 1, nup + ndn
-            coefsum(i,j) = coefsum(i,j) + coef(i,iworbd(k,j),1)**2
+            coefsum(i) = coefsum(i) + coef(i,iworbd(k,j),1)**2
           enddo
         enddo
       enddo
       
       indcoefavaildn = 1
       do i = 1, nbasis
-        do j = 1, ndet
-          if (coefsum(i,j) .eq. 0d0) then
-            indcoefavaildn(i) = 1
-          endif
-        enddo
+        if (coefsum(i) .eq. 0d0) then
+          indcoefavaildn(i) = 0
+        endif
       enddo
 
       return

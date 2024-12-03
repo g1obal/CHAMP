@@ -131,11 +131,7 @@
 !      located around centers of gaussian basis functions within an effective radius.
 !      Be careful if there is more than 1 slater determinant
             elseif(nloc.eq.-6 .or. nloc.eq.-7) then
-              if (nelec .eq. ncent) then
-                iind = iworbd(ielec,1)
-              else
-                call find_basis_center(ielec, indcoefavailup, indcoefavaildn, nbasup, nbasdn, iind)
-              endif
+              call find_basis_center(ielec, indcoefavailup, indcoefavaildn, nbasup, nbasdn, iind)
               
               site = dsqrt(-dlog(rannyu(0)))
               if(ibasis.eq.4) then
@@ -183,16 +179,14 @@
       if(ielec.lt.nelec) stop 'bad input to sites'
       
       if (nloc.eq.-6 .or. nloc.eq.-7) then !GO
-        if (nelec .ne. ncent) then
-          nbassum = 0
-          do iibas = 1, nbasis
-            nbassum = nbassum + nbasup(iibas)
-            nbassum = nbassum + nbasdn(iibas)
-            if (nbasup(iibas) .gt. 1) stop 'bad input to sites (nbasup(iibas) .gt. 1)'
-            if (nbasdn(iibas) .gt. 1) stop 'bad input to sites (nbasdn(iibas) .gt. 1)'
-          enddo
-          if (nbassum .ne. nelec) stop 'bad input to sites (nbassum .ne. nelec)'
-        endif
+        nbassum = 0
+        do iibas = 1, nbasis
+          nbassum = nbassum + nbasup(iibas)
+          nbassum = nbassum + nbasdn(iibas)
+          if (nbasup(iibas) .gt. 1) stop 'bad input to sites (nbasup(iibas) .gt. 1)'
+          if (nbasdn(iibas) .gt. 1) stop 'bad input to sites (nbasdn(iibas) .gt. 1)'
+        enddo
+        if (nbassum .ne. nelec) stop 'bad input to sites (nbassum .ne. nelec)'
       endif
 
 !     write(6,*)
@@ -222,10 +216,21 @@
       dimension indcoefavailup(nbasis), indcoefavaildn(nbasis)
       dimension indavail(nbasis)
       
+      ! Find available basis indices of up and down at the same time
+      indcoefavailsame = 0
+      do i = 1, nbasis
+        if (indcoefavailup(i) .eq. 1 .and. indcoefavaildn(i) .eq. 1) then
+          indcoefavailsame = indcoefavailsame + 1
+        endif
+      enddo
+      if (indcoefavailsame .eq. nbasis) then ! if all electrons can be placed around all basis centers
+        indcoefavailsame = 0
+      endif
+      
       ! Find unoccupied basis indices
       indavail = 0
       i = 1
-      if (ielec .le. nbasis) then
+      if (ielec .le. nbasis .and. ielec .le. nup + ndn - indcoefavailsame) then
         do j = 1, nbasis
           if (nbasup(j) .eq. 0 .and. nbasdn(j) .eq. 0) then
             indavail(i) = j
@@ -323,7 +328,7 @@
 
       implicit real*8(a-h,o-z)
       
-      dimension coefsum(nbasis)
+      dimension coefsum(nbasis), coefsum_ratio(nbasis)
       dimension indcoefavailup(nbasis), indcoefavaildn(nbasis)
 
       coefsum = 0
@@ -335,11 +340,22 @@
         enddo
       enddo
       
-      indcoefavailup = 1
+      coefsum_max = maxval(coefsum)
       do i = 1, nbasis
-        if (coefsum(i) .eq. 0d0) then
-          indcoefavailup(i) = 0
-        endif
+        coefsum_ratio(i) = coefsum(i) / coefsum_max
+      enddo
+      
+      coefsum_threshold = 1d-1
+      indcoefavailsum = 0
+      do while (indcoefavailsum .lt. nup)
+        indcoefavailup = 1
+        do i = 1, nbasis
+          if (coefsum_ratio(i) .lt. coefsum_threshold) then
+            indcoefavailup(i) = 0
+          endif
+        enddo
+        coefsum_threshold = coefsum_threshold * 1d-1
+        indcoefavailsum = sum(indcoefavailup)
       enddo
 
       coefsum = 0
@@ -351,11 +367,22 @@
         enddo
       enddo
       
-      indcoefavaildn = 1
+      coefsum_max = maxval(coefsum)
       do i = 1, nbasis
-        if (coefsum(i) .eq. 0d0) then
-          indcoefavaildn(i) = 0
-        endif
+        coefsum_ratio(i) = coefsum(i) / coefsum_max
+      enddo
+      
+      coefsum_threshold = 1d-1
+      indcoefavailsum = 0
+      do while (indcoefavailsum .lt. ndn)
+        indcoefavaildn = 1
+        do i = 1, nbasis
+          if (coefsum_ratio(i) .lt. coefsum_threshold) then
+            indcoefavaildn(i) = 0
+          endif
+        enddo
+        coefsum_threshold = coefsum_threshold * 1d-1
+        indcoefavailsum = sum(indcoefavaildn)
       enddo
 
       return

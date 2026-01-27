@@ -114,10 +114,10 @@
       tcsq=eerr/eer1s
       call alloc ('eloc_tc', eloc_tc, nforce)
       eloc_tc (1) = tcsq**2 !JT
-!      sigma=eer1s*rtpass
+      sigma=eer1s*rtpass ! CJU restored 25 Jan 2026, but I am not sure if it is right or why it was commented
 
       call object_modified ('eerr')  !JT
-!      call object_modified ('sigma') !JT
+      call object_modified ('sigma') !JT ! CJU restored 25 Jan 2026, but I am not sure if it is right or why it was commented
 
 ! separate "magnetic energy" for quantum dots:
       if(ndim.eq.2) then

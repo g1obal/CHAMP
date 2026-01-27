@@ -419,7 +419,8 @@ c keep parmar within bounds
       pmarquardt=min(pmarquardt,amaxa/DBL_EPSILON)
 c?? The following choice may well be too small. We've only used
 c?? the next line with amina->amaxa, which should be 1.
-      pmarquardt=max(pmarquardt,DBL_EPSILON*amina,sqrt(DBL_MIN))
+c     pmarquardt=max(pmarquardt,DBL_EPSILON*amina,sqrt(DBL_MIN))
+      pmarquardt=max(pmarquardt,1.d-9*amina,sqrt(DBL_MIN))
 c     pmarquardt=max(pmarquardt,DBL_EPSILON*amaxa)
 
       pa=pmarquardt*aiimax

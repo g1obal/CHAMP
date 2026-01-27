@@ -317,7 +317,7 @@
    30     grad_cal(i)=grad_cal(i)+hess(i,j)*grad(j)
       dparm_norm=sqrt(dparm_norm/nparm)
 !     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9f10.5)')
-      if(ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9f10.5)') &
+      if(ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,f10.5)') &
      &iadd_diag,add_diag(iadd_diag),dparm_norm
       if(ipr_eigs.ge.1 .and. ipr_opt.ge.1) write(6,'(''grad_cal='',9g12.4)') (grad_cal(i),i=1,nparm)
 !     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',100f10.6)') (dparm(i),i=1,nparm)
@@ -444,7 +444,7 @@
       do 30 i=1,nparm
    30   dparm_norm=dparm_norm+dparm(i)**2
       dparm_norm=sqrt(dparm_norm/nparm)
-      if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''perturbation:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9f10.5)') &
+      if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''perturbation:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,f10.5)') &
      &iadd_diag,add_diag(iadd_diag),dparm_norm
 !     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',100f10.6)') (dparm(i),i=1,nparm)
       write(6,'(''dparm='',100f10.6)') (dparm(i),i=1,nparm)
@@ -715,7 +715,7 @@
       do 60 iparm=1,nparm
    60   dparm_norm=dparm_norm+dparm(iparm)**2
       dparm_norm=sqrt(dparm_norm/nparm)
-!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9f10.5)')
+!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,f10.5)')
       if(ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9f10.5)') &
      &iadd_diag,add_diag(iadd_diag),dparm_norm
       write(6,'(''dparm='',100f10.6)') (dparm(i),i=1,nparm)

@@ -6,11 +6,13 @@
 
 include ../../../makefile.inc
 
-ifndef FFLAGS
+# We do not want the -DMPI flag that gets passed here from qmc.  So, redefine FFLAGS here, even if it is already defined.
+# ifndef FFLAGS
 FC = gfortran
-FFLAGS=-finit-local-zero -O0 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check -g -fbacktrace
+#FFLAGS=-finit-local-zero -O0 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check -g -fbacktrace
 #FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
-endif
+FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check -fPIE
+#endif
 
 export FC FFLAGS LDFLAGS FC_MPI FFLAGS_MPI LDFLAGS_MPI
  

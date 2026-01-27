@@ -69,7 +69,9 @@
 ! Do optimization iterations
 ! increase_nblk is the number of consecutive optim. iterations for which nblk has not been increased
         increase_nblk=0
+        iter_best=1
         energy_plus_err_best=1.d99
+
         do 430 iopt_iter=1,nopt_iter
 
 ! Do vmc computing gradient and hessian but no correlated sampling
@@ -137,7 +139,12 @@
 ! If p_var!=0 then we add that to the criterion too.
           energy_plus_err=energy(1)+3*energy_err(1)+p_var*energy_sigma(1)
           if(energy_plus_err.lt.energy_plus_err_best) then
+            iter_best=iopt_iter
             energy_plus_err_best=energy_plus_err
+            energy_best=energy(1)
+            energy_err_best=energy_err(1)
+            energy_sigma_best=energy_sigma(1)
+            error_sigma_best=error_sigma
             call wf_best_save
           endif
 
@@ -353,11 +360,17 @@
 ! If p_var!=0 then we add that to the criterion too.
       if(nopt_iter.ne.0) then
         energy_plus_err=energy(1)+3*energy_err(1)+p_var*energy_sigma(1)
-        write(6,'(''energy_plus_err,energy_plus_err_best'',2f10.5)') energy_plus_err,energy_plus_err_best
         if(energy_plus_err.lt.energy_plus_err_best) then
+          iter_best=iopt_iter
           energy_plus_err_best=energy_plus_err
+          energy_best=energy(1)
+          energy_err_best=energy_err(1)
+          energy_sigma_best=energy_sigma(1)
+          error_sigma_best=error_sigma
           call wf_best_save
         endif
+        write(6,'(''energy_plus_err,energy_plus_err_best'',2f10.5)') energy_plus_err,energy_plus_err_best
+        write(6,'(/,a,i3,a,f13.7,a,f11.7,a,f11.7,a,f11.7)') 'OPT: the best wave function was found at iteration # ',iter_best, ' energy= ', energy_best, ' +-', energy_err_best, ' sigma= ', energy_sigma_best, ' +-', error_sigma_best
         call wf_best_write
       endif
 

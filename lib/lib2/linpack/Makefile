@@ -5,7 +5,8 @@
 
 FC = gfortran
 # FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
-FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall
+# FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall
+FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fPIE
 
 OBJS = dcabs1.o dchdc.o dchdd.o dchex.o dchud.o dgbco.o dgbdi.o dgbfa.o dgbsl.o dgeco.o \
 dgedi.o dgefa.o dgesl.o dgtsl.o dmach.o dpbco.o dpbdi.o dpbfa.o dpbsl.o dpoco.o \

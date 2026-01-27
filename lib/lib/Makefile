@@ -6,7 +6,8 @@
 # bode_grid2.o
 
 FC = gfortran
-FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
+# FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
+FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check -fPIE
 
 OBJS = my_second.o intpol.o simson.o shell.o
 

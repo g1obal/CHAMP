@@ -304,11 +304,11 @@
 ! If p_var!=0 then we add that to the criterion too.
       if(nopt_iter.ne.0) then
         energy_plus_err=energy(1)+3*energy_err(1)+p_var*energy_sigma(1)
-        write(6,'(''energy_plus_err,energy_plus_err_best'',2f10.5)') energy_plus_err,energy_plus_err_best
         if(energy_plus_err.lt.energy_plus_err_best) then
           energy_plus_err_best=energy_plus_err
           call wf_best_save
         endif
+        write(6,'(''energy_plus_err,energy_plus_err_best'',2f10.5)') energy_plus_err,energy_plus_err_best
         call wf_best_write
       endif
 

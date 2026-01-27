@@ -1,7 +1,7 @@
 include ../makefile.inc
 
-FC     = $(F77)
-FFLAGS = $(F77_FLAGS)
+FC     = $(F77) -fPIE
+FFLAGS = $(F77_FLAGS) -fPIE
 LDFLAGS= $(LD_FLAGS)
 
 export FC FFLAGS LDFLAGS CC CXX

@@ -42,7 +42,8 @@
 
 FC = gfortran
 # FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fbounds-check
-FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall
+# FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall
+FFLAGS=-finit-local-zero -O3 -ffixed-line-length-132 -x f77-cpp-input -Wall -fPIE
  
 ALLAUX = ilaenv.o ieeeck.o lsame.o lsamen.o xerbla.o
 
@@ -283,10 +284,11 @@ ZLASRC = \
    zunmtr.o zupgtr.o \
    zupmtr.o izmax1.o dzsum1.o
 
-all: single complex double complex16
+# For CHAMP only liblapack.a is needed
+all: liblapack.a single complex double complex16
 
 single: $(SLASRC) $(ALLAUX) $(SCLAUX) 
-	$(ARCH) $(ARCHFLAGS) ../$(LAPACKLIB) $(SLASRC) $(ALLAUX) \
+	$(ARCH) $(ARCHFLAGS) $(SLASRC) $(ALLAUX) \
 	$(SCLAUX)
 	$(RANLIB) ../$(LAPACKLIB)
 
@@ -327,7 +329,7 @@ clean_all:
 	rm -f *.o *.a
 
 slamch.o: slamch.f
-	$(FORTRAN) $(NOOPT) -c $<
+	$(FC) $(FFLAGS) $(NOOPT) -c $<
 
 # commented out for BlueGene
 #dlamch.o: dlamch.f

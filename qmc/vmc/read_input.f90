@@ -1384,15 +1384,15 @@
         endif
         call alloc ('a', a, nparm_read, nwf)
         read(5,*) (a(iparm,1),iparm=1,nparm_read)
-        write(6,'(''a='',x,7f10.6,(8f10.6))')(a(iparm,1),iparm=1,nparm_read)
+        write(6,'(''a='',x,(100es22.8))')(a(iparm,1),iparm=1,nparm_read)
         call alloc ('b', b, nparm_read, nspin2b-nspin1+1,nwf)
         do 280 isp=nspin1,nspin2b
           read(5,*) (b(iparm,isp,1),iparm=1,nparm_read)
-  280     write(6,'(''b='',x,7f10.6,(8f10.6))') (b(iparm,isp,1),iparm=1,nparm_read)
+  280     write(6,'(''b='',x,(100es22.8))') (b(iparm,isp,1),iparm=1,nparm_read)
         call alloc ('c', c, nparmc_read, nctype, nwf)
         do 290 it=1,nctype
           read(5,*) (c(iparm,it,1),iparm=1,nparmc_read)
-  290     write(6,'(''c='',x,7f10.6,(8f10.6))') (c(iparm,it,1),iparm=1,nparmc_read)
+  290     write(6,'(''c='',x,(100es22.8))') (c(iparm,it,1),iparm=1,nparmc_read)
         if(ifock.gt.0) then
           nfock=9
           if(ifock.eq.2) nfock=15
@@ -1430,7 +1430,7 @@
         call alloc ('a4', a4, nparma_read, nctype, nwf)
         do 301 it=1,nctype
            read(5,*) (a4(iparm,it,1),iparm=1,nparma_read)
-           write(6,'(''a='',x,7f10.6,(8f10.6))') (a4(iparm,it,1),iparm=1,nparma_read)
+           write(6,'(''a='',x,(100es22.8))') (a4(iparm,it,1),iparm=1,nparma_read)
            if(nparma_read.ge.2 .and. a4(2,it,1).lt.parm2min) then
                write(6,'(''Warning: a4(2,it,1) too low, Jastrow denom could become negative'')')
                stop 'a4(2,it,1) too low, Jastrow denom could become negative'
@@ -1439,7 +1439,7 @@
         call alloc ('b', b, nparmb_read, nspin2b-nspin1+1,nwf)
         do 302 isp=nspin1,nspin2b
           read(5,*) (b(iparm,isp,1),iparm=1,nparmb_read)
-          write(6,'(''b='',x,7f10.6,(8f10.6))') (b(iparm,isp,1),iparm=1,nparmb_read)
+          write(6,'(''b='',x,(100es22.8))') (b(iparm,isp,1),iparm=1,nparmb_read)
            if(nparmb_read.ge.2 .and. b(2,isp,1).lt.parm2min) then
              write(6,'(''Warning: b(2,isp,1) too low, Jastrow denom could become negative'')')
              stop 'b(2,isp,1) too low, Jastrow denom could become negative'
@@ -1448,7 +1448,7 @@
         call alloc ('c', c, nparmc_read, nctype, nwf)
         do 303 it=1,nctype
           read(5,*) (c(iparm,it,1),iparm=1,nparmc_read)
-  303     write(6,'(''c='',x,7f10.6,(8f10.6))') (c(iparm,it,1),iparm=1,nparmc_read)
+  303     write(6,'(''c='',x,(100es22.8))') (c(iparm,it,1),iparm=1,nparmc_read)
 ! Note: Fock terms yet to be put in ijas=4,5,6.
       endif
       call systemflush(6)

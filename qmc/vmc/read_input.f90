@@ -823,7 +823,7 @@
       ndn=nelec-nup
       write(6,'(/,''no. of electrons (all,up,dn) ='',t31,3i5)') nelec,nup,ndn
       if(nup.le.0) stop 'nup must be >=1'
-      if(nup.lt.ndn) stop 'nup must be >=ndn'
+!     if(nup.lt.ndn) stop 'nup must be >=ndn'
 
       nupdn = max(nup, ndn)
       nup_square = nup**2
@@ -1308,7 +1308,8 @@
         read(5,*) ltot
         write(6,'(''L_tot='',i3)') ltot
       endif
-      if(ndim.eq.2.and.(ibasis.eq.1.or.ibasis.eq.3).and.inum_orb.eq.0) call emagnetic(ltot)
+! Warning: The next line is temporarily commented out because it causes a segmentation fault (see /data/cyrus/qmc_runs/dots_Gokhan/N=10/w006/shell_3-7/FockDarwin_
+!     if(ndim.eq.2.and.(ibasis.eq.1.or.ibasis.eq.3).and.inum_orb.eq.0) call emagnetic(ltot)
 !     if(ndim.eq.2 .and. (iperiodic.eq.0 .and. nloc.ne.-4)) call emagnetic(ltot)
 !     if(ibasis.eq.2) call read_orb_pw_real
       if(ibasis.eq.2) call read_orb_pw

@@ -679,6 +679,7 @@
             ewto=eest-(eest-eoldw(iw,ifr))*(1-(1-fratio(iw,ifr))**3)                                    ! new_ene_int3
             ewtn=eest-(eest-enew)*(1-(1-fration)**3)                                                    ! new_ene_int3
           elseif(ene_int=='no_ene_int') then
+write(6,*) 'using no ene_int'
             ewto=eoldw(iw,ifr)                                                                          ! no_ene_int
             ewtn=enew                                                                                   ! no_ene_int
           elseif(ene_int=='Alfe') then
@@ -722,6 +723,7 @@
               dwt=0.5d0+1/(1+exp(-4*expon))
             endif
           endif
+write(6,'(''ewto,ewtn,etrial,taunow,expon,dwt='',9f10.6)') ewto,ewtn,etrial,taunow,expon,dwt
 
 ! Warning: These lines were added to reduce the probability of population explosions.
 ! These occur for nonlocal psps. with the locality approx, and are cured by our slightly modified version of Casula et al'
@@ -751,12 +753,15 @@
               dwt=1+limit_rewt_dmc*energy_sigma*tau
             endif
           endif
+write(6,'(''dwt1='',9f10.6)') dwt
 
 ! ffi has already been raised to wt_lambda.  Do the same for dwt.  We do this even for the current move so that wt_lambda can serve to limit size of move.
           dwt=dwt**wt_lambda
+write(6,'(''dwt2='',9f10.6)') dwt
 
 ! Exercise population control if dmc or vmc with weights
           if(idmc.gt.0.or.iacc_rej.eq.0) dwt=dwt*ffi
+write(6,'(''dwt3='',9f10.6)') dwt
 
 ! Set weights and product of weights over last nwprod steps
           if(ifr.eq.1) then

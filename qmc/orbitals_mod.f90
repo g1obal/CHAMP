@@ -582,11 +582,11 @@ module orbitals_mod
   write(6,*)
   write(6,'(a)') ' Orbital occupation information:'
   write(6,'(a,i3,a      )') ' There are ',       orb_tot_nb,' total    orbitals'
-  write(6,'(a,i3,a,500i4)') ' There are ', orb_occ_in_wf_nb,' occupied orbitals of indexes:', orb_occ_in_wf_lab
-  write(6,'(a,i3,a,500i4)') ' There are ', orb_cls_in_wf_nb,' closed   orbitals of indexes:', orb_cls_in_wf_lab
-  write(6,'(a,i3,a,500i4)') ' There are ', orb_act_in_wf_nb,' active   orbitals of indexes:', orb_act_in_wf_lab
-  write(6,'(a,i3,a,500i4)') ' There are ', orb_opn_in_wf_nb,' open     orbitals of indexes:', orb_opn_in_wf_lab
-  write(6,'(a,i3,a,500i4)') ' There are ', orb_vir_in_wf_nb,' virtual  orbitals of indexes:', orb_vir_in_wf_lab
+  write(6,'(a,i3,a,9000i4)') ' There are ', orb_occ_in_wf_nb,' occupied orbitals of indexes:', orb_occ_in_wf_lab
+  write(6,'(a,i3,a,9000i4)') ' There are ', orb_cls_in_wf_nb,' closed   orbitals of indexes:', orb_cls_in_wf_lab
+  write(6,'(a,i3,a,9000i4)') ' There are ', orb_act_in_wf_nb,' active   orbitals of indexes:', orb_act_in_wf_lab
+  write(6,'(a,i3,a,9000i4)') ' There are ', orb_opn_in_wf_nb,' open     orbitals of indexes:', orb_opn_in_wf_lab
+  write(6,'(a,i3,a,9000i4)') ' There are ', orb_vir_in_wf_nb,' virtual  orbitals of indexes:', orb_vir_in_wf_lab
 
   if (orb_occ_in_wf_nb <= 0) then
     call die (here, 'number of occupied orbitals ='+ orb_occ_in_wf_nb+' is <= 0')

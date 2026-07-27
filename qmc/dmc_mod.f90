@@ -492,10 +492,13 @@ module dmc_mod
      call dmc_brock
   elseif(iabs(idmc) == 2) then
      if (abs(nloc) > 0) then
+!       write(6,'(''calling dmc_good_ps'')')
         call dmc_good_ps
      elseif(idiv_v <= 1) then
+!       write(6,'(''calling dmc_good'')')
         call dmc_good
      else
+!       write(6,'(''calling dmc_good_inhom'')')
         call dmc_good_inhom
      endif
   elseif(iabs(idmc) == 3) then
@@ -547,8 +550,10 @@ module dmc_mod
 
 ! begin
   if (l_mode_dmc_mov1) then
+!   write(8,'(''Calling dmc_good_ps_mov1'')')
    call dmc_good_ps_mov1
   else
+!   write(8,'(''Calling dmc_good_ps_movall'')')
    call dmc_good_ps_movall
   endif
 
@@ -568,8 +573,10 @@ module dmc_mod
 
 ! begin
   if (l_mode_dmc_mov1) then
+!   write(8,'(''Calling dmc_good_mov1'')')
     call dmc_good_mov1
   else
+!   write(8,'(''Calling dmc_good_movall'')')
     call dmc_good_movall
   endif
 

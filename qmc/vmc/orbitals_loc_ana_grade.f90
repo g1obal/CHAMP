@@ -37,18 +37,28 @@
          endif
       endif
 
-      do 25 iorb=1,norb
+! If ibasis.eq.4 then coef is a multiple of the unit matrix
+      if(ibasis.eq.4) then
+        do 24 iorb=1,norb
+          orb(iorb)=coef(iorb,iorb,iwf)*phin(iorb,iel)
+          dorb(1,iorb)=coef(iorb,iorb,iwf)*dphin(1,iorb,iel)
+          dorb(2,iorb)=coef(iorb,iorb,iwf)*dphin(2,iorb,iel)
+          dorb(3,iorb)=coef(iorb,iorb,iwf)*dphin(3,iorb,iel)
+   24     ddorb(iorb)=coef(iorb,iorb,iwf)*d2phin(iorb,iel)
+      else
+        do 25 iorb=1,norb
           orb(iorb)=0
           dorb(1,iorb)=0
           dorb(2,iorb)=0
           dorb(3,iorb)=0
           ddorb(iorb)=0
           do 25 m=1,nbasis
-           orb(iorb)=orb(iorb)+coef(m,iorb,iwf)*phin(m,iel)
-           dorb(1,iorb)=dorb(1,iorb)+coef(m,iorb,iwf)*dphin(1,m,iel)
-           dorb(2,iorb)=dorb(2,iorb)+coef(m,iorb,iwf)*dphin(2,m,iel)
-           dorb(3,iorb)=dorb(3,iorb)+coef(m,iorb,iwf)*dphin(3,m,iel)
-   25      ddorb(iorb)=ddorb(iorb)+coef(m,iorb,iwf)*d2phin(m,iel)
+            orb(iorb)=orb(iorb)+coef(m,iorb,iwf)*phin(m,iel)
+            dorb(1,iorb)=dorb(1,iorb)+coef(m,iorb,iwf)*dphin(1,m,iel)
+            dorb(2,iorb)=dorb(2,iorb)+coef(m,iorb,iwf)*dphin(2,m,iel)
+            dorb(3,iorb)=dorb(3,iorb)+coef(m,iorb,iwf)*dphin(3,m,iel)
+   25       ddorb(iorb)=ddorb(iorb)+coef(m,iorb,iwf)*d2phin(m,iel)
+      endif
 
       return
       end

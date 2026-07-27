@@ -47,27 +47,38 @@
          endif
       endif
 
-      do 25 iorb=1,norb
-        do 25 ie=nelec1,nelec2
-          orb(ie,iorb)=0
-          dorb(1,ie,iorb)=0
-          dorb(2,ie,iorb)=0
-          dorb(3,ie,iorb)=0
-          ddorb(ie,iorb)=0
-          do 25 m=1,nbasis
-      if(ipr.ge.5) write(6,'(''iorb,ie,m,iwf,coef(m,iorb,iwf),phin(m,ie)'',3i3,9g13.6)') iorb,ie,m,iwf,coef(m,iorb,iwf),phin(m,ie)
-!     &,coef(m,iorb,iwf)*phin(m,ie)
-            orb(ie,iorb)=orb(ie,iorb)+coef(m,iorb,iwf)*phin(m,ie)
-            dorb(1,ie,iorb)=dorb(1,ie,iorb)+coef(m,iorb,iwf)*dphin(1,m,ie)
-            dorb(2,ie,iorb)=dorb(2,ie,iorb)+coef(m,iorb,iwf)*dphin(2,m,ie)
-            dorb(3,ie,iorb)=dorb(3,ie,iorb)+coef(m,iorb,iwf)*dphin(3,m,ie)
-   25       ddorb(ie,iorb)=ddorb(ie,iorb)+coef(m,iorb,iwf)*d2phin(m,ie)
+! If ibasis.eq.4 then coef is a multiple of the unit matrix
+      if(ibasis.eq.4) then
+        do 24 iorb=1,norb
+          do 24 ie=nelec1,nelec2
+            if(ipr.ge.5) write(6,'(''iorb,ie,iorb,iwf,coef(iorb,iorb,iwf),phin(iorb,ie)'',3i3,9g13.6)') iorb,ie,iorb,iwf,coef(iorb,iorb,iwf),phin(iorb,ie)
+            orb(ie,iorb)=coef(iorb,iorb,iwf)*phin(iorb,ie)
+            dorb(1,ie,iorb)=coef(iorb,iorb,iwf)*dphin(1,iorb,ie)
+            dorb(2,ie,iorb)=coef(iorb,iorb,iwf)*dphin(2,iorb,ie)
+            dorb(3,ie,iorb)=coef(iorb,iorb,iwf)*dphin(3,iorb,ie)
+   24       ddorb(ie,iorb)=coef(iorb,iorb,iwf)*d2phin(iorb,ie)
+      else 
+        do 25 iorb=1,norb
+          do 25 ie=nelec1,nelec2
+            orb(ie,iorb)=0
+            dorb(1,ie,iorb)=0
+            dorb(2,ie,iorb)=0
+            dorb(3,ie,iorb)=0
+            ddorb(ie,iorb)=0
+            do 25 m=1,nbasis
+              if(ipr.ge.5) write(6,'(''iorb,ie,m,iwf,coef(m,iorb,iwf),phin(m,ie)'',3i3,9g13.6)') iorb,ie,m,iwf,coef(m,iorb,iwf),phin(m,ie)
+              orb(ie,iorb)=orb(ie,iorb)+coef(m,iorb,iwf)*phin(m,ie)
+              dorb(1,ie,iorb)=dorb(1,ie,iorb)+coef(m,iorb,iwf)*dphin(1,m,ie)
+              dorb(2,ie,iorb)=dorb(2,ie,iorb)+coef(m,iorb,iwf)*dphin(2,m,ie)
+              dorb(3,ie,iorb)=dorb(3,ie,iorb)+coef(m,iorb,iwf)*dphin(3,m,ie)
+   25         ddorb(ie,iorb)=ddorb(ie,iorb)+coef(m,iorb,iwf)*d2phin(m,ie)
+      endif
 
-!      do  iorb=1,norb
-!        do  ie=nelec1,nelec2
-!          write(6,*) 'orb(ie,iorb),ie,iorb=',orb(ie,iorb),ie,iorb
-!        enddo
-!      enddo
+!     do  iorb=1,norb
+!       do  ie=nelec1,nelec2
+!         write(6,*) 'orb(ie,iorb),ie,iorb=',orb(ie,iorb),ie,iorb
+!       enddo
+!     enddo
 
       return
       end

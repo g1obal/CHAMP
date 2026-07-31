@@ -205,7 +205,9 @@
       
       ! For backward compatibility with the older inputs, if 'orb_dot_coef' file exists, 
       ! program reads the orbital coefficients from the file. Otherwise, basis set=orbitals.
-      if ( (nloc.eq.-6 .or. nloc.eq.-7) .and. file_exist('orb_dot_coef') ) then !GO
+      if (file_exist('orb_dot_coef')) then !GO
+      
+        coef_is_diag = .false.
       
         write(6,'(''orbital coefficients - rows: norb, columns: nbasis'')')
       
@@ -218,8 +220,10 @@
         enddo
    
         close(orb_file_unit)
-        
+
       else
+        
+        coef_is_diag = .true.
       
         if(norb.ne.nbasis) stop &
      &  'norb must be equal to nbasis in read_orb_dot_gauss'

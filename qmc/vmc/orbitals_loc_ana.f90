@@ -47,8 +47,8 @@
          endif
       endif
 
-! If ibasis.eq.4 then coef is a multiple of the unit matrix
-      if(ibasis.eq.4) then
+! If ibasis.eq.4 and coef is a multiple of the unit matrix
+      if(ibasis.eq.4 .and. coef_is_diag) then
         do 24 iorb=1,norb
           do 24 ie=nelec1,nelec2
             if(ipr.ge.5) write(6,'(''iorb,ie,iorb,iwf,coef(iorb,iorb,iwf),phin(iorb,ie)'',3i3,9g13.6)') iorb,ie,iorb,iwf,coef(iorb,iorb,iwf),phin(iorb,ie)

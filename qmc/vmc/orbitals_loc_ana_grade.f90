@@ -37,8 +37,8 @@
          endif
       endif
 
-! If ibasis.eq.4 then coef is a multiple of the unit matrix
-      if(ibasis.eq.4) then
+! If ibasis.eq.4 and coef is a multiple of the unit matrix
+      if(ibasis.eq.4 .and. coef_is_diag) then
         do 24 iorb=1,norb
           orb(iorb)=coef(iorb,iorb,iwf)*phin(iorb,iel)
           dorb(1,iorb)=coef(iorb,iorb,iwf)*dphin(1,iorb,iel)

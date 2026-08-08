@@ -130,6 +130,21 @@
 !      for cylindrical and gaussian quantum dots, make sure that electrons are
 !      located around centers of gaussian basis functions within an effective radius.
 !      Be careful if there is more than 1 slater determinant
+            elseif(ibasis.eq.5) then !GO, Aug 2026
+                site = dsqrt(-dlog(rannyu(0)))
+                site = site*min(sitsca,1.d0/dsqrt(we*oparm(3,iworbd(ielec,1),iwf)))
+                
+                angle = rannyu(0) 
+                if (oparm(4,iworbd(ielec,1),iwf) .gt. 0.d0) then
+                  angle = angle/dsqrt(oparm(4, iworbd(ielec,1), iwf))
+                endif
+
+                site = site + oparm(1, iworbd(ielec,1), iwf)
+                angle = angle + oparm(2, iworbd(ielec,1), iwf)
+                
+                x(1,ielec)=site*dcos(angle)
+                x(2,ielec)=site*dsin(angle)
+                    
             elseif(nloc.eq.-6 .or. nloc.eq.-7) then
               call find_basis_center(ielec, indcoefavailup, indcoefavaildn, nbasup, nbasdn, iind)
               

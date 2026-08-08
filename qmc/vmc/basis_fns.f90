@@ -1004,7 +1004,7 @@
       end
 !--------------------------------------------------------------------------
 
-      subroutine basis_fns_polargauss(iel,rvec_en,r_en)
+      subroutine basis_fns_polargauss_old(iel,rvec_en,r_en)
 
 ! Written by A.D.Guclu, Jan 2007
 ! 2-dimensional localized gaussian basis set in polar coordinates
@@ -1165,7 +1165,7 @@
       end
 
 !-------------------------------------------------------------------------
-      subroutine deriv_polargauss(rvec_en,r_en)
+      subroutine deriv_polargauss_old(rvec_en,r_en)
 
 ! Written by A.D.Guclu, Jan 2007
 ! 2-dimensional localized gaussian basis set in polar coordinates
@@ -1331,6 +1331,371 @@
       return
       end
 
+!--------------------------------------------------------------------------
+
+      subroutine basis_fns_polargauss(iel,rvec_en,r_en)
+
+! Written by A.D.Guclu, Jan 2007
+! Edited by Gokhan Oztarhan, Aug 2026
+! Updated with robust L2 asymptotic normalization for VMC optimization
+! 2-dimensional localized gaussian basis set in polar coordinates
+! Main purpose is the study quasi-1D wigner crystal. It can
+! also be applied to 2d wigner crystals.
+
+! arguments: iel=0 -> all electron
+!               >0 -> only electron iel
+!            rvec_en=vector electron-nucleus
+!                    (or electron-dot center in this context)
+
+! output: phin,dphin, and d2phin are calculated
+
+! Wave functions are given by (except the normalization csnt)
+
+! phi=dsqrt(dsqrt(we*xg3*xg4)) * exp(-we*xg3/2*(xr-xr0)^2) 
+!                           * exp(xg4*(cos(xt-xt0)-1))
+
+! where  xr=r and xt=\theta  are polar coordinates of electrons
+!        xg1 and xg2 are polar coordinates of gaussians
+!        xg3 and xg4 are gaussian width parameters.
+
+      use atom_mod
+      use coefs_mod
+      use const_mod
+      use wfsec_mod
+      use phifun_mod
+      use orbpar_mod
+      implicit real*8(a-h,o-z)
+
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+
+      dimension rvec_en(3,nelec,*),r_en(nelec,*)
+
+! Decide whether we are computing all or one electron
+      if(iel.eq.0) then
+        nelec1=1
+        nelec2=nelec
+      else
+        nelec1=iel
+        nelec2=iel
+      endif
+
+      ic=1
+      expnorm=1.d0
+
+      do ie=nelec1,nelec2
+        x1=rvec_en(1,ie,ic) + cent(1,ic)
+        x2=rvec_en(2,ie,ic) + cent(2,ic)
+        xr=dsqrt(x1*x1 + x2*x2)
+        xt=datan2(x2,x1)
+        
+        ! Guard against division by zero at the exact origin
+        if (xr .lt. 1.d-14) then
+          xri = 0.d0
+          xri2 = 0.d0
+        else
+          xri = 1.d0 / xr
+          xri2 = xri * xri
+        endif
+
+        do ib=1,nbasis
+          xg1=oparm(1,ib,iwf)
+          xg2=oparm(2,ib,iwf)
+          xg3=oparm(3,ib,iwf)
+          xg4=oparm(4,ib,iwf)
+          wez=we*xg3
+          wez2=wez*wez
+          xrrel=xr-xg1
+          xrrel2=xrrel*xrrel
+          xtrel=xt-xg2
+          cxtrel=dcos(xtrel)
+          sxtrel=dsin(xtrel)
+
+! Normalization factor to stabilize optimization matrices
+! If angular width is effectively zero (isotropic), use standard 2D normalization.
+! Otherwise, use the quasi-1D separable normalization.
+          if (xg4 .lt. 1.d-6) then
+            fnorm = dsqrt(wez)                ! Exact 2D isotropic norm
+          else
+            fnorm = dsqrt(dsqrt(wez * xg4))   ! Quasi-1D separable norm
+          endif
+          
+          if (abs(xg1) .lt. 1.d-6 .and. abs(xg4) .lt. 1.d-6) then
+            ! --- EXACT CARTESIAN LIMIT FOR CENTRAL ORBITAL ---
+            ! Eliminates all 1/r singularities
+            phin(ib,ie) = fnorm * dexp(-0.5d0*wez*xrrel2)
+            
+            dphin(1,ib,ie) = -wez * x1 * phin(ib,ie)
+            dphin(2,ib,ie) = -wez * x2 * phin(ib,ie)
+            d2phin(ib,ie)  = wez * (wez*xrrel2 - 2.d0) * phin(ib,ie)
+          
+          else
+          
+            ! --- ORIGINAL POLAR FORMULAS FOR RING ORBITALS ---
+            phir=dexp(-0.5d0*wez*xrrel2)
+            phit=dexp(xg4*(cxtrel-expnorm))
+            phin(ib,ie)=fnorm*phir*phit
+
+            if(abs(phir).gt.1.d+300) then
+              write(6,'(''phir='',9d12.4)') phir
+              stop 'phir too large'
+            endif
+
+            if(abs(phit).gt.1.d+300) then
+              write(6,'(''phit='',9d12.4)') phit
+              stop 'phit too large'
+            endif
+
+! Note: dpdxr and dpdxt are defined here as (1/phi)*(dphi/dx).
+! Therefore, they do not depend on the constant prefactor.
+            dpdxr=-wez*xrrel
+            dpdxt=-xg4*sxtrel
+            d2pdxr2=-wez+dpdxr*dpdxr
+            d2pdxt2=-xg4*cxtrel+dpdxt*dpdxt
+
+            dphin(1,ib,ie)=(dpdxr*x1*xri-dpdxt*x2*xri2)*phin(ib,ie)
+            dphin(2,ib,ie)=(dpdxr*x2*xri+dpdxt*x1*xri2)*phin(ib,ie)
+
+            d2phin(ib,ie)=(dpdxr*xri+d2pdxr2+d2pdxt2*xri2)*phin(ib,ie)
+          endif
+
+          if(abs(phin(ib,ie)).gt.1.d+300) then
+            write(6,'(''phir,phit,phin(ib,ie),dphin(1,ib,ie),dphin(2,ib,ie),d2phin(ib,ie)='',9d12.4)') &
+     &      phir,phit,phin(ib,ie),dphin(1,ib,ie),dphin(2,ib,ie),d2phin(ib,ie)
+            stop 'phir,phit,phin(ib,ie) too large'
+          endif
+
+        enddo
+      enddo
+
+! Check that every electron has at least one nonzero basis function.
+      phimax=maxval(abs(phin))
+
+      do ie=nelec1,nelec2
+        phicolmax=maxval(abs(phin(:,ie)))
+        if(phicolmax.lt.1.d-100*phimax) write(6,'(''Warning: ie, phicolmax, phimax='',i5,9e12.4)')  ie, phicolmax, phimax
+        if(phicolmax.eq.0.d0) then
+          write(6,'(''Warning stop: ie, phicolmax, phimax='',i5,9e12.4)')  ie, phicolmax, phimax
+          stop 'phicolmax = 0'
+        endif
+      enddo
+
+      return
+      end
+
+!-------------------------------------------------------------------------
+
+      subroutine deriv_polargauss(rvec_en,r_en)
+
+! Written by A.D.Guclu, Jan 2007
+! Edited by Gokhan Oztarhan, Aug 2026
+! Updated with robust L2 asymptotic normalization for VMC optimization
+! 2-dimensional localized gaussian basis set in polar coordinates
+
+! arguments: iel=0 -> all electron
+!               >0 -> only electron iel
+!            rvec_en=vector electron-nucleus
+!                    (or electron-dot center in this context)
+
+! output: phin,dphin, and d2phin are calculated
+!         dparam, d2param, ddparam, d2dparam = parameter derivatives
+
+      use atom_mod
+      use coefs_mod
+      use const_mod
+      use wfsec_mod
+      use phifun_mod
+      use orbpar_mod
+      use deriv_phifun_mod
+      implicit real*8(a-h,o-z)
+
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+
+      dimension rvec_en(3,nelec,*),r_en(nelec,*)
+
+      nelec1=1
+      nelec2=nelec
+
+      ic=1
+      expnorm=1.d0
+
+      do ie=nelec1,nelec2
+        x1=rvec_en(1,ie,ic) + cent(1,ic)
+        x2=rvec_en(2,ie,ic) + cent(2,ic)
+        xr=dsqrt(x1*x1 + x2*x2)
+        xt=datan2(x2,x1)
+        
+        ! Guard against division by zero at the exact origin
+        if (xr .lt. 1.d-14) then
+          xri = 0.d0
+          xri2 = 0.d0
+        else
+          xri = 1.d0 / xr
+          xri2 = xri * xri
+        endif
+
+        do ib=1,nbasis
+
+          xg1=oparm(1,ib,iwf)
+          xg2=oparm(2,ib,iwf)
+          xg3=oparm(3,ib,iwf)
+          xg4=oparm(4,ib,iwf)
+          wez=we*xg3
+          wez2=wez*wez
+          xrrel=xr-xg1
+          xrrel2=xrrel*xrrel
+          xtrel=xt-xg2
+          cxtrel=dcos(xtrel)
+          sxtrel=dsin(xtrel)
+! jacobian:
+          dxrdx1=x1*xri
+          dxrdx2=x2*xri
+          dxtdx1=-x2*xri2
+          dxtdx2=x1*xri2
+
+! Normalization and chain-rule variables
+! If angular width is effectively zero (isotropic), use standard 2D normalization.
+! Otherwise, use the quasi-1D separable normalization.
+          if (xg4 .lt. 1.d-6) then
+            fnorm = dsqrt(wez)
+            c3 = 0.5d0 / xg3      
+            c4 = 0.d0             
+            dc3 = -0.5d0 / (xg3 * xg3)  ! 2nd derivative for xg3
+            dc4 = 0.d0                  ! 2nd derivative for xg4 is zeroed out
+          else
+            fnorm = dsqrt(dsqrt(wez * xg4))
+            c3 = 0.25d0 / xg3     
+            c4 = 0.25d0 / xg4     
+            dc3 = -0.25d0 / (xg3 * xg3) ! 2nd derivative for xg3
+            dc4 = -0.25d0 / (xg4 * xg4) ! 2nd derivative for xg4
+          endif
+
+! wfs and coo. derivatives:
+          if (abs(xg1) .lt. 1.d-6 .and. abs(xg4) .lt. 1.d-6) then
+            ! --- EXACT CARTESIAN LIMIT FOR CENTRAL ORBITAL ---
+            phin(ib,ie) = fnorm * dexp(-0.5d0*wez*xrrel2)
+
+            dphin(1,ib,ie) = -wez * x1 * phin(ib,ie)
+            dphin(2,ib,ie) = -wez * x2 * phin(ib,ie)
+            d2phin(ib,ie)  = wez * (wez*xrrel2 - 2.d0) * phin(ib,ie)
+
+            ! Zero out the fixed and singular parameters (xg1, xg2, xg4)
+            dparam(:,ib,ie) = 0.d0
+            d2param(:,:,ib,ie) = 0.d0
+            ddparam(:,:,ib,ie) = 0.d0
+            d2dparam(:,ib,ie) = 0.d0
+
+            ! Analytically evaluate the active radial width (xg3)
+            dparam(3,ib,ie) = (c3 - 0.5d0*we*xrrel2) * phin(ib,ie)
+            d2param(3,3,ib,ie) = dc3*phin(ib,ie) + (c3 - 0.5d0*we*xrrel2)*dparam(3,ib,ie)
+             
+            ddparam(1,3,ib,ie) = -we*x1*phin(ib,ie) - wez*x1*dparam(3,ib,ie)
+            ddparam(2,3,ib,ie) = -we*x2*phin(ib,ie) - wez*x2*dparam(3,ib,ie)
+             
+            d2dparam(3,ib,ie) = c3 * d2phin(ib,ie) &
+                 - 0.5d0*we * (wez*wez*xrrel2*xrrel2 - 6.d0*wez*xrrel2 + 4.d0) * phin(ib,ie)
+                  
+          else
+          
+            ! --- ORIGINAL POLAR FORMULAS FOR RING ORBITALS ---
+            phir=dexp(-0.5d0*wez*xrrel2)
+            phit=dexp(xg4*(cxtrel-expnorm))
+            phin(ib,ie)=fnorm*phir*phit
+
+            tempr1=-wez*xrrel
+            tempt1=-xg4*sxtrel
+            tempr2=-wez+tempr1*tempr1
+            tempt2=-xg4*cxtrel+tempt1*tempt1
+              
+    ! Note: Unlike basis_fns_polargauss, dpdxr is defined here as dphi/dx
+            dpdxr=tempr1*phin(ib,ie)
+            dpdxt=tempt1*phin(ib,ie)
+            d2pdxr2=tempr2*phin(ib,ie)
+            d2pdxt2=tempt2*phin(ib,ie)
+
+            dphin(1,ib,ie)=dpdxr*dxrdx1+dpdxt*dxtdx1
+            dphin(2,ib,ie)=dpdxr*dxrdx2+dpdxt*dxtdx2
+
+            d2phin(ib,ie)=dpdxr*xri+d2pdxr2+d2pdxt2*xri2
+
+    ! parameter derivatives:
+            dparam(1,ib,ie)=-dpdxr                                 ! wrt xg1
+            dparam(2,ib,ie)=-dpdxt                                 ! wrt xg2
+            dparam(3,ib,ie)=(c3-0.5d0*we*xrrel2)*phin(ib,ie)       ! wrt xg3
+            dparam(4,ib,ie)=(c4+cxtrel-expnorm)*phin(ib,ie)        ! wrt xg4
+
+            d2param(1,1,ib,ie)=d2pdxr2                             ! wrt xg1,xg1
+            d2param(2,2,ib,ie)=d2pdxt2                             ! wrt xg2,xg2
+            d2param(3,3,ib,ie) = dc3*phin(ib,ie) &
+       &                       + (c3-0.5d0*we*xrrel2)*dparam(3,ib,ie) ! wrt xg3,xg3
+
+            d2param(4,4,ib,ie) = dc4*phin(ib,ie) &
+       &                       + (c4+cxtrel-expnorm)*dparam(4,ib,ie) ! wrt xg4,xg4
+
+            d2param(1,2,ib,ie)=-tempr1*dparam(2,ib,ie)
+            d2param(1,3,ib,ie)=we*xrrel*phin(ib,ie) &
+       &                       +(c3-0.5d0*we*xrrel2)*dparam(1,ib,ie)
+            d2param(1,4,ib,ie)=(c4+cxtrel-expnorm)*dparam(1,ib,ie)
+            d2param(2,3,ib,ie)=(c3-0.5d0*we*xrrel2)*dparam(2,ib,ie)
+            d2param(2,4,ib,ie)=sxtrel*phin(ib,ie) &
+       &                       +(c4+cxtrel-expnorm)*dparam(2,ib,ie)
+            d2param(3,4,ib,ie)=(c4+cxtrel-expnorm)*dparam(3,ib,ie)
+
+            d2param(2,1,ib,ie)=d2param(1,2,ib,ie)
+            d2param(3,1,ib,ie)=d2param(1,3,ib,ie)
+            d2param(4,1,ib,ie)=d2param(1,4,ib,ie)
+            d2param(3,2,ib,ie)=d2param(2,3,ib,ie)
+            d2param(4,2,ib,ie)=d2param(2,4,ib,ie)
+            d2param(4,3,ib,ie)=d2param(3,4,ib,ie)
+
+    ! coo. derivatives of parameter derivatives:
+
+            ddparam(1,1,ib,ie)=                                 & ! wrt x1,xg1
+       &-(d2param(1,1,ib,ie)*dxrdx1+d2param(1,2,ib,ie)*dxtdx1)
+            ddparam(2,1,ib,ie)=                                 & ! wrt x2,xg1
+       &-(d2param(1,1,ib,ie)*dxrdx2+d2param(1,2,ib,ie)*dxtdx2)
+
+            ddparam(1,2,ib,ie)= &
+       &-(d2param(2,1,ib,ie)*dxrdx1+d2param(2,2,ib,ie)*dxtdx1)
+            ddparam(2,2,ib,ie)= &
+       &-(d2param(2,1,ib,ie)*dxrdx2+d2param(2,2,ib,ie)*dxtdx2)
+
+            ddparam(1,3,ib,ie)= &
+       &-(d2param(3,1,ib,ie)*dxrdx1+d2param(3,2,ib,ie)*dxtdx1)
+            ddparam(2,3,ib,ie)= &
+       &-(d2param(3,1,ib,ie)*dxrdx2+d2param(3,2,ib,ie)*dxtdx2)
+
+            ddparam(1,4,ib,ie)= &
+       &-(d2param(4,1,ib,ie)*dxrdx1+d2param(4,2,ib,ie)*dxtdx1)
+            ddparam(2,4,ib,ie)= &
+       &-(d2param(4,1,ib,ie)*dxrdx2+d2param(4,2,ib,ie)*dxtdx2)
+
+    ! laplacians of parameter derivatives
+            d2dparam(1,ib,ie)=-d2param(1,1,ib,ie)*xri &
+       &-2*wez2*xrrel*phin(ib,ie)+wez*xrrel*d2pdxr2 &
+       &+xri2*tempt2*dparam(1,ib,ie)
+         
+            d2dparam(2,ib,ie)=-d2param(1,2,ib,ie)*xri &
+       &+tempr2*dparam(2,ib,ie) &
+       &+xri2*(-xg4*sxtrel*(1.d0+2*xg4*cxtrel)*phin(ib,ie) &
+       &       +tempt2*dparam(2,ib,ie))
+         
+    ! Notice the addition of + c3*d2pdxr2 to correct for chain rule
+            d2dparam(3,ib,ie)=-d2param(1,3,ib,ie)*xri &
+       &+we*(-1.d0+2*wez*xrrel2)*phin(ib,ie)-0.5d0*we*xrrel2*d2pdxr2 &
+       &+xri2*tempt2*dparam(3,ib,ie) + c3*d2pdxr2
+         
+            d2dparam(4,ib,ie)=-d2param(1,4,ib,ie)*xri &
+       &+tempr2*dparam(4,ib,ie) &
+       &+xri2*((-cxtrel+2*xg4*sxtrel*sxtrel)*phin(ib,ie) &
+       &+tempt2*dparam(4,ib,ie))
+       
+          endif
+
+        enddo
+      enddo
+
+      return
+      end
 
 !-------------------------------------------------------------------------
 

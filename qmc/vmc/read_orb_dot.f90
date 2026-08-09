@@ -189,10 +189,10 @@
           write(6,'(''WARNING: exponent oparm(3,ib,1) set to 1'')')
           oparm(3,ib,1)=1
         endif
-        if (ibasis.eq.5) then !GO
-          if(oparm(1,ib,1).eq.0.d0 .and. oparm(4,ib,1).ne.0.d0) then
-            write(6,'(''oparm(4,ib,1) must be  > 0 for oparm(1,ib,1)=0 when using ibasis=5'')')
-            stop 'oparm(4,ib,1) must be  > 0 for oparm(1,ib,1)=0 when using ibasis=5'
+        if (ibasis.eq.5) then
+          if(oparm(4,ib,1).lt.0.d0) then
+            write(6,'(''oparm(4,ib,1) must be  >= 0'')')
+            stop 'oparm(4,ib,1) must be  >= 0'
           endif
         elseif(ibasis.eq.6 .or. ibasis.eq.7) then
           if(oparm(4,ib,1).le.0.d0) then

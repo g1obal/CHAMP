@@ -1331,16 +1331,15 @@
       return
       end
 
-!--------------------------------------------------------------------------
+!-------------------------------------------------------------------------
 
       subroutine basis_fns_polargauss(iel,rvec_en,r_en)
+! Written by Gokhan Oztarhan, Aug 2026
 
-! Written by A.D.Guclu, Jan 2007
-! Edited by Gokhan Oztarhan, Aug 2026
-! Updated with robust L2 asymptotic normalization for VMC optimization
-! 2-dimensional localized gaussian basis set in polar coordinates
-! Main purpose is the study quasi-1D wigner crystal. It can
-! also be applied to 2d wigner crystals.
+! 2-dimensional localized anisotropic gaussian basis set in polar coordinates
+! Replaces the polar origin singularity with a pure Cartesian representation.
+
+! Main purpose is the study 2d wigner crystals.
 
 ! arguments: iel=0 -> all electron
 !               >0 -> only electron iel
@@ -1349,14 +1348,26 @@
 
 ! output: phin,dphin, and d2phin are calculated
 
-! Wave functions are given by (except the normalization csnt)
+! Wave functions are given by:
 
-! phi=dsqrt(dsqrt(we*xg3*xg4)) * exp(-we*xg3/2*(xr-xr0)^2) 
-!                           * exp(xg4*(cos(xt-xt0)-1))
+! For the central dot orbital (when xg1 < 1.d-6 / dsqrt(we)):
+! phi = fnorm * exp(-we*xg3/2 * (x1^2 + x2^2))
 
-! where  xr=r and xt=\theta  are polar coordinates of electrons
-!        xg1 and xg2 are polar coordinates of gaussians
-!        xg3 and xg4 are gaussian width parameters.
+! For the ring orbitals:
+! phi = fnorm * exp(-we*xg3/2 * dr^2) * exp(-(xg4/xg1^2)/2 * dt^2)
+
+! where  dr and dt are local Cartesian coordinates projected onto the 
+!        radial and tangential axes of the basis function center:
+!        dr =  (x1-X0)*cos(xg2) + (x2-Y0)*sin(xg2)
+!        dt = -(x1-X0)*sin(xg2) + (x2-Y0)*cos(xg2)
+
+!        and X0 = xg1*cos(xg2) and Y0 = xg1*sin(xg2) are the Cartesian 
+!        coordinates of the basis function.
+
+!        xg1 = radial distance to basis center (R0)
+!        xg2 = angular position of basis center (theta0)
+!        xg3 = radial width parameter (in units of we)
+!        xg4 = angular width parameter (converted to Cartesian via xg4/xg1^2)
 
       use atom_mod
       use coefs_mod
@@ -1370,7 +1381,6 @@
 
       dimension rvec_en(3,nelec,*),r_en(nelec,*)
 
-! Decide whether we are computing all or one electron
       if(iel.eq.0) then
         nelec1=1
         nelec2=nelec
@@ -1380,94 +1390,67 @@
       endif
 
       ic=1
-      expnorm=1.d0
+      
+      xg1cut = 1.d-6 / dsqrt(we)
 
       do ie=nelec1,nelec2
         x1=rvec_en(1,ie,ic) + cent(1,ic)
         x2=rvec_en(2,ie,ic) + cent(2,ic)
-        xr=dsqrt(x1*x1 + x2*x2)
-        xt=datan2(x2,x1)
-        
-        ! Guard against division by zero at the exact origin
-        if (xr .lt. 1.d-14) then
-          xri = 0.d0
-          xri2 = 0.d0
-        else
-          xri = 1.d0 / xr
-          xri2 = xri * xri
-        endif
+        r2_pgs=x1*x1 + x2*x2
 
         do ib=1,nbasis
           xg1=oparm(1,ib,iwf)
           xg2=oparm(2,ib,iwf)
           xg3=oparm(3,ib,iwf)
           xg4=oparm(4,ib,iwf)
-          wez=we*xg3
-          wez2=wez*wez
-          xrrel=xr-xg1
-          xrrel2=xrrel*xrrel
-          xtrel=xt-xg2
-          cxtrel=dcos(xtrel)
-          sxtrel=dsin(xtrel)
+          wez_pgs=we*xg3
 
-! Normalization factor to stabilize optimization matrices
-! If angular width is effectively zero (isotropic), use standard 2D normalization.
-! Otherwise, use the quasi-1D separable normalization.
           if (xg4 .lt. 1.d-6) then
-            fnorm = dsqrt(wez)                ! Exact 2D isotropic norm
+            fnorm_pgs = dsqrt(wez_pgs)                
           else
-            fnorm = dsqrt(dsqrt(wez * xg4))   ! Quasi-1D separable norm
+            fnorm_pgs = dsqrt(dsqrt(wez_pgs * xg4))   
           endif
           
-          if (abs(xg1) .lt. 1.d-6 .and. abs(xg4) .lt. 1.d-6) then
+          if (xg1 .lt. xg1cut) then
             ! --- EXACT CARTESIAN LIMIT FOR CENTRAL ORBITAL ---
-            ! Eliminates all 1/r singularities
-            phin(ib,ie) = fnorm * dexp(-0.5d0*wez*xrrel2)
+            phin(ib,ie) = fnorm_pgs * dexp(-0.5d0*wez_pgs*r2_pgs)
             
-            dphin(1,ib,ie) = -wez * x1 * phin(ib,ie)
-            dphin(2,ib,ie) = -wez * x2 * phin(ib,ie)
-            d2phin(ib,ie)  = wez * (wez*xrrel2 - 2.d0) * phin(ib,ie)
+            dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
+            dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
+            d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
           
           else
-          
-            ! --- ORIGINAL POLAR FORMULAS FOR RING ORBITALS ---
-            phir=dexp(-0.5d0*wez*xrrel2)
-            phit=dexp(xg4*(cxtrel-expnorm))
-            phin(ib,ie)=fnorm*phir*phit
+            ! --- TANGENT ELLIPSE FOR RINGS ---
+            c0_pgs = dcos(xg2)
+            s0_pgs = dsin(xg2)
+            
+            dx_pgs = x1 - xg1*c0_pgs
+            dy_pgs = x2 - xg1*s0_pgs
+            
+            dr_pgs =  dx_pgs*c0_pgs + dy_pgs*s0_pgs
+            dt_pgs = -dx_pgs*s0_pgs + dy_pgs*c0_pgs
+            
+            wt_pgs = xg4 / (xg1 * xg1)
+            
+            phin(ib,ie) = fnorm_pgs * dexp(-0.5d0*wez_pgs*dr_pgs*dr_pgs - 0.5d0*wt_pgs*dt_pgs*dt_pgs)
 
-            if(abs(phir).gt.1.d+300) then
-              write(6,'(''phir='',9d12.4)') phir
-              stop 'phir too large'
+            if(abs(phin(ib,ie)).gt.1.d+300) then
+              write(6,*) 'phin(ib,ie) too large'
+              stop
             endif
 
-            if(abs(phit).gt.1.d+300) then
-              write(6,'(''phit='',9d12.4)') phit
-              stop 'phit too large'
-            endif
+            Px_pgs = -wez_pgs*dr_pgs*c0_pgs + wt_pgs*dt_pgs*s0_pgs
+            Py_pgs = -wez_pgs*dr_pgs*s0_pgs - wt_pgs*dt_pgs*c0_pgs
 
-! Note: dpdxr and dpdxt are defined here as (1/phi)*(dphi/dx).
-! Therefore, they do not depend on the constant prefactor.
-            dpdxr=-wez*xrrel
-            dpdxt=-xg4*sxtrel
-            d2pdxr2=-wez+dpdxr*dpdxr
-            d2pdxt2=-xg4*cxtrel+dpdxt*dpdxt
+            dphin(1,ib,ie) = Px_pgs * phin(ib,ie)
+            dphin(2,ib,ie) = Py_pgs * phin(ib,ie)
 
-            dphin(1,ib,ie)=(dpdxr*x1*xri-dpdxt*x2*xri2)*phin(ib,ie)
-            dphin(2,ib,ie)=(dpdxr*x2*xri+dpdxt*x1*xri2)*phin(ib,ie)
-
-            d2phin(ib,ie)=(dpdxr*xri+d2pdxr2+d2pdxt2*xri2)*phin(ib,ie)
-          endif
-
-          if(abs(phin(ib,ie)).gt.1.d+300) then
-            write(6,'(''phir,phit,phin(ib,ie),dphin(1,ib,ie),dphin(2,ib,ie),d2phin(ib,ie)='',9d12.4)') &
-     &      phir,phit,phin(ib,ie),dphin(1,ib,ie),dphin(2,ib,ie),d2phin(ib,ie)
-            stop 'phir,phit,phin(ib,ie) too large'
+            d2phin(ib,ie) = (-(wez_pgs + wt_pgs) + Px_pgs*Px_pgs + Py_pgs*Py_pgs) * phin(ib,ie)
           endif
 
         enddo
       enddo
 
-! Check that every electron has at least one nonzero basis function.
       phimax=maxval(abs(phin))
 
       do ie=nelec1,nelec2
@@ -1482,22 +1465,16 @@
       return
       end
 
+
 !-------------------------------------------------------------------------
 
       subroutine deriv_polargauss(rvec_en,r_en)
+! Written by Gokhan Oztarhan, Aug 2026
 
-! Written by A.D.Guclu, Jan 2007
-! Edited by Gokhan Oztarhan, Aug 2026
-! Updated with robust L2 asymptotic normalization for VMC optimization
-! 2-dimensional localized gaussian basis set in polar coordinates
+! 2-dimensional localized anisotropic gaussian basis set in polar coordinates
+! Replaces the polar origin singularity with a pure Cartesian representation.
 
-! arguments: iel=0 -> all electron
-!               >0 -> only electron iel
-!            rvec_en=vector electron-nucleus
-!                    (or electron-dot center in this context)
-
-! output: phin,dphin, and d2phin are calculated
-!         dparam, d2param, ddparam, d2dparam = parameter derivatives
+! Main purpose is the study 2d wigner crystals.
 
       use atom_mod
       use coefs_mod
@@ -1514,186 +1491,160 @@
 
       nelec1=1
       nelec2=nelec
-
       ic=1
-      expnorm=1.d0
+      
+      xg1cut = 1.d-6 / dsqrt(we)
 
       do ie=nelec1,nelec2
         x1=rvec_en(1,ie,ic) + cent(1,ic)
         x2=rvec_en(2,ie,ic) + cent(2,ic)
-        xr=dsqrt(x1*x1 + x2*x2)
-        xt=datan2(x2,x1)
-        
-        ! Guard against division by zero at the exact origin
-        if (xr .lt. 1.d-14) then
-          xri = 0.d0
-          xri2 = 0.d0
-        else
-          xri = 1.d0 / xr
-          xri2 = xri * xri
-        endif
+        r2_pgs=x1*x1 + x2*x2
 
         do ib=1,nbasis
-
           xg1=oparm(1,ib,iwf)
           xg2=oparm(2,ib,iwf)
           xg3=oparm(3,ib,iwf)
           xg4=oparm(4,ib,iwf)
-          wez=we*xg3
-          wez2=wez*wez
-          xrrel=xr-xg1
-          xrrel2=xrrel*xrrel
-          xtrel=xt-xg2
-          cxtrel=dcos(xtrel)
-          sxtrel=dsin(xtrel)
-! jacobian:
-          dxrdx1=x1*xri
-          dxrdx2=x2*xri
-          dxtdx1=-x2*xri2
-          dxtdx2=x1*xri2
+          wez_pgs=we*xg3
 
-! Normalization and chain-rule variables
-! If angular width is effectively zero (isotropic), use standard 2D normalization.
-! Otherwise, use the quasi-1D separable normalization.
           if (xg4 .lt. 1.d-6) then
-            fnorm = dsqrt(wez)
-            c3 = 0.5d0 / xg3      
-            c4 = 0.d0             
-            dc3 = -0.5d0 / (xg3 * xg3)  ! 2nd derivative for xg3
-            dc4 = 0.d0                  ! 2nd derivative for xg4 is zeroed out
+            fnorm_pgs = dsqrt(wez_pgs)
+            c3_pgs = 0.5d0 / xg3
+            c4_pgs = 0.d0
+            dc33_pgs = -0.5d0 / (xg3 * xg3)
+            dc44_pgs = 0.d0
           else
-            fnorm = dsqrt(dsqrt(wez * xg4))
-            c3 = 0.25d0 / xg3     
-            c4 = 0.25d0 / xg4     
-            dc3 = -0.25d0 / (xg3 * xg3) ! 2nd derivative for xg3
-            dc4 = -0.25d0 / (xg4 * xg4) ! 2nd derivative for xg4
+            fnorm_pgs = dsqrt(dsqrt(wez_pgs * xg4))
+            c3_pgs = 0.25d0 / xg3
+            c4_pgs = 0.25d0 / xg4
+            dc33_pgs = -0.25d0 / (xg3 * xg3)
+            dc44_pgs = -0.25d0 / (xg4 * xg4)
           endif
 
-! wfs and coo. derivatives:
-          if (abs(xg1) .lt. 1.d-6 .and. abs(xg4) .lt. 1.d-6) then
+          if (xg1 .lt. xg1cut) then
             ! --- EXACT CARTESIAN LIMIT FOR CENTRAL ORBITAL ---
-            phin(ib,ie) = fnorm * dexp(-0.5d0*wez*xrrel2)
-
-            dphin(1,ib,ie) = -wez * x1 * phin(ib,ie)
-            dphin(2,ib,ie) = -wez * x2 * phin(ib,ie)
-            d2phin(ib,ie)  = wez * (wez*xrrel2 - 2.d0) * phin(ib,ie)
-
-            ! Zero out the fixed and singular parameters (xg1, xg2, xg4)
+            phin(ib,ie) = fnorm_pgs * dexp(-0.5d0*wez_pgs*r2_pgs)
+            dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
+            dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
+            d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
+            
             dparam(:,ib,ie) = 0.d0
             d2param(:,:,ib,ie) = 0.d0
             ddparam(:,:,ib,ie) = 0.d0
             d2dparam(:,ib,ie) = 0.d0
-
-            ! Analytically evaluate the active radial width (xg3)
-            dparam(3,ib,ie) = (c3 - 0.5d0*we*xrrel2) * phin(ib,ie)
-            d2param(3,3,ib,ie) = dc3*phin(ib,ie) + (c3 - 0.5d0*we*xrrel2)*dparam(3,ib,ie)
-             
-            ddparam(1,3,ib,ie) = -we*x1*phin(ib,ie) - wez*x1*dparam(3,ib,ie)
-            ddparam(2,3,ib,ie) = -we*x2*phin(ib,ie) - wez*x2*dparam(3,ib,ie)
-             
-            d2dparam(3,ib,ie) = c3 * d2phin(ib,ie) &
-                 - 0.5d0*we * (wez*wez*xrrel2*xrrel2 - 6.d0*wez*xrrel2 + 4.d0) * phin(ib,ie)
-                  
+            
+            P3_pgs = -0.5d0 * we * r2_pgs
+            P3x_pgs = -we * x1
+            P3y_pgs = -we * x2
+            dlap3_pgs = -2.d0 * we
+            
+            dparam(3,ib,ie) = (c3_pgs + P3_pgs) * phin(ib,ie)
+            d2param(3,3,ib,ie) = dc33_pgs * phin(ib,ie) + (c3_pgs + P3_pgs) * dparam(3,ib,ie)
+            
+            ddparam(1,3,ib,ie) = P3x_pgs * phin(ib,ie) + (c3_pgs + P3_pgs) * dphin(1,ib,ie)
+            ddparam(2,3,ib,ie) = P3y_pgs * phin(ib,ie) + (c3_pgs + P3_pgs) * dphin(2,ib,ie)
+            
+            d2dparam(3,ib,ie) = (dlap3_pgs + 2.d0*(-wez_pgs*x1)*P3x_pgs + 2.d0*(-wez_pgs*x2)*P3y_pgs) * phin(ib,ie) &
+                              + (c3_pgs + P3_pgs) * d2phin(ib,ie)
           else
-          
-            ! --- ORIGINAL POLAR FORMULAS FOR RING ORBITALS ---
-            phir=dexp(-0.5d0*wez*xrrel2)
-            phit=dexp(xg4*(cxtrel-expnorm))
-            phin(ib,ie)=fnorm*phir*phit
-
-            tempr1=-wez*xrrel
-            tempt1=-xg4*sxtrel
-            tempr2=-wez+tempr1*tempr1
-            tempt2=-xg4*cxtrel+tempt1*tempt1
-              
-    ! Note: Unlike basis_fns_polargauss, dpdxr is defined here as dphi/dx
-            dpdxr=tempr1*phin(ib,ie)
-            dpdxt=tempt1*phin(ib,ie)
-            d2pdxr2=tempr2*phin(ib,ie)
-            d2pdxt2=tempt2*phin(ib,ie)
-
-            dphin(1,ib,ie)=dpdxr*dxrdx1+dpdxt*dxtdx1
-            dphin(2,ib,ie)=dpdxr*dxrdx2+dpdxt*dxtdx2
-
-            d2phin(ib,ie)=dpdxr*xri+d2pdxr2+d2pdxt2*xri2
-
-    ! parameter derivatives:
-            dparam(1,ib,ie)=-dpdxr                                 ! wrt xg1
-            dparam(2,ib,ie)=-dpdxt                                 ! wrt xg2
-            dparam(3,ib,ie)=(c3-0.5d0*we*xrrel2)*phin(ib,ie)       ! wrt xg3
-            dparam(4,ib,ie)=(c4+cxtrel-expnorm)*phin(ib,ie)        ! wrt xg4
-
-            d2param(1,1,ib,ie)=d2pdxr2                             ! wrt xg1,xg1
-            d2param(2,2,ib,ie)=d2pdxt2                             ! wrt xg2,xg2
-            d2param(3,3,ib,ie) = dc3*phin(ib,ie) &
-       &                       + (c3-0.5d0*we*xrrel2)*dparam(3,ib,ie) ! wrt xg3,xg3
-
-            d2param(4,4,ib,ie) = dc4*phin(ib,ie) &
-       &                       + (c4+cxtrel-expnorm)*dparam(4,ib,ie) ! wrt xg4,xg4
-
-            d2param(1,2,ib,ie)=-tempr1*dparam(2,ib,ie)
-            d2param(1,3,ib,ie)=we*xrrel*phin(ib,ie) &
-       &                       +(c3-0.5d0*we*xrrel2)*dparam(1,ib,ie)
-            d2param(1,4,ib,ie)=(c4+cxtrel-expnorm)*dparam(1,ib,ie)
-            d2param(2,3,ib,ie)=(c3-0.5d0*we*xrrel2)*dparam(2,ib,ie)
-            d2param(2,4,ib,ie)=sxtrel*phin(ib,ie) &
-       &                       +(c4+cxtrel-expnorm)*dparam(2,ib,ie)
-            d2param(3,4,ib,ie)=(c4+cxtrel-expnorm)*dparam(3,ib,ie)
-
-            d2param(2,1,ib,ie)=d2param(1,2,ib,ie)
-            d2param(3,1,ib,ie)=d2param(1,3,ib,ie)
-            d2param(4,1,ib,ie)=d2param(1,4,ib,ie)
-            d2param(3,2,ib,ie)=d2param(2,3,ib,ie)
-            d2param(4,2,ib,ie)=d2param(2,4,ib,ie)
-            d2param(4,3,ib,ie)=d2param(3,4,ib,ie)
-
-    ! coo. derivatives of parameter derivatives:
-
-            ddparam(1,1,ib,ie)=                                 & ! wrt x1,xg1
-       &-(d2param(1,1,ib,ie)*dxrdx1+d2param(1,2,ib,ie)*dxtdx1)
-            ddparam(2,1,ib,ie)=                                 & ! wrt x2,xg1
-       &-(d2param(1,1,ib,ie)*dxrdx2+d2param(1,2,ib,ie)*dxtdx2)
-
-            ddparam(1,2,ib,ie)= &
-       &-(d2param(2,1,ib,ie)*dxrdx1+d2param(2,2,ib,ie)*dxtdx1)
-            ddparam(2,2,ib,ie)= &
-       &-(d2param(2,1,ib,ie)*dxrdx2+d2param(2,2,ib,ie)*dxtdx2)
-
-            ddparam(1,3,ib,ie)= &
-       &-(d2param(3,1,ib,ie)*dxrdx1+d2param(3,2,ib,ie)*dxtdx1)
-            ddparam(2,3,ib,ie)= &
-       &-(d2param(3,1,ib,ie)*dxrdx2+d2param(3,2,ib,ie)*dxtdx2)
-
-            ddparam(1,4,ib,ie)= &
-       &-(d2param(4,1,ib,ie)*dxrdx1+d2param(4,2,ib,ie)*dxtdx1)
-            ddparam(2,4,ib,ie)= &
-       &-(d2param(4,1,ib,ie)*dxrdx2+d2param(4,2,ib,ie)*dxtdx2)
-
-    ! laplacians of parameter derivatives
-            d2dparam(1,ib,ie)=-d2param(1,1,ib,ie)*xri &
-       &-2*wez2*xrrel*phin(ib,ie)+wez*xrrel*d2pdxr2 &
-       &+xri2*tempt2*dparam(1,ib,ie)
-         
-            d2dparam(2,ib,ie)=-d2param(1,2,ib,ie)*xri &
-       &+tempr2*dparam(2,ib,ie) &
-       &+xri2*(-xg4*sxtrel*(1.d0+2*xg4*cxtrel)*phin(ib,ie) &
-       &       +tempt2*dparam(2,ib,ie))
-         
-    ! Notice the addition of + c3*d2pdxr2 to correct for chain rule
-            d2dparam(3,ib,ie)=-d2param(1,3,ib,ie)*xri &
-       &+we*(-1.d0+2*wez*xrrel2)*phin(ib,ie)-0.5d0*we*xrrel2*d2pdxr2 &
-       &+xri2*tempt2*dparam(3,ib,ie) + c3*d2pdxr2
-         
-            d2dparam(4,ib,ie)=-d2param(1,4,ib,ie)*xri &
-       &+tempr2*dparam(4,ib,ie) &
-       &+xri2*((-cxtrel+2*xg4*sxtrel*sxtrel)*phin(ib,ie) &
-       &+tempt2*dparam(4,ib,ie))
-       
+            ! --- TANGENT ELLIPSE FOR RINGS ---
+            c0_pgs = dcos(xg2)
+            s0_pgs = dsin(xg2)
+            dx_pgs = x1 - xg1*c0_pgs
+            dy_pgs = x2 - xg1*s0_pgs
+            dr_pgs = dx_pgs*c0_pgs + dy_pgs*s0_pgs
+            dt_pgs = -dx_pgs*s0_pgs + dy_pgs*c0_pgs
+            
+            wt_pgs = xg4 / (xg1*xg1)
+            dwt1_pgs = -2.d0 * xg4 / (xg1**3)
+            dwt4_pgs = 1.d0 / (xg1*xg1)
+            
+            phin(ib,ie) = fnorm_pgs * dexp(-0.5d0*wez_pgs*dr_pgs*dr_pgs - 0.5d0*wt_pgs*dt_pgs*dt_pgs)
+            
+            Px_pgs = -wez_pgs*dr_pgs*c0_pgs + wt_pgs*dt_pgs*s0_pgs
+            Py_pgs = -wez_pgs*dr_pgs*s0_pgs - wt_pgs*dt_pgs*c0_pgs
+            dlap_pgs = -wez_pgs - wt_pgs
+            
+            dphin(1,ib,ie) = Px_pgs * phin(ib,ie)
+            dphin(2,ib,ie) = Py_pgs * phin(ib,ie)
+            d2phin(ib,ie) = (dlap_pgs + Px_pgs*Px_pgs + Py_pgs*Py_pgs) * phin(ib,ie)
+            
+            P1_pgs = wez_pgs*dr_pgs - 0.5d0*dwt1_pgs*dt_pgs*dt_pgs
+            P2_pgs = -wez_pgs*dr_pgs*dt_pgs + wt_pgs*dt_pgs*(dr_pgs + xg1)
+            P3_pgs = -0.5d0*we*dr_pgs*dr_pgs
+            P4_pgs = -0.5d0*dwt4_pgs*dt_pgs*dt_pgs
+            
+            dparam(1,ib,ie) = P1_pgs * phin(ib,ie)
+            dparam(2,ib,ie) = P2_pgs * phin(ib,ie)
+            dparam(3,ib,ie) = (c3_pgs + P3_pgs) * phin(ib,ie)
+            dparam(4,ib,ie) = (c4_pgs + P4_pgs) * phin(ib,ie)
+            
+            P11_pgs = -wez_pgs - 3.d0*(xg4/(xg1**4))*dt_pgs*dt_pgs
+            P12_pgs = wez_pgs*dt_pgs + dwt1_pgs*dt_pgs*(dr_pgs + xg1)
+            P13_pgs = we*dr_pgs
+            P14_pgs = dt_pgs*dt_pgs/(xg1**3)
+            
+            P22_pgs = -wez_pgs*(dt_pgs*dt_pgs - dr_pgs*dr_pgs - dr_pgs*xg1) + wt_pgs*(dt_pgs*dt_pgs - (dr_pgs + xg1)**2)
+            P23_pgs = -we*dr_pgs*dt_pgs
+            P24_pgs = dwt4_pgs*dt_pgs*(dr_pgs + xg1)
+            
+            d2param(1,1,ib,ie) = P11_pgs * phin(ib,ie) + P1_pgs * dparam(1,ib,ie)
+            d2param(1,2,ib,ie) = P12_pgs * phin(ib,ie) + P1_pgs * dparam(2,ib,ie)
+            d2param(1,3,ib,ie) = P13_pgs * phin(ib,ie) + P1_pgs * dparam(3,ib,ie)
+            d2param(1,4,ib,ie) = P14_pgs * phin(ib,ie) + P1_pgs * dparam(4,ib,ie)
+            
+            d2param(2,2,ib,ie) = P22_pgs * phin(ib,ie) + P2_pgs * dparam(2,ib,ie)
+            d2param(2,3,ib,ie) = P23_pgs * phin(ib,ie) + P2_pgs * dparam(3,ib,ie)
+            d2param(2,4,ib,ie) = P24_pgs * phin(ib,ie) + P2_pgs * dparam(4,ib,ie)
+            
+            d2param(3,3,ib,ie) = dc33_pgs * phin(ib,ie) + (c3_pgs + P3_pgs) * dparam(3,ib,ie)
+            d2param(3,4,ib,ie) = (c3_pgs + P3_pgs) * dparam(4,ib,ie)
+            d2param(4,4,ib,ie) = dc44_pgs * phin(ib,ie) + (c4_pgs + P4_pgs) * dparam(4,ib,ie)
+            
+            d2param(2,1,ib,ie) = d2param(1,2,ib,ie)
+            d2param(3,1,ib,ie) = d2param(1,3,ib,ie)
+            d2param(4,1,ib,ie) = d2param(1,4,ib,ie)
+            d2param(3,2,ib,ie) = d2param(2,3,ib,ie)
+            d2param(4,2,ib,ie) = d2param(2,4,ib,ie)
+            d2param(4,3,ib,ie) = d2param(3,4,ib,ie)
+            
+            P1x_pgs = wez_pgs*c0_pgs + dwt1_pgs*dt_pgs*s0_pgs
+            P1y_pgs = wez_pgs*s0_pgs - dwt1_pgs*dt_pgs*c0_pgs
+            
+            P2x_pgs = -wez_pgs*(c0_pgs*dt_pgs - dr_pgs*s0_pgs) + wt_pgs*(-s0_pgs*(dr_pgs + xg1) + dt_pgs*c0_pgs)
+            P2y_pgs = -wez_pgs*(s0_pgs*dt_pgs + dr_pgs*c0_pgs) + wt_pgs*(c0_pgs*(dr_pgs + xg1) + dt_pgs*s0_pgs)
+            
+            P3x_pgs = -we*dr_pgs*c0_pgs
+            P3y_pgs = -we*dr_pgs*s0_pgs
+            
+            P4x_pgs = dwt4_pgs*dt_pgs*s0_pgs
+            P4y_pgs = -dwt4_pgs*dt_pgs*c0_pgs
+            
+            ddparam(1,1,ib,ie) = P1x_pgs * phin(ib,ie) + P1_pgs * dphin(1,ib,ie)
+            ddparam(2,1,ib,ie) = P1y_pgs * phin(ib,ie) + P1_pgs * dphin(2,ib,ie)
+            
+            ddparam(1,2,ib,ie) = P2x_pgs * phin(ib,ie) + P2_pgs * dphin(1,ib,ie)
+            ddparam(2,2,ib,ie) = P2y_pgs * phin(ib,ie) + P2_pgs * dphin(2,ib,ie)
+            
+            ddparam(1,3,ib,ie) = P3x_pgs * phin(ib,ie) + (c3_pgs + P3_pgs) * dphin(1,ib,ie)
+            ddparam(2,3,ib,ie) = P3y_pgs * phin(ib,ie) + (c3_pgs + P3_pgs) * dphin(2,ib,ie)
+            
+            ddparam(1,4,ib,ie) = P4x_pgs * phin(ib,ie) + (c4_pgs + P4_pgs) * dphin(1,ib,ie)
+            ddparam(2,4,ib,ie) = P4y_pgs * phin(ib,ie) + (c4_pgs + P4_pgs) * dphin(2,ib,ie)
+            
+            dlap1_pgs = -dwt1_pgs
+            dlap2_pgs = 0.d0
+            dlap3_pgs = -we
+            dlap4_pgs = -dwt4_pgs
+            
+            d2dparam(1,ib,ie) = (dlap1_pgs + 2.d0*Px_pgs*P1x_pgs + 2.d0*Py_pgs*P1y_pgs) * phin(ib,ie) + P1_pgs * d2phin(ib,ie)
+            d2dparam(2,ib,ie) = (dlap2_pgs + 2.d0*Px_pgs*P2x_pgs + 2.d0*Py_pgs*P2y_pgs) * phin(ib,ie) + P2_pgs * d2phin(ib,ie)
+            d2dparam(3,ib,ie) = (dlap3_pgs + 2.d0*Px_pgs*P3x_pgs + 2.d0*Py_pgs*P3y_pgs) * phin(ib,ie) + (c3_pgs + P3_pgs) * d2phin(ib,ie)
+            d2dparam(4,ib,ie) = (dlap4_pgs + 2.d0*Px_pgs*P4x_pgs + 2.d0*Py_pgs*P4y_pgs) * phin(ib,ie) + (c4_pgs + P4_pgs) * d2phin(ib,ie)
           endif
 
         enddo
       enddo
-
       return
       end
 

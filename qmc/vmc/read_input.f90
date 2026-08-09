@@ -648,7 +648,7 @@
         write(6,'(''Floating Gaussian basis for 2D Wigner crystals'')')
         notype=3
       elseif(ibasis.eq.5) then
-        write(6,'(''Floating Gaussian basis for 2D Wigner crystals in ring geom.'')')
+        write(6,'(''Floating Gaussian basis for 2D Wigner crystals in polar coordinates.'')') !GO
         notype=4
       elseif(ibasis.eq.6) then
         write(6,'(''Floating, non-circular Gaussian basis for 2D Wigner crystals'')')
@@ -2018,7 +2018,7 @@
       if(nparme.gt.nbasis) stop 'nparme > nbasis'
       if(nparme.gt.0 .and. numr.gt.0) stop 'nparme > 0 and numr > 0'
       if(nparme.gt.0 .and. ibasis.eq.3 .and. idot.ne.0) stop 'for quantum dots, nparme.gt.0 only possible for Fock-Darwin states'
-      if(nparme.gt.0 .and. ibasis.eq.4) stop 'nparme > 0' !GO
+      if(nparme.gt.0 .and. (ibasis.eq.4 .or. ibasis.eq.5)) stop 'nparme > 0' !GO
       if(nparml.lt.0 .or. nparmj.lt.0 .or. nparmcsf.lt.0 .or. nparms.lt.0 .or.nparmg.lt.0) stop 'nparm? must be >= 0'
       if(nparms.gt.1) stop 'nparms must be 0 or 1'
       nparmjs=nparmj+nparms !JT
@@ -2043,6 +2043,21 @@
         enddo
       enddo
       call systemflush(6)
+      
+      if (ibasis.eq.5) then !GO
+        do iparm=1,iabs(nparmo(2))
+          if (oparm(1,iwo(iparm,2),1) .eq. 0.d0) then
+            write(6,*) 'Cannot optimize angular position parameter for polar gaussian located at center.'
+            stop 'Cannot optimize angular position parameter for polar gaussian located at center.'
+          endif
+        enddo
+        do iparm=1,iabs(nparmo(4))
+          if (oparm(1,iwo(iparm,4),1) .eq. 0.d0) then
+            write(6,*) 'Cannot optimize angular width parameter for polar gaussian located at center.'
+            stop 'Cannot optimize angular width parameter for polar gaussian located at center.'
+          endif
+        enddo
+      endif
 
       call alloc ('iworb', iworb, nparml)
       call alloc ('iwbasi', iwbasi, nparml)

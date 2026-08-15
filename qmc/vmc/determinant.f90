@@ -53,8 +53,23 @@
       common /dojasderiv/ ijasderiv
 
       dimension x(3,*),rvec_en(3,nelec,*),r_en(nelec,*),ddet_det(3,*),div_vd(nelec)
-      dimension dporb(notype,nbasis,nelec,norb),d2porb(notype,notype,nbasis,nelec,norb)
-      dimension ddporb(3,notype,nbasis,nelec,norb),d2dporb(notype,nbasis,nelec,norb)
+      
+! >>> ALLOCATE LARGE MEMORY ONCE IN BSS TO SAVE MEMORY BANDWIDTH <<< !GO
+      real*8, allocatable, save :: dporb(:,:,:,:), d2porb(:,:,:,:,:)
+      real*8, allocatable, save :: ddporb(:,:,:,:,:), d2dporb(:,:,:,:)
+      logical, save :: is_dporb_allocated = .false.
+      
+      if (.not. is_dporb_allocated) then
+        allocate(dporb(notype,nbasis,nelec,norb))
+        allocate(d2porb(notype,notype,nbasis,nelec,norb))
+        allocate(ddporb(3,notype,nbasis,nelec,norb))
+        allocate(d2dporb(notype,nbasis,nelec,norb))
+        dporb = 0.0d0
+        d2porb = 0.0d0
+        ddporb = 0.0d0
+        d2dporb = 0.0d0
+        is_dporb_allocated = .true.
+      endif
 
 ! initialize the derivative arrays to zero
       do 10 i=1,nelec
@@ -824,47 +839,55 @@
           consgn = sign(1.0d0, dble(orb_constraints(it,ip,2)))
           ipcon2 = iabs(orb_constraints(it,ip,2))
           ipcon1 = orb_constraints(it,ip,1)
-        
-          do iorb = 1, norb
-            do ie = 1, nelec
-              dporb(it,ipcon2,ie,iorb) = &
-     &          dporb(it,ipcon2,ie,iorb) &
-     &          + consgn * dporb(it,ipcon1,ie,iorb)
-     
-              do idim = 1, ndim
-                ddporb(idim,it,ipcon2,ie,iorb) = &
-     &            ddporb(idim,it,ipcon2,ie,iorb) &
-     &            + consgn * ddporb(idim,it,ipcon1,ie,iorb)
-              enddo
-              
-              d2dporb(it,ipcon2,ie,iorb) = &
-     &          d2dporb(it,ipcon2,ie,iorb) &
-     &          + consgn * d2dporb(it,ipcon1,ie,iorb)
-            enddo 
-          enddo 
           
-          do jt = 1, notype
-            ! Conditional logically hoisted entirely outside of electron/orbital loops
-            if (it .eq. jt) then
-               do iorb = 1, norb
+          if (coef_is_diag) then
+            ! >>> MASSIVE SPEEDUP: OVERWRITE MODE (NO ZEROING REQUIRED) <<<
+            iorb = ipcon1
+            do ie = 1, nelec
+              dporb(it,ipcon2,ie,iorb) = consgn * dporb(it,ipcon1,ie,iorb)
+              do idim = 1, ndim
+                ddporb(idim,it,ipcon2,ie,iorb) = consgn * ddporb(idim,it,ipcon1,ie,iorb)
+              enddo
+              d2dporb(it,ipcon2,ie,iorb) = consgn * d2dporb(it,ipcon1,ie,iorb)
+            enddo 
+            do jt = 1, notype
+              if (it .eq. jt) then
                  do ie = 1, nelec
-                   ! Self-derivative scales as c^2
-                   d2porb(it,jt,ipcon2,ie,iorb) = &
-     &               d2porb(it,jt,ipcon2,ie,iorb) &
-     &               + consgn * consgn * d2porb(it,jt,ipcon1,ie,iorb)
+                   d2porb(it,jt,ipcon2,ie,iorb) = consgn * consgn * d2porb(it,jt,ipcon1,ie,iorb)
                  enddo
-               enddo
-            else
-               do iorb = 1, norb
+              else
                  do ie = 1, nelec
-                   ! Cross-derivative scales as c
-                   d2porb(it,jt,ipcon2,ie,iorb) = &
-     &               d2porb(it,jt,ipcon2,ie,iorb) &
-     &               + consgn * d2porb(it,jt,ipcon1,ie,iorb)
+                   d2porb(it,jt,ipcon2,ie,iorb) = consgn * d2porb(it,jt,ipcon1,ie,iorb)
                  enddo
-               enddo
-            endif
-          enddo 
+              endif
+            enddo 
+          else
+            ! >>> DENSE FALLBACK: ACCUMULATION (+) <<<
+            do iorb = 1, norb
+              do ie = 1, nelec
+                dporb(it,ipcon2,ie,iorb) = dporb(it,ipcon2,ie,iorb) + consgn * dporb(it,ipcon1,ie,iorb)
+                do idim = 1, ndim
+                  ddporb(idim,it,ipcon2,ie,iorb) = ddporb(idim,it,ipcon2,ie,iorb) + consgn * ddporb(idim,it,ipcon1,ie,iorb)
+                enddo
+                d2dporb(it,ipcon2,ie,iorb) = d2dporb(it,ipcon2,ie,iorb) + consgn * d2dporb(it,ipcon1,ie,iorb)
+              enddo 
+            enddo 
+            do jt = 1, notype
+              if (it .eq. jt) then
+                 do iorb = 1, norb
+                   do ie = 1, nelec
+                     d2porb(it,jt,ipcon2,ie,iorb) = d2porb(it,jt,ipcon2,ie,iorb) + consgn * consgn * d2porb(it,jt,ipcon1,ie,iorb)
+                   enddo
+                 enddo
+              else
+                 do iorb = 1, norb
+                   do ie = 1, nelec
+                     d2porb(it,jt,ipcon2,ie,iorb) = d2porb(it,jt,ipcon2,ie,iorb) + consgn * d2porb(it,jt,ipcon1,ie,iorb)
+                   enddo
+                 enddo
+              endif
+            enddo 
+          endif
           
         enddo ! ip
       enddo ! it

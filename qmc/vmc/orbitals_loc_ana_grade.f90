@@ -37,27 +37,31 @@
          endif
       endif
 
-! If ibasis.eq.4 and coef is a multiple of the unit matrix
-      if(ibasis.eq.4 .and. coef_is_diag) then
+! If ibasis.eq.4 or 5 and coef is a multiple of the unit matrix
+      if((ibasis.eq.4 .or. ibasis.eq.5) .and. coef_is_diag) then
+        ! >>> MASSIVE O(N) SPEEDUP FOR DIAGONAL ORBITALS <<<
         do 24 iorb=1,norb
-          orb(iorb)=coef(iorb,iorb,iwf)*phin(iorb,iel)
-          dorb(1,iorb)=coef(iorb,iorb,iwf)*dphin(1,iorb,iel)
-          dorb(2,iorb)=coef(iorb,iorb,iwf)*dphin(2,iorb,iel)
-          dorb(3,iorb)=coef(iorb,iorb,iwf)*dphin(3,iorb,iel)
-   24     ddorb(iorb)=coef(iorb,iorb,iwf)*d2phin(iorb,iel)
+          c_val = coef(iorb,iorb,iwf)
+          orb(iorb)=c_val*phin(iorb,iel)
+          dorb(1,iorb)=c_val*dphin(1,iorb,iel)
+          dorb(2,iorb)=c_val*dphin(2,iorb,iel)
+          dorb(3,iorb)=c_val*dphin(3,iorb,iel)
+   24     ddorb(iorb)=c_val*d2phin(iorb,iel)
       else
-        do 25 iorb=1,norb
-          orb(iorb)=0
-          dorb(1,iorb)=0
-          dorb(2,iorb)=0
-          dorb(3,iorb)=0
-          ddorb(iorb)=0
-          do 25 m=1,nbasis
-            orb(iorb)=orb(iorb)+coef(m,iorb,iwf)*phin(m,iel)
-            dorb(1,iorb)=dorb(1,iorb)+coef(m,iorb,iwf)*dphin(1,m,iel)
-            dorb(2,iorb)=dorb(2,iorb)+coef(m,iorb,iwf)*dphin(2,m,iel)
-            dorb(3,iorb)=dorb(3,iorb)+coef(m,iorb,iwf)*dphin(3,m,iel)
-   25       ddorb(iorb)=ddorb(iorb)+coef(m,iorb,iwf)*d2phin(m,iel)
+        ! >>> EXACT, CACHE-OPTIMIZED O(N^2) FALLBACK FOR LCAO <<<
+        orb = 0.0d0
+        dorb = 0.0d0
+        ddorb = 0.0d0
+        do iorb=1,norb
+          do m=1,nbasis
+            c_val = coef(m,iorb,iwf)
+            orb(iorb)=orb(iorb)+c_val*phin(m,iel)
+            dorb(1,iorb)=dorb(1,iorb)+c_val*dphin(1,m,iel)
+            dorb(2,iorb)=dorb(2,iorb)+c_val*dphin(2,m,iel)
+            dorb(3,iorb)=dorb(3,iorb)+c_val*dphin(3,m,iel)
+            ddorb(iorb)=ddorb(iorb)+c_val*d2phin(m,iel)
+          enddo
+        enddo
       endif
 
       return

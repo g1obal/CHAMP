@@ -966,25 +966,7 @@
      &      '' iflag=1. This is a bad move because dparm_norm>2 for otype 3 params'')') iadd_diag,add_diag(iadd_diag),dparm_norm
           endif
         endif
-        if(ibasis.eq.5) then !GO
-          if(nparmo(4).ne.0) then
-            iiwo=0
-            do i=1,iabs(nparmo(4))
-              iparm=iparm+1
-              iiwo=iiwo+1
-              ! Protect against dividing by zero or near-zero parameters
-              oparm_denom = max(abs(oparm(4, iwo(iiwo,i), 1)), 1.d-2)
-              ! Check fractional change for this specific parameter
-              dparm_change = abs(dparm(iparm)) / oparm_denom
-              if(dparm_change.gt.2.d0) then
-                iflag=1
-                write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_change='',i2,d12.4,f9.2, &
-     &          '' iflag=1. This is a bad move because dparm_change>2 for otype 4 params'')') iadd_diag,add_diag(iadd_diag),dparm_change
-              endif
-            enddo
-          endif
-        endif
-        if(ibasis.eq.6 .or. ibasis.eq.7) then
+        if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7) then
           if(nparmo(4).ne.0) then
             dparm_norm=0
             do i=1,iabs(nparmo(4))
@@ -1078,22 +1060,8 @@
           enddo
         endif
       endif
-      
-      if(ibasis.eq.5) then !GO
-        if(nparmot.gt.0) then
-          if(nparmo(4).ne.0) then
-            do ib=1,nbasis
-              if(oparm(4,ib,iadd_diag).lt.0.d0) then
-                write(6,'(''iadd_diag='',i2,d12.4, &
-     &             '' iflag=1. This is a bad move because oparm(4,..) < 0'')') iadd_diag,add_diag(1)
-                iflag=1
-              endif
-            enddo
-          endif
-        endif
-      endif
 
-      if(ibasis.eq.6 .or. ibasis.eq.7) then
+      if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7) then
         if(nparmot.gt.0) then
           if(nparmo(4).ne.0) then
             do ib=1,nbasis

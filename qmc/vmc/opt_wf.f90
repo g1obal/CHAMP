@@ -147,6 +147,8 @@
             error_sigma_best=error_sigma
             call wf_best_save
           endif
+          
+          write(6,'(/,a,f13.7)') 'energy_plus_err = ', energy_plus_err
 
 ! Save wavefn for iadd_diag=1
           call wf_save

@@ -16,6 +16,11 @@
 
       common /circularmesh/ rmin,rmax,rmean,delradi,delti,nmeshr,nmesht,icoosys
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+      
+      ! Local variables for Inter-Ring Phase Correlation writing
+      double precision :: pi_pd, del_phase_pd, angle_pd
+      integer :: in1_pd
+      
 ! verify the normalization later...
 !      delx=1/delxi    ! doesn't work now that delxi is an array
       if(icoosys.eq.1) then
@@ -441,6 +446,31 @@
         close(46)
         close(47)
         close(48)
+      endif
+      
+! Write Inter-Ring Phase Correlation
+      if(nrings_pd .ge. 2 .and. M_pd .ne. 0) then
+        if(index(mode,'vmc').ne.0) then
+          file1='ircorr_vmc'
+        else
+          file1='ircorr_dmc'
+        endif
+        if(idtask.eq.0) then
+          open(49,file=file1,status='unknown')
+        else
+          open(49,status='scratch')
+        endif
+        
+        pi_pd = 4.d0 * datan(1.d0)
+        del_phase_pd = 2.d0 * pi_pd / dble(NIRBINS_pd)
+        
+        do in1_pd = 1, NIRBINS_pd
+          ! Output angle (mid-point of the bin) and accumulated phase difference
+          angle_pd = -pi_pd + (dble(in1_pd) - 0.5d0) * del_phase_pd
+          write(49,'(2G20.8E3)') angle_pd, irphase_pd(in1_pd) / passes
+        enddo
+        
+        close(49)
       endif
 
       return

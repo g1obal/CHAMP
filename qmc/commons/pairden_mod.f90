@@ -14,5 +14,13 @@ module pairden_mod
  integer ithetafix !GO
  integer ifixe
  integer, parameter :: NAX = 50
+ 
+! Variables for M-fold orientational order parameter
+ integer :: M_pd, nrings_pd
+ integer, dimension(20) :: conf_pd
+ 
+! Variables for Inter-Ring Phase Correlation
+ integer, parameter :: NIRBINS_pd = 360
+ double precision, allocatable :: irphase_pd(:)
 
 end module pairden_mod

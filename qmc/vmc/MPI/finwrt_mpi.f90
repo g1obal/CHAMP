@@ -27,6 +27,9 @@
       dimension zzpairtot(-NAX:NAX,-NAX:NAX),zzdenijtot(-NAX:NAX,0:(nelec-1))
       dimension zzcorrtot(0:NAX), zzcorrijtot(0:(nelec-1))
       dimension rprobt(NRAD),tryt(NRAD),suct(NRAD),work(nforce)
+      
+      ! Variables for M-fold phase correlation reduction
+      double precision :: irphasetot_pd(NIRBINS_pd)
 
 
 !     err(x,x2,i)=dsqrt(abs(x2/wcum(i)-(x/wcum(i))**2)/iblk)
@@ -249,6 +252,12 @@
           call mpi_allreduce(zzpairdenij_t, zzdenijtot, naxt,mpi_double_precision,mpi_sum,MPI_COMM_WORLD,ierr)
           zzpairdenij_t(:,:) = zzdenijtot(:,:)
         endif
+      endif
+      
+      ! Inter-Ring phase reduction
+      if(nrings_pd .ge. 2 .and. M_pd .ne. 0) then
+        call mpi_allreduce(irphase_pd, irphasetot_pd, NIRBINS_pd, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        irphase_pd(:) = irphasetot_pd(:)
       endif
 
 !     call mpi_allreduce(trunfb,trunfbt,NRAD,mpi_double_precision

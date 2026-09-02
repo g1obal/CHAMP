@@ -275,7 +275,7 @@
               do 35 irwf=1,nrbas_analytical(ictype)
    35           zex2(irwf,ictype,iadd_diag)=zex2(irwf,ictype,1)
           endif
-          if(ibasis.ge.4 .and. ibasis.le.7) then
+          if(ibasis.ge.4 .and. ibasis.le.8) then
             do 37 i=1,orb_tot_nb
               do 37 j=1,nbasis
    37           coef(j,i,iadd_diag)=coef(j,i,1)
@@ -753,7 +753,7 @@
       if(nparmot.gt.0) then
         do it=1,notype
           write(fmt,'(''(''i4,''f15.8,a)'')') nbasis !GO
-          if(ibasis.eq.5) then
+          if(ibasis.eq.5 .or. ibasis.eq.8) then
             if(it.eq.1) then
               write(6,fmt) (oparm_best(it,i),i=1,nbasis),' (floating_gauss_rad_pos_best(it,i),i=1,nbasis)'
               write(2,fmt) (oparm_best(it,i),i=1,nbasis),' (floating_gauss_rad_pos_best(it,i),i=1,nbasis)'

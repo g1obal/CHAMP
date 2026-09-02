@@ -519,6 +519,10 @@
         znncorr(:) = 0
         zn2ncorr(:) = 0
       endif
+      
+      ! Zero out Inter-Ring Phase Correlator
+      if (.not. allocated(irphase_pd)) allocate(irphase_pd(NIRBINS_pd))
+      irphase_pd(:) = 0.d0
 
 ! get wavefunction etc. at initial point
 

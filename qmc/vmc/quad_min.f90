@@ -7,6 +7,7 @@
 
       use gradhess_mod
       use contrl_opt_mod
+      use contrl_per_mod
       implicit real*8(a-h,o-z)
       parameter(MFUNC=3)
 
@@ -93,11 +94,26 @@
 !x scalek with variance minimization.
 
 !     if(p_var.lt.0.1d0 .and. b(3).gt.0 .and. abs(force(2)).gt.3*force_err(2) .and. abs(force(3)).gt.3*force_err(3)) then
-      if(b(3).gt.0 .and. rms.lt.1.d-6) then ! quadratic fit has a minimum
+      if(b(3).gt.0 .and. rms.lt.1.d-6) then ! quadratic fit has a minimum (modified by GO for gaussians)
         iwadd_diag=0
         add_diag_log_min=-0.5d0*b(2)/b(3)
-        add_diag_log_min=min(max(add_diag_log_min,add_diag_log(1)-2.d0),add_diag_log(1)+2.d0)
+        
+        ! Enforce interpolation bounds for selected floating basis sets
+        if (ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.8) then
+          if (add_diag_log_min .lt. minval(add_diag_log(1:npts)) .or. &
+     &        add_diag_log_min .gt. maxval(add_diag_log(1:npts))) then
+            iwadd_diag=k_min
+            add_diag_log_min=add_diag_log(k_min)
+            write(6,'(''Extrapolation clamped to test range for ibasis='',i2)') ibasis
+          endif
+        endif
+        
+        ! Only apply original bound if we didn't just clamp it
+        if (iwadd_diag .eq. 0) then
+          add_diag_log_min=min(max(add_diag_log_min,add_diag_log(1)-2.d0),add_diag_log(1)+2.d0)
+        endif
         ene_var_min=b(1)+b(2)*add_diag_log_min+b(3)*add_diag_log_min**2
+        
       elseif(rms.lt.1.d-6) then ! if quadratic fit is good but has maximum, choose the best of the 3 sampled add_diag values
         iwadd_diag=minloc(ene_var+(1-p_var)*3*energy_err,1)
         add_diag_log_min=add_diag_log(iwadd_diag)

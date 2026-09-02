@@ -937,49 +937,63 @@
             dparm_norm=dparm_norm+dparm(iparm)**2
           enddo
           dparm_norm=sqrt(dparm_norm/abs(nparmo(2)))
-          if(ibasis.eq.4 .or. ibasis.eq.6 .or. ibasis.eq. 7) then
+          if(ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7 .or. ibasis.eq.8) then
             if(dparm_norm.gt.1/(3*scalek(iadd_diag))) then
               iflag=1
               write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
      &        '' iflag=1. This is a bad move because dparm_norm>1/3scalek for otype 2 params'')') &
      &        iadd_diag,add_diag(iadd_diag),dparm_norm
             endif
-          elseif(ibasis.eq.5) then
-            write(6,'(''for ang_pos dparm_norm='',f12.6)') dparm_norm
-            if(dparm_norm.gt.0.1) then
-              iflag=1
-              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
-     &       '' iflag=1. This is a bad move because dparm_norm>0.1 for otype 2 params'')') iadd_diag,add_diag(iadd_diag),dparm_norm
-            endif
           endif
         endif
-        if(nparmo(3).ne.0) then
-          dparm_norm=0
+        if(nparmo(3).ne.0) then !GO
+          dparm_norm = 0.d0
+!          fract_max = 0.d0
           do i=1,iabs(nparmo(3))
             iparm=iparm+1
-            dparm_norm=dparm_norm+dparm(iparm)**2
+            fract_change = dparm(iparm) / oparm(3,iwo(i,3),1)
+            dparm_norm = dparm_norm + fract_change**2
+!            if (abs(fract_change) .gt. fract_max) then
+!               fract_max = abs(fract_change)
+!            endif
           enddo
-          dparm_norm=sqrt(dparm_norm/abs(nparmo(3)))/oparm(3,1,iadd_diag)
-          if(dparm_norm.gt.2.d0) then
+          dparm_norm = sqrt(dparm_norm / abs(nparmo(3)))
+          if(dparm_norm .gt. 2.d0) then
             iflag=1
-            write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
-     &      '' iflag=1. This is a bad move because dparm_norm>2 for otype 3 params'')') iadd_diag,add_diag(iadd_diag),dparm_norm
+            write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
+     &      '' iflag=1. Bad move: dparm_norm > 2 for otype 3 params'')') iadd_diag, dparm_norm
           endif
+          ! New Failsafe (Any single parameter > 50%)
+!          if(fract_max .gt. 0.50d0) then
+!            iflag=1
+!            write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
+!     &      '' iflag=1. Bad move: fract_max > 0.5 for otype 3 params'')') iadd_diag, dparm_norm
+!          endif
         endif
-        if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7) then
+        if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7 .or. ibasis.eq.8) then
           if(nparmo(4).ne.0) then
-            dparm_norm=0
+            dparm_norm = 0.d0
+!            fract_max = 0.d0
             do i=1,iabs(nparmo(4))
               iparm=iparm+1
-              dparm_norm=dparm_norm+dparm(iparm)**2
-!             write(6,*) 'test: dparm(iparm)=',dparm(iparm)
+              fract_change = dparm(iparm) / oparm(4,iwo(i,4),1)
+              dparm_norm = dparm_norm + fract_change**2
+!              if (abs(fract_change) .gt. fract_max) then
+!                 fract_max = abs(fract_change)
+!              endif
             enddo
-            dparm_norm=sqrt(dparm_norm/abs(nparmo(4)))/oparm(4,1,iadd_diag)
-            if(dparm_norm.gt.2.d0) then
+            dparm_norm = sqrt(dparm_norm / abs(nparmo(4)))
+            if(dparm_norm .gt. 2.d0) then
               iflag=1
-              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
-     &        '' iflag=1. This is a bad move because dparm_norm>2 for otype 4 params'')') iadd_diag,add_diag(iadd_diag),dparm_norm
+              write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
+     &        '' iflag=1. Bad move: dparm_norm > 2 for otype 4 params'')') iadd_diag, dparm_norm
             endif
+            ! New Failsafe (Any single parameter > 50%)
+!            if(fract_max .gt. 0.50d0) then
+!              iflag=1
+!              write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
+!     &        '' iflag=1. Bad move: fract_max > 0.5 for otype 4 params'')') iadd_diag, dparm_norm
+!            endif
           endif
         endif
       endif
@@ -1030,7 +1044,7 @@
         iflag=1
       endif
       
-      if (ibasis.eq.5) then !GO
+      if (ibasis.eq.5 .or. ibasis.eq.8) then !GO
         if(nparmot.gt.0) then
           if(nparmo(1).ne.0) then
             do ib=1,nbasis
@@ -1057,11 +1071,16 @@
      &           '' iflag=1. This is a bad move because oparm(3,..) > oparm3_max'')') iadd_diag,add_diag(1)
               iflag=1
             endif
+            if (oparm(3,ib,iadd_diag) .lt. oparm3_min) then !GO
+              write(6,'(''iadd_diag='',i2,d12.4, &
+     &           '' iflag=1. This is a bad move because oparm(3,..) < oparm3_min'')') iadd_diag,add_diag(1)
+              iflag=1
+            endif
           enddo
         endif
       endif
 
-      if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7) then
+      if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7 .or. ibasis.eq.8) then
         if(nparmot.gt.0) then
           if(nparmo(4).ne.0) then
             do ib=1,nbasis
@@ -1114,7 +1133,7 @@
       endif
 
 ! Change angular positions of floating gaussians for quantum rings from (0,2pi) to (-pi,pi).
-      if(ibasis.eq.5) then
+      if(ibasis.eq.5 .or. ibasis.eq.8) then
         do i=1,nbasis
           if(oparm(2,i,iadd_diag).gt.pi) oparm(2,i,iadd_diag)=oparm(2,i,iadd_diag)-2*pi
         enddo
@@ -1123,7 +1142,7 @@
         do it=1,notype
           write(fmt,'(''('',i4,''f15.8,a)'')') nbasis !GO
           if(ipr_new.eq.0 .or. (ipr_new.eq.1 .and. iflag.ne.0)) then
-            if(ibasis.eq.5) then
+            if(ibasis.eq.5 .or. ibasis.eq.8) then
               if(it.eq.1) then
                 write(6,fmt) (oparm(it,i,iadd_diag),i=1,nbasis),' (floating_gauss_rad_pos(it,i),i=1,nbasis)'
                 write(2,fmt) (oparm(it,i,iadd_diag),i=1,nbasis),' (floating_gauss_rad_pos(it,i),i=1,nbasis)'
@@ -1153,7 +1172,7 @@
               endif
             endif
            else
-            if(ibasis.eq.5) then
+            if(ibasis.eq.5 .or. ibasis.eq.8) then
               if(it.eq.1) then
                 write(6,fmt) (oparm(it,i,iadd_diag),i=1,nbasis),' (floating_gauss_rad_pos_new(it,i),i=1,nbasis)'
                 write(2,fmt) (oparm(it,i,iadd_diag),i=1,nbasis),' (floating_gauss_rad_pos_new(it,i),i=1,nbasis)'

@@ -32,13 +32,15 @@
            else
              call basis_fns_2dgauss_periodic2(iel,rvec_en,r_en)
            endif
+         elseif(ibasis.eq.8) then
+           call basis_fns_polargauss_damped(iel,rvec_en,r_en)
          else
-           stop 'orbitals_loc_ana: ibasis must be 1,4,5, 6, or 7 for 2d systems'
+           stop 'orbitals_loc_ana: ibasis must be 1,4,5, 6, 7 or 8 for 2d systems'
          endif
       endif
 
 ! If ibasis.eq.4 or 5 and coef is a multiple of the unit matrix
-      if((ibasis.eq.4 .or. ibasis.eq.5) .and. coef_is_diag) then
+      if((ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.8) .and. coef_is_diag) then
         ! >>> MASSIVE O(N) SPEEDUP FOR DIAGONAL ORBITALS <<<
         do 24 iorb=1,norb
           c_val = coef(iorb,iorb,iwf)

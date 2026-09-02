@@ -105,7 +105,7 @@
               if(ibasis.eq.5) then
                 site = (0.5d0 - rannyu(0))/dsqrt(we*oparm(3, iworbd(ielec,1), iwf))
                 angle = (0.5d0 - rannyu(0))/dsqrt(oparm(4, iworbd(ielec,1), iwf))
-                site = site + oparm(1, iworbd(ielec,1), iwf)
+                site = site + we**(-2.d0/3.d0) * oparm(1, iworbd(ielec,1), iwf)
                 angle = angle + oparm(2, iworbd(ielec,1), iwf)
 !  Make sure electron is near the center of some gaussian - might not work
 !     if there's more than 1 slater determinant
@@ -130,20 +130,43 @@
 !      for cylindrical and gaussian quantum dots, make sure that electrons are
 !      located around centers of gaussian basis functions within an effective radius.
 !      Be careful if there is more than 1 slater determinant
-            elseif(ibasis.eq.5) then !GO, Aug 2026
-                site = dsqrt(-dlog(rannyu(0)))
-                site = site*min(sitsca,1.d0/dsqrt(we*oparm(3,iworbd(ielec,1),iwf)))
+            elseif(ibasis.eq.5 .or. ibasis.eq.8) then !GO, Aug 2026
+                ! Calculate physical radius to match wavefunction branching
+                xg1we_pgs = we**(-2.d0/3.d0) * oparm(1,iworbd(ielec,1),iwf)
+                xg1cut_pgs = 1.d-6 / dsqrt(we)
                 
-                angle = rannyu(0) 
-                if (oparm(4,iworbd(ielec,1),iwf) .gt. 0.d0) then
-                  angle = angle/dsqrt(oparm(4, iworbd(ielec,1), iwf))
-                endif
+                ! Box-Muller transform for true Normal Distributions
+                u1 = rannyu(0)
+                u2 = rannyu(0)
+                z0 = dsqrt(-2.d0*dlog(u1)) * dcos(2.d0*pi*u2)
+                z1 = dsqrt(-2.d0*dlog(u1)) * dsin(2.d0*pi*u2)
 
-                site = site + oparm(1, iworbd(ielec,1), iwf)
-                angle = angle + oparm(2, iworbd(ielec,1), iwf)
-                
-                x(1,ielec)=site*dcos(angle)
-                x(2,ielec)=site*dsin(angle)
+                if (xg1we_pgs .lt. xg1cut_pgs) then
+                  ! --- CENTRAL DOT: STRICTLY ISOTROPIC 2D GAUSSIAN ---
+                  ! z0 and z1 natively create a perfect 2D Gaussian cloud at the origin
+                  width_iso = min(sitsca, 1.d0 / dsqrt(we * oparm(3,iworbd(ielec,1),iwf)))
+                  
+                  x(1,ielec) = z0 * width_iso
+                  x(2,ielec) = z1 * width_iso
+                  
+                else
+                  ! --- RING ORBITALS: ANISOTROPIC POLAR PLACEMENT ---
+                  ! Symmetric Radial generation
+                  width_r = min(sitsca, 1.d0 / dsqrt(we * oparm(3,iworbd(ielec,1),iwf)))
+                  site = xg1we_pgs + z0 * width_r
+                  
+                  ! Symmetric Angular generation
+                  if (ibasis.eq.5) then
+                    width_t = 1.d0 / dsqrt(we * oparm(4, iworbd(ielec,1), iwf))
+                  else
+                    width_t = 1.d0 / dsqrt(oparm(4, iworbd(ielec,1), iwf))
+                  endif
+                  
+                  angle = oparm(2, iworbd(ielec,1), iwf) + z1 * width_t
+                  
+                  x(1,ielec) = site * dcos(angle)
+                  x(2,ielec) = site * dsin(angle)
+                endif
                     
             elseif(nloc.eq.-6 .or. nloc.eq.-7) then
               call find_basis_center(ielec, indcoefavailup, indcoefavaildn, nbasup, nbasdn, iind)

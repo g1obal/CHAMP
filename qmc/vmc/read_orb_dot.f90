@@ -39,10 +39,10 @@
 
       if(ibasis.eq.3) then
         call read_orb_dot_fd
-      elseif(ibasis.ge.4 .or. ibasis.le.7) then
+      elseif(ibasis.ge.4 .or. ibasis.le.8) then
         call read_orb_dot_gauss
       else
-        stop 'In read_orb_dot: only ibasis=3,4,5,6,7 allowed'
+        stop 'In read_orb_dot: only ibasis=3,4,5,6,7,8 allowed'
       endif
       return
       end
@@ -151,7 +151,7 @@
           if(it.eq.1) write(6,'(''Floating gaussian x-positions:'')')
           if(it.eq.2) write(6,'(''Floating gaussian y-positions:'')')
           if(it.eq.3) write(6,'(''Floating gaussian widths:'')')
-        elseif(ibasis.eq.5) then
+        elseif(ibasis.eq.5 .or. ibasis.eq.8) then
           if(it.eq.1) write(6,'(''Floating gaussian radial positions:'')')
           if(it.eq.2) write(6,'(''Floating gaussian angular positions:'')')
           if(it.eq.3) write(6,'(''Floating gaussian radial widths:'')')
@@ -178,18 +178,23 @@
           endif
           if(it.eq.4) write(6,'(''Floating gaussian y-widths:'')')
         else
-          write(6,'(''ibasis must be 4, 5, 6, or 7 in read_orb_dot_gauss'')')
-          stop 'ibasis must be 4, 5, 6, or 7 in read_orb_dot_gauss'
+          write(6,'(''ibasis must be 4, 5, 6, 7 or 8 in read_orb_dot_gauss'')')
+          stop 'ibasis must be 4, 5, 6, 7 or 8 in read_orb_dot_gauss'
         endif
         write(6,'(1000f12.6)') (oparm(it,ib,1),ib=1,nbasis)
       enddo
 
       do ib=1,nbasis
         if(oparm(3,ib,1).le.0.d0) then
-          write(6,'(''WARNING: exponent oparm(3,ib,1) set to 1'')')
-          oparm(3,ib,1)=1
+          if(ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.8) then
+            write(6,'(''oparm(3,ib,1) must be  > 0'')')
+            stop 'oparm(3,ib,1) must be  > 0'
+          else
+            write(6,'(''WARNING: exponent oparm(3,ib,1) set to 1'')')
+            oparm(3,ib,1)=1
+          endif
         endif
-        if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7) then
+        if(ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7 .or. ibasis.eq.8) then
           if(oparm(4,ib,1).le.0.d0) then
             write(6,'(''oparm(4,ib,1) must be  > 0'')')
             stop 'oparm(4,ib,1) must be  > 0'

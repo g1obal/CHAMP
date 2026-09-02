@@ -841,7 +841,7 @@
           ipcon1 = orb_constraints(it,ip,1)
           
           if (coef_is_diag) then
-            ! >>> MASSIVE SPEEDUP: OVERWRITE MODE (NO ZEROING REQUIRED) <<<
+            ! >>> MASSIVE SPEEDUP: OVERWRITE MODE <<<
             iorb = ipcon1
             do ie = 1, nelec
               dporb(it,ipcon2,ie,iorb) = consgn * dporb(it,ipcon1,ie,iorb)
@@ -850,17 +850,23 @@
               enddo
               d2dporb(it,ipcon2,ie,iorb) = consgn * d2dporb(it,ipcon1,ie,iorb)
             enddo 
+            
             do jt = 1, notype
-              if (it .eq. jt) then
-                 do ie = 1, nelec
-                   d2porb(it,jt,ipcon2,ie,iorb) = consgn * consgn * d2porb(it,jt,ipcon1,ie,iorb)
-                 enddo
-              else
-                 do ie = 1, nelec
-                   d2porb(it,jt,ipcon2,ie,iorb) = consgn * d2porb(it,jt,ipcon1,ie,iorb)
-                 enddo
-              endif
+              ! Look up the constraint sign for parameter type jt on the same slave basis
+              consgn_jt = 1.0d0
+              do kp = 1, norb_constraints(jt)
+                if (orb_constraints(jt,kp,1) .eq. ipcon1) then
+                  consgn_jt = sign(1.0d0, dble(orb_constraints(jt,kp,2)))
+                  exit
+                endif
+              enddo
+              
+              ! Apply exact chain rule product (c_X * c_Y)
+              do ie = 1, nelec
+                d2porb(it,jt,ipcon2,ie,iorb) = consgn * consgn_jt * d2porb(it,jt,ipcon1,ie,iorb)
+              enddo
             enddo 
+            
           else
             ! >>> DENSE FALLBACK: ACCUMULATION (+) <<<
             do iorb = 1, norb
@@ -872,20 +878,23 @@
                 d2dporb(it,ipcon2,ie,iorb) = d2dporb(it,ipcon2,ie,iorb) + consgn * d2dporb(it,ipcon1,ie,iorb)
               enddo 
             enddo 
+            
             do jt = 1, notype
-              if (it .eq. jt) then
-                 do iorb = 1, norb
-                   do ie = 1, nelec
-                     d2porb(it,jt,ipcon2,ie,iorb) = d2porb(it,jt,ipcon2,ie,iorb) + consgn * consgn * d2porb(it,jt,ipcon1,ie,iorb)
-                   enddo
-                 enddo
-              else
-                 do iorb = 1, norb
-                   do ie = 1, nelec
-                     d2porb(it,jt,ipcon2,ie,iorb) = d2porb(it,jt,ipcon2,ie,iorb) + consgn * d2porb(it,jt,ipcon1,ie,iorb)
-                   enddo
-                 enddo
-              endif
+              ! Look up the constraint sign for parameter type jt on the same slave basis
+              consgn_jt = 1.0d0
+              do kp = 1, norb_constraints(jt)
+                if (orb_constraints(jt,kp,1) .eq. ipcon1) then
+                  consgn_jt = sign(1.0d0, dble(orb_constraints(jt,kp,2)))
+                  exit
+                endif
+              enddo
+              
+              ! Apply exact chain rule product (c_X * c_Y)
+              do iorb = 1, norb
+                do ie = 1, nelec
+                  d2porb(it,jt,ipcon2,ie,iorb) = d2porb(it,jt,ipcon2,ie,iorb) + consgn * consgn_jt * d2porb(it,jt,ipcon1,ie,iorb)
+                enddo
+              enddo
             enddo 
           endif
           
@@ -896,188 +905,4 @@
       end
       
 
-!--------------------------------------------------------------------------------------
 
-      subroutine constrained_deriv_det_orb_deprecated(orb,dorb,ddorb,dporb,d2porb,ddporb,d2dporb,detinv)
-!  Written by Abhijit Mehta, May 2010
-!    Extensively modified January 2011
-!  Calculates derivatives wrt orbital parameters for optimization if some of
-!    the parameters are constrained to be equal (eg, we may want all gaussians
-!      to have the same width, so we can optimize just 1 parameter rather than
-!       nelec individual parameters.)
-!  This routine calls deriv_det_orb to calculate derivatives as if each
-!     individual orbital parameter were independent, then just sums them up
-!     (using the chain rule) to get the derivative with respect to the single
-!       parameter.
-
-      use dorb_mod
-      use dets_mod
-      use slater_mod
-      use optim_mod
-      use const_mod
-      use dim_mod
-      use coefs_mod
-      use wfsec_mod
-      use optimo_mod
-      use basic_tools_mod
-      use objects_mod
-      use contrl_opt_mod
-      implicit real*8(a-h,o-z)
-! arguments
-      dimension orb(nelec,norb),dorb(3,nelec,norb),ddorb(nelec,norb)
-      dimension dporb(notype,nbasis,nelec,norb),d2porb(notype,notype,nbasis,nelec,norb)
-      dimension ddporb(3,notype,nbasis,nelec,norb),d2dporb(notype,nbasis,nelec,norb)
-! temporary variables, used to save values
-      dimension nparmo_temp(notype)
-      dimension deti_det_temp(nparmd), ddeti_det_temp(3,nelec,nparmd)
-      dimension d2deti_det_temp(nparmd), detij_det_temp(nparmd, nparmd)
-!      dimension detij_partial_temp(nparmd,nparmcsf+4*nbasis)
-      dimension iwo_temp(nbasis,notype) !GO
-! ACM: For optimized constraints, we shall run deriv_det_orb as if we were
-!  varying each orbital parameter separately, so we must change the values of
-!  nparmo(it), nparmot, nparmd, and iwo(ip,it).  We calculate overall derivatives using
-!   chain rule, and restore values after calling deriv_det_orb
-!  This is a quick and dirty solution, but it should work.
-! Jan 2011: for now, calculate derivatives wrt all orbital params when there's a constraint
-!    In the future, we should fix this to only compute the necessary parameters.
-      nparmo_temp = nparmo  ! this is an array operation nparmo_temp(:) = nparmo(:)
-      nparmot_temp = nparmot
-      nparmd_temp = nparmd
-      iwo_temp = iwo
-      do it=1,notype
-        if (nparmo(it).lt.0) then
-          nparmot = nparmot - iabs(nparmo(it)) + nbasis
-          nparmo(it) = nbasis
-          do ib = 1,nbasis  ! we'll calculate derivatives wrt all orbital params
-            iwo(ib, it) = ib
-          enddo
-        endif
-      enddo
-      nparmd = nparmcsf+nparmot
-
-!  Housekeeping to make sure arrays are the right size - hope I'm doing this right
-      call object_modified('nparmd')
-      call object_modified('iwo')
-      call alloc('deti_det', deti_det, nparmd)
-      call alloc('ddeti_det', ddeti_det, 3,nelec, nparmd)
-      call alloc('d2deti_det', d2deti_det, nparmd)
-      call alloc('detij_det', detij_det, nparmd, nparmd)
-
-! Derivatives with respect to orbital parameters (not orbital coefficients!).
-!   This is a cut and paste from determinant()
-      if(iopt.eq.2) then
-        do iparm=1,nparmcsf+nparmot
-          do jparm=1,nparmcsf+nparmot
-            detij_det(iparm,jparm)=0
-          enddo
-        enddo
-      endif
-
-      call deriv_det_orb(orb,dorb,ddorb,dporb,d2porb,ddporb,d2dporb,detinv)
-
-!      write(6,'(''After deriv_det_orb, detij_det ='')')  ! ACM debug
-!      do i=1,nparmd
-!        write(6,'(20g12.4)') (detij_det(i,j), j=1,nparmd)
-!      enddo
-
-!  Do chain rule to calculate derivative with respect to constrained parameter
-
-        iparm0 = nparmcsf ! which parameter we're on for final result
-        iparm1 = nparmcsf ! which parameter we're on from deriv_det_orb
-        do it = 1,notype
-          if (nparmo_temp(it).lt.0) then
-!           Do chain rule by summing up derivatives:
-            do icon=1,norb_constraints(it)
-              iparm_sum_index = iparm1+iabs(orb_constraints(it,icon,2)) ! where to keep sum
-              consgn = real(sign(1,orb_constraints(it,icon,2))) !whether this constraint is a mirror constraint
-              iparm_summand_index = iparm1+orb_constraints(it,icon,1) ! constrained param
-              deti_det(iparm_sum_index) = deti_det(iparm_sum_index) + consgn*deti_det(iparm_summand_index)
-              ddeti_det(:,:,iparm_sum_index) = ddeti_det(:,:,iparm_sum_index) + consgn*ddeti_det(:,:,iparm_summand_index)
-              d2deti_det(iparm_sum_index) = d2deti_det(iparm_sum_index) + consgn*d2deti_det(iparm_summand_index)
-              do icon2=1,norb_constraints(it) ! sum to get partials -detij_det
-                iparm_sum_index2 = iparm1+iabs(orb_constraints(it,icon2,2))
-                consgn2 = real(sign(1,orb_constraints(it,icon2,2)))
-                iparm_summand_index2 = iparm1 + orb_constraints(it,icon2,1)
-                detij_det(iparm_sum_index,iparm_sum_index2) = detij_det(iparm_sum_index,iparm_sum_index2) &
-     &             + consgn*consgn2*detij_det(iparm_summand_index,iparm_summand_index2)
-              enddo
-            enddo
-!           Now put the summed values in output variables (currently labeled _temp), but we switch them later
-            do ip=1,iabs(nparmo_temp(it))  ! set sums to output variables
-              iparm_final_index = iparm0+ip
-              iparm_sum_index = iparm1+iwo_temp(ip,it)
-              deti_det_temp(iparm_final_index) = deti_det(iparm_sum_index)
-              ddeti_det_temp(:,:,iparm_final_index) = ddeti_det(:,:,iparm_sum_index)
-              d2deti_det_temp(iparm_final_index) = d2deti_det(iparm_sum_index)
-              do ip2=1,iabs(nparmo_temp(it)) ! second sum for detij_det
-                iparm_final_index2 = iparm0+ip2
-                iparm_sum_index2 = iparm1+iwo_temp(ip2,it)
-                detij_det_temp(iparm_final_index,iparm_final_index2) = detij_det(iparm_sum_index,iparm_sum_index2)
-!                write(6,'(6i5)') ip, iwo_temp(ip,it), iparm_final_index, iparm_final_index2, iparm_sum_index, iparm_sum_index2
-!                write(6,'(3g12.4)')  iparm_final_index, iparm_final_index2, detij_det_temp(iparm_final_index,iparm_final_index2)
-!                write(6,'(3g12.4)') iparm_sum_index,iparm_sum_index2, detij_det(iparm_sum_index,iparm_sum_index2)
-              enddo
-            enddo
-!    This code was from when nparmo(it)=-1 just meant constrain ALL params
-!            iparm0 = iparm0 + 1
-!            deti_det_temp(iparm0) = sum(deti_det(iparm1+1:iparm1+nbasis))
-!            ddeti_det_temp(:,:,iparm0) = sum(ddeti_det(:,:,iparm1+1:iparm1+nbasis), DIM=3)
-!            d2deti_det_temp(iparm0) = sum(d2deti_det(iparm1+1:iparm1+nbasis))
-!            detij_partial_temp(iparm0,1:nparmd) = sum(detij_det(iparm1+1:iparm1+nbasis,:), DIM=1)
-            iparm0 = iparm0 + iabs(nparmo_temp(it))
-            iparm1 = iparm1 + nbasis
-          else
-            iparm0 = iparm0 + nparmo(it)
-            iparm1 = iparm1 + nparmo(it)
-          endif
-        enddo
-!      write(6,'(''After applying constraints, detij_det ='')') ! ACM debug
-!      do i=1,nparmd
-!        write(6,'(20g12.4)') (detij_det(i,j), j=1,nparmd)
-!      enddo
-!
-!      write(6,'(''After applying constraints, detij_det_temp ='')')
-!      do i=1,nparmd_temp
-!        write(6,'(20g12.4)') (detij_det_temp(i,j), j=1,nparmd_temp)
-!      enddo
-
-!  Finish up doing sum over second index to get detij_det(iparm,jparm) - NO LONGER NEEDED
-!        jparm0 = nparmcsf
-!        jparm1 = nparmcsf
-!        do it = 1,notype
-!         if (nparmo_temp(it).eq.-1) then
-!            jparm0 = jparm0 + 1
-!            detij_det_temp(:,jparm0) = sum(detij_partial_temp(:,jparm1+1:jparm1+nbasis), DIM=2)
-!            jparm1 = jparm1 + nbasis
-!          else
-!            jparm0 = jparm0 + nparmo(it)
-!            jparm1 = jparm1 + nparmo(it)
-!         endif
-!        enddo
-
-!   Restore variables to their original values, update sizes
-!     of derivative arrays and give them correct values
-        nparmo = nparmo_temp
-        nparmot = nparmot_temp
-        nparmd = nparmd_temp
-        iwo = iwo_temp
-        call object_modified('nparmd')
-        call object_modified('iwo')
-        call alloc('deti_det', deti_det, nparmd)
-        call alloc('ddeti_det', ddeti_det, 3,nelec, nparmd)
-        call alloc('d2deti_det', d2deti_det, nparmd)
-        call alloc('detij_det', detij_det, nparmd, nparmd)
-        deti_det = deti_det_temp
-        ddeti_det = ddeti_det_temp
-        d2deti_det = d2deti_det_temp
-        detij_det = detij_det_temp
-
-
-!      write(6,'(''After constrained_deriv_det_orb, detij_det ='')') ! ACM debug
-!      do i=1,nparmd
-!        write(6,'(20g12.4)') (detij_det(i,j), j=1,nparmd)
-!      enddo
-
-
-        return
-        end

@@ -138,6 +138,11 @@
                 ! Box-Muller transform for true Normal Distributions
                 u1 = rannyu(0)
                 u2 = rannyu(0)
+                
+                ! Prevent exact 0.0 (-Inf crash) and exact 1.0 (perfect symmetry node)
+                if (u1 .lt. 1.d-12) u1 = 1.d-12
+                if (u1 .gt. 1.d0 - 1.d-12) u1 = 1.d0 - 1.d-12
+                
                 z0 = dsqrt(-2.d0*dlog(u1)) * dcos(2.d0*pi*u2)
                 z1 = dsqrt(-2.d0*dlog(u1)) * dsin(2.d0*pi*u2)
 

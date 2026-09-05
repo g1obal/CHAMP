@@ -134,31 +134,23 @@
                 ! Calculate physical radius to match wavefunction branching
                 xg1we_pgs = we**(-2.d0/3.d0) * oparm(1,iworbd(ielec,1),iwf)
                 xg1cut_pgs = 1.d-6 / dsqrt(we)
-                
-                ! Box-Muller transform for true Normal Distributions
-                u1 = rannyu(0)
-                u2 = rannyu(0)
-                
-                ! Prevent exact 0.0 (-Inf crash) and exact 1.0 (perfect symmetry node)
-                if (u1 .lt. 1.d-12) u1 = 1.d-12
-                if (u1 .gt. 1.d0 - 1.d-12) u1 = 1.d0 - 1.d-12
-                
-                z0 = dsqrt(-2.d0*dlog(u1)) * dcos(2.d0*pi*u2)
-                z1 = dsqrt(-2.d0*dlog(u1)) * dsin(2.d0*pi*u2)
+
+                ! Use strictly BOUNDED uniform noise to prevent electron crossings
+                u_rad = 0.5d0 - rannyu(0)
+                u_ang = 0.5d0 - rannyu(0)
 
                 if (xg1we_pgs .lt. xg1cut_pgs) then
                   ! --- CENTRAL DOT: STRICTLY ISOTROPIC 2D GAUSSIAN ---
-                  ! z0 and z1 natively create a perfect 2D Gaussian cloud at the origin
                   width_iso = min(sitsca, 1.d0 / dsqrt(we * oparm(3,iworbd(ielec,1),iwf)))
                   
-                  x(1,ielec) = z0 * width_iso
-                  x(2,ielec) = z1 * width_iso
+                  x(1,ielec) = u_rad * width_iso
+                  x(2,ielec) = u_ang * width_iso
                   
                 else
                   ! --- RING ORBITALS: ANISOTROPIC POLAR PLACEMENT ---
                   ! Symmetric Radial generation
                   width_r = min(sitsca, 1.d0 / dsqrt(we * oparm(3,iworbd(ielec,1),iwf)))
-                  site = xg1we_pgs + z0 * width_r
+                  site = xg1we_pgs + u_rad * width_r
                   
                   ! Symmetric Angular generation
                   if (ibasis.eq.5) then
@@ -167,7 +159,7 @@
                     width_t = 1.d0 / dsqrt(oparm(4, iworbd(ielec,1), iwf))
                   endif
                   
-                  angle = oparm(2, iworbd(ielec,1), iwf) + z1 * width_t
+                  angle = oparm(2, iworbd(ielec,1), iwf) + u_ang * width_t
                   
                   x(1,ielec) = site * dcos(angle)
                   x(2,ielec) = site * dsin(angle)

@@ -852,18 +852,18 @@
         do iorb=1,norb
           if(iorb.eq.1) then
 !           write(fmt,'(''(''i3,''f14.8,\'\' ((coef(j,i),j=1,nbasis),i=1,norb)\'\')'')') nbasis
-            write(fmt,'(''(''i3,''f14.8,a38)'')') nbasis
+            write(fmt,'(''(''i4,''f14.8,a38)'')') nbasis
             write(6,fmt) (coef(ib,iorb,1),ib=1,nbasis),' ((coef(j,i),j=1,nbasis),i=1,norb)'
           else
 !           write(fmt,'(a1,i3,a6)') '(',nbasis,'f14.8)'
-            write(fmt,'(''(''i3,''f14.8)'')') nbasis
+            write(fmt,'(''(''i4,''f14.8)'')') nbasis
             write(6,fmt) (coef(ib,iorb,1),ib=1,nbasis)
           endif
         enddo
 
 !       write(fmt,'(''(''i3,''f14.8,\'\' (zex(i),i=1,nbasis)\'\')'')') nbasis
 !       write(6,fmt) (zex(ib,1),ib=1,nbasis)
-        write(fmt,'(''(''i3,''f14.8,a20)'')') nbasis
+        write(fmt,'(''(''i4,''f14.8,a20)'')') nbasis
         write(6,fmt) (zex(ib,1),ib=1,nbasis),' (zex(i),i=1,nbasis)'
 
         if(ndet.gt.9999) stop 'ndet > 9999 in fit: increase i4 below'

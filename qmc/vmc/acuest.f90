@@ -388,6 +388,9 @@
       ecm21=0
 !     ecm21s=0
 
+      pair_hits_u = 0.d0
+      pair_hits_d = 0.d0
+
       pesum=0
       peisum=0
       tpbsum=0
@@ -520,9 +523,19 @@
         zn2ncorr(:) = 0
       endif
       
+      if (ifixe.le.-2 .and. M_bff.gt.0) then
+        call alloc_range ('bffden2d_t', bffden2d_t, -NAX, NAX, -NAX, NAX)
+        call alloc_range ('bffden2d_u', bffden2d_u, -NAX, NAX, -NAX, NAX)
+        call alloc_range ('bffden2d_d', bffden2d_d, -NAX, NAX, -NAX, NAX)
+        bffden2d_t(:,:) = 0.d0
+        bffden2d_u(:,:) = 0.d0
+        bffden2d_d(:,:) = 0.d0
+      endif
+      psi_M_acc_bff(:) = 0.d0
+      
       ! Zero out Inter-Ring Phase Correlator
-      if (.not. allocated(irphase_pd)) allocate(irphase_pd(NIRBINS_pd))
-      irphase_pd(:) = 0.d0
+      if (.not. allocated(irphase_bff)) allocate(irphase_bff(NIRBINS_bff))
+      irphase_bff(:) = 0.d0
 
 ! get wavefunction etc. at initial point
 

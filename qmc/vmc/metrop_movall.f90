@@ -214,6 +214,7 @@
    28 continue
       if(izigzag.gt.0) call zigzag2d(p,q,xold,xnew,0)
       if(ifixe.le.-2) call pairden2d(p,q,xold,xnew)  ! full pair-density
+      if(ifixe.le.-2 .and. M_bff.gt.0) call bffden2d(p,q,xold,xnew)
       if(ifourier.eq.1 .or. ifourier.eq.3) call fourierrk(p,q,xold,xnew)
       if(ifourier.eq.2 .or. ifourier.eq.3) call fourierkk(p,q,xold,xnew)
 

@@ -526,6 +526,7 @@
                   xnc(k,i)=xnew(k,i,ifr)
   255             xoc(k,i)=xoldw(k,i,iw,ifr)
               if(ifixe.le.-2) call pairden2d(wtgp,wtgq,xoc,xnc)
+              if(ifixe.le.-2 .and. M_bff.gt.0) call bffden2d(wtgp,wtgq,xoc,xnc)
               if(ifourier.eq.1 .or. ifourier.eq.3) call fourierrk(wtgp,wtgq,xoc,xnc)
               if(ifourier.eq.2 .or. ifourier.eq.3) call fourierkk(wtgp,wtgq,xoc,xnc)
 !             if(ifourier.eq.1) call fourier2d(wtgp,wtgq,xoc,xnc)

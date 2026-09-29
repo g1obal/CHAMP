@@ -192,6 +192,7 @@
           endif
           if(izigzag.gt.0) call zigzag2d(p,q,xold,xnew,i)
           if(ifixe.le.-2) call pairden2d(p,q,xold,xnew)
+          if(ifixe.le.-2 .and. M_bff.gt.0) call bffden2d(p,q,xold,xnew)
           if(ifourier.eq.1 .or. ifourier.eq.3) call fourierrk(p,q,xold,xnew)
           if(ifourier.eq.2 .or. ifourier.eq.3) call fourierkk(p,q,xold,xnew)
 !          if(ifourier.eq.1) call fourier2d(1.d0,0.d0,xold,xnew)

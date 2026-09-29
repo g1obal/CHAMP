@@ -86,7 +86,7 @@
 !     namelist /opt_list/ igradhess
       namelist /opt_list/ iring_coulomb, iantiferromagnetic, iper_gaussian_type, xmax,xfix,fmax1,fmax2,rring,ifixe,nv,idot,ifourier &
      &,iperturb,ang_perturb,amp_perturb,shrp_perturb,omg_perturb,rmin,rmax,nmeshr,nmesht,icoosys,dot_bump_height,dot_bump_radius &
-     &,nmeshk1,izigzag,zzdelyr,gndot_k,oparm3_max,oparm3_min,Cdamp_pgs,M_pd,nrings_pd,conf_pd
+     &,nmeshk1,izigzag,zzdelyr,gndot_k,oparm3_max,oparm3_min,Cdamp_pgs,M_bff,nrings_bff,conf_bff
 
       common /jel_sph1/ dn_background,rs_jel,radius_b ! RM
 
@@ -1571,9 +1571,9 @@
       oparm3_max = huge(oparm3_max) ! GO
       oparm3_min = -huge(oparm3_min) ! GO
       Cdamp_pgs = 1000 !GO
-      M_pd = 0 ! Default values for M-fold pair density ! GO
-      nrings_pd = 0 ! Default values for M-fold pair density ! GO
-      conf_pd = 0 ! Default values for M-fold pair density ! GO
+      M_bff = 0 ! Default values for M-fold BFF density ! GO
+      nrings_bff = 0 ! Default values for M-fold BFF density ! GO
+      conf_bff = 0 ! Default values for M-fold BFF density ! GO
 !     default values of dot_bump_height and dot_bump_radius are set above
 !        where w0, etc... are read in
 
@@ -1625,6 +1625,11 @@
         delxi(1)=NAX/xmax
         delxi(2)=delxi(1)
       endif
+      !if (ibasis.eq.5 .or. ibasis.eq.8) then !GO
+      !  xmax = xmax * we**(-2.d0/3.d0)
+      !  xfix(1) = xfix(1) * we**(-2.d0/3.d0)
+      !  xfix(2) = xfix(2) * we**(-2.d0/3.d0)
+      !endif
       if (abs(xfix(1)) .gt. xmax) stop 'abs(xfix(1)) should be less equal than xmax' !GO
       if (abs(xfix(2)) .gt. xmax) stop 'abs(xfix(2)) should be less equal than xmax'
       if ((xfix(1) .eq. 0d0) .and.  (xfix(2) .eq. 0d0) .and. xfix(3) .ne. 360) then

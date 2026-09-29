@@ -11,16 +11,19 @@ module pairden_mod
  integer, allocatable          :: imeshfix1(:), imeshfix2(:) !GO
  double precision              :: dos_dele
  double precision              :: delxi(3),xmax,xfix(3)
+ double precision              :: pair_hits_u, pair_hits_d  ! Exact trigger trackers
  integer ithetafix !GO
  integer ifixe
  integer, parameter :: NAX = 50
  
 ! Variables for M-fold orientational order parameter
- integer :: M_pd, nrings_pd
- integer, dimension(20) :: conf_pd
+ integer :: M_bff, nrings_bff
+ integer, dimension(20) :: conf_bff
+ double precision, allocatable :: bffden2d_t(:,:), bffden2d_u(:,:), bffden2d_d(:,:)
+ double precision :: psi_M_acc_bff(20)
  
 ! Variables for Inter-Ring Phase Correlation
- integer, parameter :: NIRBINS_pd = 360
- double precision, allocatable :: irphase_pd(:)
+ integer, parameter :: NIRBINS_bff = 360
+ double precision, allocatable :: irphase_bff(:)
 
 end module pairden_mod

@@ -28,8 +28,9 @@
       dimension zzcorrtot(0:NAX), zzcorrijtot(0:(nelec-1))
       dimension rprobt(NRAD),tryt(NRAD),suct(NRAD),work(nforce)
       
-      ! Variables for M-fold phase correlation reduction
-      double precision :: irphasetot_pd(NIRBINS_pd)
+! Variables for BFF and M-fold phase correlation reduction
+      double precision :: irphasetot_bff(NIRBINS_bff)
+      double precision :: work_bff(20)
 
 
 !     err(x,x2,i)=dsqrt(abs(x2/wcum(i)-(x/wcum(i))**2)/iblk)
@@ -163,6 +164,12 @@
           do 56 i2=-NAX,NAX
    56       pot_ee2d_u(i1,i2)=pot_ee2dt(i1,i2)
 
+        ! Sum exact pair density triggers across MPI ranks !GO
+        call mpi_allreduce(pair_hits_u, work(1), 1, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        pair_hits_u = work(1)
+        call mpi_allreduce(pair_hits_d, work(1), 1, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        pair_hits_d = work(1)
+        
       endif
 
       if(ifourier .ne. 0) then
@@ -254,10 +261,23 @@
         endif
       endif
       
-      ! Inter-Ring phase reduction
-      if(nrings_pd .ge. 2 .and. M_pd .ne. 0) then
-        call mpi_allreduce(irphase_pd, irphasetot_pd, NIRBINS_pd, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
-        irphase_pd(:) = irphasetot_pd(:)
+! BFF density and Phase reduction
+      if(ifixe.le.-2 .and. M_bff.gt.0) then
+        naxt = (2*NAX + 1) * (2*NAX + 1)
+        call mpi_allreduce(bffden2d_t, den2dt, naxt, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        bffden2d_t(:,:) = den2dt(:,:)
+        call mpi_allreduce(bffden2d_u, den2dt, naxt, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        bffden2d_u(:,:) = den2dt(:,:)
+        call mpi_allreduce(bffden2d_d, den2dt, naxt, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        bffden2d_d(:,:) = den2dt(:,:)
+        
+        call mpi_allreduce(psi_M_acc_bff, work_bff, nrings_bff, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+        psi_M_acc_bff(1:nrings_bff) = work_bff(1:nrings_bff)
+
+        if(nrings_bff .ge. 2) then
+          call mpi_allreduce(irphase_bff, irphasetot_bff, NIRBINS_bff, mpi_double_precision, mpi_sum, MPI_COMM_WORLD, ierr)
+          irphase_bff(:) = irphasetot_bff(:)
+        endif
       endif
 
 !     call mpi_allreduce(trunfb,trunfbt,NRAD,mpi_double_precision

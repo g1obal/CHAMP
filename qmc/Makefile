@@ -9,31 +9,31 @@ MODDIR=compiler_files
 INCDIR=.
 
 SRCS =	accumulation_mod.f90 all_modules_mod.f90 all_tools_mod.f90 \
-	allocations_mod.f90 backflow_auxiliary_mod.f90 backflow_mod.f90 \
-	basic_tools_mod.f90 basis_mod.f90 bspline_module.f90 \
+	allocations_mod.f90 amoeba.f90 amotry.f90 backflow_auxiliary_mod.f90 \
+	backflow_mod.f90 basic_tools_mod.f90 basis_mod.f90 bspline_module.f90 \
 	bspline_oo_module.f90 bspline_sub_module.f90 bsplines_mod.f90 \
-	bwfdet_mod.f90 champ.f90 constants_mod.f90 control_mod.f90 \
-	correlated_sampling_mod.f90 crystal_symmetries_mod.f90 csfs_mod.f90 \
-	cslater_cf_mod.f90 cslater_mod.f90 cslaterw_mod.f90 cusp_mod.f90 \
-	debug_mod.f90 density_mod.f90 deriv_csf_mod.f90 deriv_exp_mod.f90 \
-	deriv_geo_mod.f90 deriv_jas_mod.f90 deriv_mod.f90 deriv_orb_mod.f90 \
-	determinants_mod.f90 dipole_moment_mod.f90 dmc_mod.f90 \
-	electrons_mod.f90 eloc_mod.f90 ewald2_mod.f90 extracule_mod.f90 \
-	f2kcli.f90 files_tools_mod.f90 fitdet_mod.f90 forces_mod.f90 \
-	forces_pulay_mod.f90 grid_mod.f90 initialization_mod.f90 \
-	intracule_mod.f90 jastrow_mod.f90 main_menu_mod.f90 \
-	matrix_tools_mod.f90 montecarlo_mod.f90 mpi_mod.f90 nuclei_mod.f90 \
-	opt_common_mod.f90 opt_lin_mod.f90 opt_nwt_mod.f90 \
+	bwfdet_mod.f90 champ.f90 choldc.f90 cholsl.f90 constants_mod.f90 \
+	control_mod.f90 correlated_sampling_mod.f90 \
+	crystal_symmetries_mod.f90 csfs_mod.f90 cslater_cf_mod.f90 \
+	cslater_mod.f90 cslaterw_mod.f90 cusp_mod.f90 debug_mod.f90 \
+	density_mod.f90 deriv_csf_mod.f90 deriv_exp_mod.f90 deriv_geo_mod.f90 \
+	deriv_jas_mod.f90 deriv_mod.f90 deriv_orb_mod.f90 \
+	determinants_mod.f90 dipole_moment_mod.f90 dmc_mod.f90 ei.f90 ei2.f90 \
+	electrons_mod.f90 eloc_mod.f90 erf.f90 ewald2_mod.f90 expint.f90 \
+	extracule_mod.f90 f2kcli.f90 files_tools_mod.f90 fitdet_mod.f90 \
+	forces_mod.f90 forces_pulay_mod.f90 grid_mod.f90 hash_funcs.f90 \
+	initialization_mod.f90 intracule_mod.f90 jastrow_mod.f90 \
+	main_menu_mod.f90 matrix_tools_mod.f90 montecarlo_mod.f90 mpi_mod.f90 \
+	nuclei_mod.f90 opt_common_mod.f90 opt_lin_mod.f90 opt_nwt_mod.f90 \
 	opt_ovlp_fn_mod.f90 opt_ptb_mod.f90 optimization_mod.f90 \
 	orbitals_mod.f90 parser_tools_mod.f90 periodic_jastrow_een.f90 \
 	periodic_jastrow_mod.f90 pjas_interface.f90 pjas_setup_mod.f90 \
-	pjasee_mod.f90 pjasen_mod.f90 print_mod.f90 psi_mod.f90 \
-	restart_mod.f90 routines_mod.f90 strings_tools_mod.f90 \
-	testing_mod.f90 types_mod.f90 variables_mod.f90 vmc_mod.f90 \
-	walkers_mod.f90 write_mod.f90 address_tools.c amoeba.f90 amotry.f90 \
-	choldc.f90 cholsl.f90 ei.f90 ei2.f90 erf.f90 expint.f90 hash_funcs.f90 pythag.f90 \
-	svbksb.f90 svdcmp.f90 tools.f90 commons/age_mod.f90 commons/atom_mod.f90 \
-	commons/basis1_mod.f90 commons/basis2_mod.f90 commons/basis3_mod.f90 \
+	pjasee_mod.f90 pjasen_mod.f90 print_mod.f90 psi_mod.f90 pythag.f90 \
+	restart_mod.f90 routines_mod.f90 strings_tools_mod.f90 svbksb.f90 \
+	svdcmp.f90 testing_mod.f90 tools.f90 types_mod.f90 variables_mod.f90 \
+	vmc_mod.f90 walkers_mod.f90 write_mod.f90 address_tools.c \
+	commons/age_mod.f90 commons/atom_mod.f90 commons/basis1_mod.f90 \
+	commons/basis2_mod.f90 commons/basis3_mod.f90 \
 	commons/basisnorm_mod.f90 commons/bparm_mod.f90 \
 	commons/branch_dmc_opt_mod.f90 commons/branch_mod.f90 \
 	commons/coefs2_mod.f90 commons/coefs_mod.f90 commons/confg_mod.f90 \
@@ -95,27 +95,25 @@ SRCS =	accumulation_mod.f90 all_modules_mod.f90 all_tools_mod.f90 \
 	fit/deriv_nonloc.f90 fit/deriv_nonloc_pot.f90 fit/deriv_nonlpsi.f90 \
 	fit/deriv_scale.f90 fit/dummy_newton.f90 fit/equiv_bas.f90 \
 	fit/fit.f90 fit/fockcheck3.f90 fit/fockexact3.f90 fit/func.f90 \
-	fit/jacobian.f90 fit/piksrt.f90 fit/plot_jas.f90 fit/rewght.f90 \
-	fit/strech.f90 fit/orb_params.f90 \
-	vmc/acuest.f90 vmc/basis_fns.f90 \
+	fit/jacobian.f90 fit/orb_params.f90 fit/piksrt.f90 fit/plot_jas.f90 \
+	fit/rewght.f90 fit/strech.f90 vmc/acuest.f90 vmc/basis_fns.f90 \
 	vmc/basis_fnse2.f90 vmc/basis_norm.f90 vmc/basis_norm_dot.f90 \
-	vmc/cbasis_fns.f90 vmc/cdeterminant.f90 vmc/cdeterminante.f90 \
-	vmc/cdetsav.f90 vmc/cjastrow.f90 vmc/cmatinv.f90 \
-	vmc/corbitals_loc_ana.f90 vmc/corbitals_loc_ana_grade.f90 \
-	vmc/den2dwrt.f90 vmc/deriv_jastrow4.f90 vmc/determinant.f90 \
-	vmc/determinant_up_dn.f90 vmc/determinante.f90 vmc/detsav.f90 \
-	vmc/dgelg.f90 vmc/distances.f90 vmc/dumper.f90 vmc/emagnetic.f90 \
-	vmc/ewald.f90 vmc/find_image.f90 vmc/finwrt.f90 vmc/fock.f90 \
-	vmc/fourier2d.f90 vmc/gammai.f90 vmc/grad_hess_jastrow.f90 \
-	vmc/hpsi.f90 vmc/hpsie.f90 vmc/ie.f90 vmc/interpol_orb.f90 \
-	vmc/jassav.f90 vmc/jastrow.f90 vmc/jastrow1.f90 vmc/jastrow2.f90 \
-	vmc/jastrow3.f90 vmc/jastrow3e.f90 vmc/jastrow4.f90 vmc/jastrow4e.f90 \
-	vmc/jastrow_num.f90 vmc/jastrowe.f90 vmc/matinv.f90 \
+	vmc/bffden2d.f90 vmc/cbasis_fns.f90 vmc/cdeterminant.f90 \
+	vmc/cdeterminante.f90 vmc/cdetsav.f90 vmc/cjastrow.f90 \
+	vmc/cmatinv.f90 vmc/corbitals_loc_ana.f90 \
+	vmc/corbitals_loc_ana_grade.f90 vmc/den2dwrt.f90 \
+	vmc/deriv_jastrow4.f90 vmc/determinant.f90 vmc/determinant_up_dn.f90 \
+	vmc/determinante.f90 vmc/detsav.f90 vmc/dgelg.f90 vmc/distances.f90 \
+	vmc/dumper.f90 vmc/emagnetic.f90 vmc/ewald.f90 vmc/find_image.f90 \
+	vmc/finwrt.f90 vmc/fock.f90 vmc/fourier2d.f90 vmc/gammai.f90 \
+	vmc/grad_hess_jastrow.f90 vmc/hpsi.f90 vmc/hpsie.f90 vmc/ie.f90 \
+	vmc/interpol_orb.f90 vmc/jassav.f90 vmc/jastrow.f90 vmc/jastrow1.f90 \
+	vmc/jastrow2.f90 vmc/jastrow3.f90 vmc/jastrow3e.f90 vmc/jastrow4.f90 \
+	vmc/jastrow4e.f90 vmc/jastrow_num.f90 vmc/jastrowe.f90 vmc/matinv.f90 \
 	vmc/mc_configs.f90 vmc/metrop_mov1.f90 vmc/metrop_movall.f90 \
 	vmc/metrop_polar_mov1.f90 vmc/metrop_polar_movall.f90 \
 	vmc/metrop_slat_mov1.f90 vmc/metrop_slat_movall.f90 \
 	vmc/newton_chol.f90 vmc/nonloc.f90 vmc/nonloc_pot.f90 vmc/nonlpsi.f90 \
-	vmc/tmove.f90 \
 	vmc/opt_wf.f90 vmc/orbitals_loc_ana.f90 \
 	vmc/orbitals_loc_ana_grade.f90 vmc/orbitals_loc_num.f90 \
 	vmc/orbitals_loc_num_grade.f90 vmc/orbitals_period_num.f90 \
@@ -126,27 +124,25 @@ SRCS =	accumulation_mod.f90 all_modules_mod.f90 all_tools_mod.f90 \
 	vmc/read_orb_pw.f90 vmc/readps.f90 vmc/readps_champ.f90 \
 	vmc/readps_gauss.f90 vmc/readps_tm.f90 vmc/rotqua.f90 \
 	vmc/scale_dist.f90 vmc/sites.f90 vmc/splfit.f90 vmc/spline.f90 \
-	vmc/spline2.f90 vmc/strech.f90 vmc/systemflush.f90 vmc/vmc.f90 \
-	vmc/wf_secondary.f90 vmc/zigzag2d.f90 dmc/acuest_dmc_movall.f90 \
-	dmc/dmc_brock_movall.f90 dmc/dmc_good_ap.f90 \
-	dmc/dmc_good_inhom_movall.f90 dmc/dmc_good_movall.f90 \
-	dmc/dmc_good_ps_movall.f90 dmc/dumper_dmc_movall.f90 \
-	dmc/finwrt_dmc_movall.f90 dmc/gauss.f90 dmc/maindmc.f90 \
-	dmc/open_files.f90 dmc/opt_wf_dmc.f90 dmc/projector.f90 \
-	dmc/sites_dmc.f90 dmc/sites_per.f90 dmc/splitj_movall.f90 \
-	dmc/stochastic_reconfiguration2.f90 dmc/zeta_cusp.f90 \
-	dmc/dmc_elec/acuest_dmc_mov1.f90 \
+	vmc/spline2.f90 vmc/strech.f90 vmc/systemflush.f90 vmc/tmove.f90 \
+	vmc/vmc.f90 vmc/wf_secondary.f90 vmc/zigzag2d.f90 \
+	dmc/acuest_dmc_movall.f90 dmc/dmc_brock_movall.f90 \
+	dmc/dmc_good_ap.f90 dmc/dmc_good_inhom_movall.f90 \
+	dmc/dmc_good_movall.f90 dmc/dmc_good_ps_movall.f90 \
+	dmc/dumper_dmc_movall.f90 dmc/finwrt_dmc_movall.f90 dmc/gauss.f90 \
+	dmc/maindmc.f90 dmc/open_files.f90 dmc/opt_wf_dmc.f90 \
+	dmc/projector.f90 dmc/sites_dmc.f90 dmc/sites_per.f90 \
+	dmc/splitj_movall.f90 dmc/stochastic_reconfiguration2.f90 \
+	dmc/zeta_cusp.f90 dmc/dmc_elec/acuest_dmc_mov1.f90 \
 	dmc/dmc_elec/cwalksav_det.f90 dmc/dmc_elec/dmc_brock_mov1.f90 \
-	dmc/dmc_elec/dmc_good_inhom_mov1.f90 \
-	dmc/dmc_elec/dmc_good_mov1.f90 \
+	dmc/dmc_elec/dmc_good_inhom_mov1.f90 dmc/dmc_elec/dmc_good_mov1.f90 \
 	dmc/dmc_elec/dmc_good_ps_mov1.f90 dmc/dmc_elec/dumper_dmc_mov1.f90 \
 	dmc/dmc_elec/finwrt_dmc_mov1.f90 dmc/dmc_elec/hpsiedmc.f90 \
-	dmc/dmc_elec/splitj_mov1.f90 \
-	dmc/dmc_elec/walksav_det.f90 dmc/dmc_elec/walksav_jas.f90 \
-	fit/MPI/func_mpi.f90 fit/MPI/jacobian_mpi.f90 vmc/MPI/acuest_mpi.f90 \
-	vmc/MPI/dumper.f90 vmc/MPI/finwrt_mpi.f90 \
-	vmc/MPI/grad_hess_jas_mpi.f90 vmc/MPI/mc_configs.f90 \
-	dmc/dmc_elec/MPI/acuest_dmc_mov1_mpi1.f90 \
+	dmc/dmc_elec/splitj_mov1.f90 dmc/dmc_elec/walksav_det.f90 \
+	dmc/dmc_elec/walksav_jas.f90 fit/MPI/func_mpi.f90 \
+	fit/MPI/jacobian_mpi.f90 vmc/MPI/acuest_mpi.f90 vmc/MPI/dumper.f90 \
+	vmc/MPI/finwrt_mpi.f90 vmc/MPI/grad_hess_jas_mpi.f90 \
+	vmc/MPI/mc_configs.f90 dmc/dmc_elec/MPI/acuest_dmc_mov1_mpi1.f90 \
 	dmc/dmc_elec/MPI/dumper_dmc_mov1_mpi1.f90 \
 	dmc/dmc_elec/MPI/finwrt_dmc_mov1_mpi1.f90 \
 	dmc/dmc_elec/MPI/maindmc_mov1_mpi.f90 \
@@ -163,12 +159,14 @@ SRCS =	accumulation_mod.f90 all_modules_mod.f90 all_tools_mod.f90 \
 
 OBJS =	$(OBJDIR)/accumulation_mod.o $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/all_tools_mod.o $(OBJDIR)/allocations_mod.o \
+	$(OBJDIR)/amoeba.o $(OBJDIR)/amotry.o \
 	$(OBJDIR)/backflow_auxiliary_mod.o $(OBJDIR)/backflow_mod.o \
 	$(OBJDIR)/basic_tools_mod.o $(OBJDIR)/basis_mod.o \
 	$(OBJDIR)/bspline_module.o $(OBJDIR)/bspline_oo_module.o \
 	$(OBJDIR)/bspline_sub_module.o $(OBJDIR)/bsplines_mod.o \
-	$(OBJDIR)/bwfdet_mod.o $(OBJDIR)/champ.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/correlated_sampling_mod.o \
+	$(OBJDIR)/bwfdet_mod.o $(OBJDIR)/champ.o $(OBJDIR)/choldc.o \
+	$(OBJDIR)/cholsl.o $(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o \
+	$(OBJDIR)/correlated_sampling_mod.o \
 	$(OBJDIR)/crystal_symmetries_mod.o $(OBJDIR)/csfs_mod.o \
 	$(OBJDIR)/cslater_cf_mod.o $(OBJDIR)/cslater_mod.o \
 	$(OBJDIR)/cslaterw_mod.o $(OBJDIR)/cusp_mod.o $(OBJDIR)/debug_mod.o \
@@ -176,42 +174,40 @@ OBJS =	$(OBJDIR)/accumulation_mod.o $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/deriv_exp_mod.o $(OBJDIR)/deriv_geo_mod.o \
 	$(OBJDIR)/deriv_jas_mod.o $(OBJDIR)/deriv_mod.o \
 	$(OBJDIR)/deriv_orb_mod.o $(OBJDIR)/determinants_mod.o \
-	$(OBJDIR)/dipole_moment_mod.o $(OBJDIR)/dmc_mod.o \
-	$(OBJDIR)/electrons_mod.o $(OBJDIR)/eloc_mod.o $(OBJDIR)/ewald2_mod.o \
+	$(OBJDIR)/dipole_moment_mod.o $(OBJDIR)/dmc_mod.o $(OBJDIR)/ei.o \
+	$(OBJDIR)/ei2.o $(OBJDIR)/electrons_mod.o $(OBJDIR)/eloc_mod.o \
+	$(OBJDIR)/erf.o $(OBJDIR)/ewald2_mod.o $(OBJDIR)/expint.o \
 	$(OBJDIR)/extracule_mod.o $(OBJDIR)/f2kcli.o \
 	$(OBJDIR)/files_tools_mod.o $(OBJDIR)/fitdet_mod.o \
 	$(OBJDIR)/forces_mod.o $(OBJDIR)/forces_pulay_mod.o \
-	$(OBJDIR)/grid_mod.o $(OBJDIR)/initialization_mod.o \
-	$(OBJDIR)/intracule_mod.o $(OBJDIR)/jastrow_mod.o \
-	$(OBJDIR)/main_menu_mod.o $(OBJDIR)/matrix_tools_mod.o \
-	$(OBJDIR)/montecarlo_mod.o $(OBJDIR)/mpi_mod.o $(OBJDIR)/nuclei_mod.o \
-	$(OBJDIR)/opt_common_mod.o $(OBJDIR)/opt_lin_mod.o \
-	$(OBJDIR)/opt_nwt_mod.o $(OBJDIR)/opt_ovlp_fn_mod.o \
-	$(OBJDIR)/opt_ptb_mod.o $(OBJDIR)/optimization_mod.o \
-	$(OBJDIR)/orbitals_mod.o $(OBJDIR)/parser_tools_mod.o \
-	$(OBJDIR)/periodic_jastrow_een.o $(OBJDIR)/periodic_jastrow_mod.o \
-	$(OBJDIR)/pjas_interface.o $(OBJDIR)/pjas_setup_mod.o \
-	$(OBJDIR)/pjasee_mod.o $(OBJDIR)/pjasen_mod.o $(OBJDIR)/print_mod.o \
-	$(OBJDIR)/psi_mod.o $(OBJDIR)/restart_mod.o $(OBJDIR)/routines_mod.o \
-	$(OBJDIR)/strings_tools_mod.o $(OBJDIR)/testing_mod.o \
-	$(OBJDIR)/types_mod.o $(OBJDIR)/variables_mod.o $(OBJDIR)/vmc_mod.o \
-	$(OBJDIR)/walkers_mod.o $(OBJDIR)/write_mod.o \
-	$(OBJDIR)/address_tools.o $(OBJDIR)/amoeba.o $(OBJDIR)/amotry.o \
-	$(OBJDIR)/choldc.o $(OBJDIR)/cholsl.o $(OBJDIR)/ei.o $(OBJDIR)/ei2.o \
-	$(OBJDIR)/erf.o $(OBJDIR)/expint.o $(OBJDIR)/hash_funcs.o \
-	$(OBJDIR)/pythag.o $(OBJDIR)/svbksb.o $(OBJDIR)/svdcmp.o \
-	$(OBJDIR)/tools.o $(OBJDIR)/commons/age_mod.o \
-	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
-	$(OBJDIR)/commons/basis2_mod.o $(OBJDIR)/commons/basis3_mod.o \
-	$(OBJDIR)/commons/basisnorm_mod.o $(OBJDIR)/commons/bparm_mod.o \
-	$(OBJDIR)/commons/branch_dmc_opt_mod.o $(OBJDIR)/commons/branch_mod.o \
-	$(OBJDIR)/commons/coefs2_mod.o $(OBJDIR)/commons/coefs_mod.o \
-	$(OBJDIR)/commons/confg_mod.o $(OBJDIR)/commons/config_dmc_mod.o \
-	$(OBJDIR)/commons/config_mod.o $(OBJDIR)/commons/const2_mod.o \
-	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contr2_mod.o \
-	$(OBJDIR)/commons/contr3_mod.o $(OBJDIR)/commons/contr_names_mod.o \
-	$(OBJDIR)/commons/contr_ylm_mod.o $(OBJDIR)/commons/contrl_mod.o \
-	$(OBJDIR)/commons/contrl_opt2_mod.o \
+	$(OBJDIR)/grid_mod.o $(OBJDIR)/hash_funcs.o \
+	$(OBJDIR)/initialization_mod.o $(OBJDIR)/intracule_mod.o \
+	$(OBJDIR)/jastrow_mod.o $(OBJDIR)/main_menu_mod.o \
+	$(OBJDIR)/matrix_tools_mod.o $(OBJDIR)/montecarlo_mod.o \
+	$(OBJDIR)/mpi_mod.o $(OBJDIR)/nuclei_mod.o $(OBJDIR)/opt_common_mod.o \
+	$(OBJDIR)/opt_lin_mod.o $(OBJDIR)/opt_nwt_mod.o \
+	$(OBJDIR)/opt_ovlp_fn_mod.o $(OBJDIR)/opt_ptb_mod.o \
+	$(OBJDIR)/optimization_mod.o $(OBJDIR)/orbitals_mod.o \
+	$(OBJDIR)/parser_tools_mod.o $(OBJDIR)/periodic_jastrow_een.o \
+	$(OBJDIR)/periodic_jastrow_mod.o $(OBJDIR)/pjas_interface.o \
+	$(OBJDIR)/pjas_setup_mod.o $(OBJDIR)/pjasee_mod.o \
+	$(OBJDIR)/pjasen_mod.o $(OBJDIR)/print_mod.o $(OBJDIR)/psi_mod.o \
+	$(OBJDIR)/pythag.o $(OBJDIR)/restart_mod.o $(OBJDIR)/routines_mod.o \
+	$(OBJDIR)/strings_tools_mod.o $(OBJDIR)/svbksb.o $(OBJDIR)/svdcmp.o \
+	$(OBJDIR)/testing_mod.o $(OBJDIR)/tools.o $(OBJDIR)/types_mod.o \
+	$(OBJDIR)/variables_mod.o $(OBJDIR)/vmc_mod.o $(OBJDIR)/walkers_mod.o \
+	$(OBJDIR)/write_mod.o $(OBJDIR)/address_tools.o \
+	$(OBJDIR)/commons/age_mod.o $(OBJDIR)/commons/atom_mod.o \
+	$(OBJDIR)/commons/basis1_mod.o $(OBJDIR)/commons/basis2_mod.o \
+	$(OBJDIR)/commons/basis3_mod.o $(OBJDIR)/commons/basisnorm_mod.o \
+	$(OBJDIR)/commons/bparm_mod.o $(OBJDIR)/commons/branch_dmc_opt_mod.o \
+	$(OBJDIR)/commons/branch_mod.o $(OBJDIR)/commons/coefs2_mod.o \
+	$(OBJDIR)/commons/coefs_mod.o $(OBJDIR)/commons/confg_mod.o \
+	$(OBJDIR)/commons/config_dmc_mod.o $(OBJDIR)/commons/config_mod.o \
+	$(OBJDIR)/commons/const2_mod.o $(OBJDIR)/commons/const_mod.o \
+	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/contr3_mod.o \
+	$(OBJDIR)/commons/contr_names_mod.o $(OBJDIR)/commons/contr_ylm_mod.o \
+	$(OBJDIR)/commons/contrl_mod.o $(OBJDIR)/commons/contrl_opt2_mod.o \
 	$(OBJDIR)/commons/contrl_opt_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
 	$(OBJDIR)/commons/contrldmc_mod.o $(OBJDIR)/commons/cphifun_mod.o \
 	$(OBJDIR)/commons/cslatn_mod.o $(OBJDIR)/commons/cuspmat4_mod.o \
@@ -281,27 +277,25 @@ OBJS =	$(OBJDIR)/accumulation_mod.o $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/fit/dummy_newton.o $(OBJDIR)/fit/equiv_bas.o \
 	$(OBJDIR)/fit/fit.o $(OBJDIR)/fit/fockcheck3.o \
 	$(OBJDIR)/fit/fockexact3.o $(OBJDIR)/fit/func.o \
-	$(OBJDIR)/fit/jacobian.o $(OBJDIR)/fit/piksrt.o \
-	$(OBJDIR)/fit/plot_jas.o $(OBJDIR)/fit/rewght.o \
-	$(OBJDIR)/fit/strech.o $(OBJDIR)/fit/orb_params.o $(OBJDIR)/vmc/acuest.o \
-	$(OBJDIR)/vmc/determinant.o $(OBJDIR)/vmc/determinante.o \
-	$(OBJDIR)/vmc/hpsie.o $(OBJDIR)/vmc/metrop_slat_mov1.o \
-	$(OBJDIR)/vmc/basis_fns.o \
-	$(OBJDIR)/vmc/basis_fnse2.o $(OBJDIR)/vmc/basis_norm.o \
-	$(OBJDIR)/vmc/basis_norm_dot.o $(OBJDIR)/vmc/cbasis_fns.o \
+	$(OBJDIR)/fit/jacobian.o $(OBJDIR)/fit/orb_params.o \
+	$(OBJDIR)/fit/piksrt.o $(OBJDIR)/fit/plot_jas.o \
+	$(OBJDIR)/fit/rewght.o $(OBJDIR)/fit/strech.o $(OBJDIR)/vmc/acuest.o \
+	$(OBJDIR)/vmc/basis_fns.o $(OBJDIR)/vmc/basis_fnse2.o \
+	$(OBJDIR)/vmc/basis_norm.o $(OBJDIR)/vmc/basis_norm_dot.o \
+	$(OBJDIR)/vmc/bffden2d.o $(OBJDIR)/vmc/cbasis_fns.o \
 	$(OBJDIR)/vmc/cdeterminant.o $(OBJDIR)/vmc/cdeterminante.o \
 	$(OBJDIR)/vmc/cdetsav.o $(OBJDIR)/vmc/cjastrow.o \
 	$(OBJDIR)/vmc/cmatinv.o $(OBJDIR)/vmc/corbitals_loc_ana.o \
 	$(OBJDIR)/vmc/corbitals_loc_ana_grade.o $(OBJDIR)/vmc/den2dwrt.o \
-	$(OBJDIR)/vmc/deriv_jastrow4.o \
-	$(OBJDIR)/vmc/determinant_up_dn.o \
+	$(OBJDIR)/vmc/deriv_jastrow4.o $(OBJDIR)/vmc/determinant.o \
+	$(OBJDIR)/vmc/determinant_up_dn.o $(OBJDIR)/vmc/determinante.o \
 	$(OBJDIR)/vmc/detsav.o $(OBJDIR)/vmc/dgelg.o \
 	$(OBJDIR)/vmc/distances.o $(OBJDIR)/vmc/dumper.o \
 	$(OBJDIR)/vmc/emagnetic.o $(OBJDIR)/vmc/ewald.o \
 	$(OBJDIR)/vmc/find_image.o $(OBJDIR)/vmc/finwrt.o \
 	$(OBJDIR)/vmc/fock.o $(OBJDIR)/vmc/fourier2d.o $(OBJDIR)/vmc/gammai.o \
 	$(OBJDIR)/vmc/grad_hess_jastrow.o $(OBJDIR)/vmc/hpsi.o \
-	$(OBJDIR)/vmc/ie.o $(OBJDIR)/vmc/interpol_orb.o \
+	$(OBJDIR)/vmc/hpsie.o $(OBJDIR)/vmc/ie.o $(OBJDIR)/vmc/interpol_orb.o \
 	$(OBJDIR)/vmc/jassav.o $(OBJDIR)/vmc/jastrow.o \
 	$(OBJDIR)/vmc/jastrow1.o $(OBJDIR)/vmc/jastrow2.o \
 	$(OBJDIR)/vmc/jastrow3.o $(OBJDIR)/vmc/jastrow3e.o \
@@ -310,9 +304,8 @@ OBJS =	$(OBJDIR)/accumulation_mod.o $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/vmc/matinv.o $(OBJDIR)/vmc/mc_configs.o \
 	$(OBJDIR)/vmc/metrop_mov1.o $(OBJDIR)/vmc/metrop_movall.o \
 	$(OBJDIR)/vmc/metrop_polar_mov1.o $(OBJDIR)/vmc/metrop_polar_movall.o \
-	$(OBJDIR)/vmc/metrop_slat_movall.o \
+	$(OBJDIR)/vmc/metrop_slat_mov1.o $(OBJDIR)/vmc/metrop_slat_movall.o \
 	$(OBJDIR)/vmc/newton_chol.o $(OBJDIR)/vmc/nonloc.o \
-	$(OBJDIR)/vmc/tmove.o \
 	$(OBJDIR)/vmc/nonloc_pot.o $(OBJDIR)/vmc/nonlpsi.o \
 	$(OBJDIR)/vmc/opt_wf.o $(OBJDIR)/vmc/orbitals_loc_ana.o \
 	$(OBJDIR)/vmc/orbitals_loc_ana_grade.o \
@@ -330,17 +323,16 @@ OBJS =	$(OBJDIR)/accumulation_mod.o $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/vmc/rotqua.o $(OBJDIR)/vmc/scale_dist.o \
 	$(OBJDIR)/vmc/sites.o $(OBJDIR)/vmc/splfit.o $(OBJDIR)/vmc/spline.o \
 	$(OBJDIR)/vmc/spline2.o $(OBJDIR)/vmc/strech.o \
-	$(OBJDIR)/vmc/systemflush.o $(OBJDIR)/vmc/vmc.o \
+	$(OBJDIR)/vmc/systemflush.o $(OBJDIR)/vmc/tmove.o $(OBJDIR)/vmc/vmc.o \
 	$(OBJDIR)/vmc/wf_secondary.o $(OBJDIR)/vmc/zigzag2d.o \
 	$(OBJDIR)/dmc/acuest_dmc_movall.o $(OBJDIR)/dmc/dmc_brock_movall.o \
-	$(OBJDIR)/dmc/dmc_good_ap.o \
-	$(OBJDIR)/dmc/dmc_good_inhom_movall.o $(OBJDIR)/dmc/dmc_good_movall.o \
-	$(OBJDIR)/dmc/dmc_good_ps_movall.o $(OBJDIR)/dmc/dumper_dmc_movall.o \
-	$(OBJDIR)/dmc/finwrt_dmc_movall.o $(OBJDIR)/dmc/gauss.o \
-	$(OBJDIR)/dmc/maindmc.o $(OBJDIR)/dmc/open_files.o \
-	$(OBJDIR)/dmc/opt_wf_dmc.o $(OBJDIR)/dmc/projector.o \
-	$(OBJDIR)/dmc/sites_dmc.o $(OBJDIR)/dmc/sites_per.o \
-	$(OBJDIR)/dmc/splitj_movall.o \
+	$(OBJDIR)/dmc/dmc_good_ap.o $(OBJDIR)/dmc/dmc_good_inhom_movall.o \
+	$(OBJDIR)/dmc/dmc_good_movall.o $(OBJDIR)/dmc/dmc_good_ps_movall.o \
+	$(OBJDIR)/dmc/dumper_dmc_movall.o $(OBJDIR)/dmc/finwrt_dmc_movall.o \
+	$(OBJDIR)/dmc/gauss.o $(OBJDIR)/dmc/maindmc.o \
+	$(OBJDIR)/dmc/open_files.o $(OBJDIR)/dmc/opt_wf_dmc.o \
+	$(OBJDIR)/dmc/projector.o $(OBJDIR)/dmc/sites_dmc.o \
+	$(OBJDIR)/dmc/sites_per.o $(OBJDIR)/dmc/splitj_movall.o \
 	$(OBJDIR)/dmc/stochastic_reconfiguration2.o $(OBJDIR)/dmc/zeta_cusp.o \
 	$(OBJDIR)/dmc/dmc_elec/acuest_dmc_mov1.o \
 	$(OBJDIR)/dmc/dmc_elec/cwalksav_det.o \
@@ -390,231 +382,17 @@ define mk_fortran_dir
 	mkdir -p $(MODDIR)
 	mkdir -p $(OBJDIR)/
 	mkdir -p $(OBJDIR)/
-	mkdir -p $(OBJDIR)/
 	mkdir -p $(OBJDIR)/MED_tools/
 	mkdir -p $(OBJDIR)/commons/
-	mkdir -p $(OBJDIR)/commons/src.old21/
 	mkdir -p $(OBJDIR)/dmc/
 	mkdir -p $(OBJDIR)/dmc/dmc_elec/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/
 	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old01/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old02/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old03/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old04/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old05/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old06/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old07/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old09/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old11/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old12/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old15/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old16/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old17/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old18/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old19/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old20/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI/src.old21/
 	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old01/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old02/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old03/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old04/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old05/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old06/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old07/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old09/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old11/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old12/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old15/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old16/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old17/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old18/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old19/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old20/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old21/
 	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old01/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old02/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old03/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old04/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old05/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old06/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old07/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old09/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old11/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old12/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old15/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old16/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old17/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old18/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old19/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old20/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old21/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old01/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old02/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old03/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old04/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old05/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old06/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old07/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old09/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old11/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old12/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old15/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old16/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old17/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old18/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old19/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old20/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old21/
-	mkdir -p $(OBJDIR)/dmc/dmc_elec/src.old21/
-	mkdir -p $(OBJDIR)/dmc/src.old01/
-	mkdir -p $(OBJDIR)/dmc/src.old02/
-	mkdir -p $(OBJDIR)/dmc/src.old03/
-	mkdir -p $(OBJDIR)/dmc/src.old04/
-	mkdir -p $(OBJDIR)/dmc/src.old05/
-	mkdir -p $(OBJDIR)/dmc/src.old06/
-	mkdir -p $(OBJDIR)/dmc/src.old07/
-	mkdir -p $(OBJDIR)/dmc/src.old09/
-	mkdir -p $(OBJDIR)/dmc/src.old11/
-	mkdir -p $(OBJDIR)/dmc/src.old12/
-	mkdir -p $(OBJDIR)/dmc/src.old15/
-	mkdir -p $(OBJDIR)/dmc/src.old16/
-	mkdir -p $(OBJDIR)/dmc/src.old17/
-	mkdir -p $(OBJDIR)/dmc/src.old18/
-	mkdir -p $(OBJDIR)/dmc/src.old19/
-	mkdir -p $(OBJDIR)/dmc/src.old20/
-	mkdir -p $(OBJDIR)/dmc/src.old21/
 	mkdir -p $(OBJDIR)/fit/
 	mkdir -p $(OBJDIR)/fit/MPI/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old01/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old02/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old03/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old04/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old05/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old06/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old07/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old09/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old11/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old12/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old15/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old16/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old17/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old18/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old19/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old20/
-	mkdir -p $(OBJDIR)/fit/MPI/src.old21/
-	mkdir -p $(OBJDIR)/fit/src.old01/
-	mkdir -p $(OBJDIR)/fit/src.old02/
-	mkdir -p $(OBJDIR)/fit/src.old03/
-	mkdir -p $(OBJDIR)/fit/src.old04/
-	mkdir -p $(OBJDIR)/fit/src.old05/
-	mkdir -p $(OBJDIR)/fit/src.old06/
-	mkdir -p $(OBJDIR)/fit/src.old07/
-	mkdir -p $(OBJDIR)/fit/src.old09/
-	mkdir -p $(OBJDIR)/fit/src.old11/
-	mkdir -p $(OBJDIR)/fit/src.old12/
-	mkdir -p $(OBJDIR)/fit/src.old15/
-	mkdir -p $(OBJDIR)/fit/src.old16/
-	mkdir -p $(OBJDIR)/fit/src.old17/
-	mkdir -p $(OBJDIR)/fit/src.old18/
-	mkdir -p $(OBJDIR)/fit/src.old19/
-	mkdir -p $(OBJDIR)/fit/src.old20/
-	mkdir -p $(OBJDIR)/fit/src.old21/
-	mkdir -p $(OBJDIR)/src.old01/
-	mkdir -p $(OBJDIR)/src.old01/
-	mkdir -p $(OBJDIR)/src.old01/
-	mkdir -p $(OBJDIR)/src.old02/
-	mkdir -p $(OBJDIR)/src.old02/
-	mkdir -p $(OBJDIR)/src.old02/
-	mkdir -p $(OBJDIR)/src.old03/
-	mkdir -p $(OBJDIR)/src.old03/
-	mkdir -p $(OBJDIR)/src.old03/
-	mkdir -p $(OBJDIR)/src.old04/
-	mkdir -p $(OBJDIR)/src.old04/
-	mkdir -p $(OBJDIR)/src.old04/
-	mkdir -p $(OBJDIR)/src.old05/
-	mkdir -p $(OBJDIR)/src.old05/
-	mkdir -p $(OBJDIR)/src.old05/
-	mkdir -p $(OBJDIR)/src.old06/
-	mkdir -p $(OBJDIR)/src.old06/
-	mkdir -p $(OBJDIR)/src.old06/
-	mkdir -p $(OBJDIR)/src.old07/
-	mkdir -p $(OBJDIR)/src.old07/
-	mkdir -p $(OBJDIR)/src.old07/
-	mkdir -p $(OBJDIR)/src.old09/
-	mkdir -p $(OBJDIR)/src.old09/
-	mkdir -p $(OBJDIR)/src.old09/
-	mkdir -p $(OBJDIR)/src.old10/
-	mkdir -p $(OBJDIR)/src.old11/
-	mkdir -p $(OBJDIR)/src.old11/
-	mkdir -p $(OBJDIR)/src.old11/
-	mkdir -p $(OBJDIR)/src.old12/
-	mkdir -p $(OBJDIR)/src.old12/
-	mkdir -p $(OBJDIR)/src.old12/
-	mkdir -p $(OBJDIR)/src.old13/
-	mkdir -p $(OBJDIR)/src.old13/
-	mkdir -p $(OBJDIR)/src.old15/
-	mkdir -p $(OBJDIR)/src.old15/
-	mkdir -p $(OBJDIR)/src.old15/
-	mkdir -p $(OBJDIR)/src.old16/
-	mkdir -p $(OBJDIR)/src.old16/
-	mkdir -p $(OBJDIR)/src.old16/
-	mkdir -p $(OBJDIR)/src.old17/
-	mkdir -p $(OBJDIR)/src.old17/
-	mkdir -p $(OBJDIR)/src.old17/
-	mkdir -p $(OBJDIR)/src.old18/
-	mkdir -p $(OBJDIR)/src.old18/
-	mkdir -p $(OBJDIR)/src.old18/
-	mkdir -p $(OBJDIR)/src.old19/
-	mkdir -p $(OBJDIR)/src.old19/
-	mkdir -p $(OBJDIR)/src.old19/
-	mkdir -p $(OBJDIR)/src.old20/
-	mkdir -p $(OBJDIR)/src.old20/
-	mkdir -p $(OBJDIR)/src.old20/
-	mkdir -p $(OBJDIR)/src.old21/
-	mkdir -p $(OBJDIR)/src.old21/
-	mkdir -p $(OBJDIR)/src.old21/
-	mkdir -p $(OBJDIR)/vmc/
 	mkdir -p $(OBJDIR)/vmc/
 	mkdir -p $(OBJDIR)/vmc/MPI/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old01/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old02/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old03/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old04/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old05/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old06/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old07/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old09/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old11/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old12/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old15/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old16/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old17/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old18/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old19/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old20/
-	mkdir -p $(OBJDIR)/vmc/MPI/src.old21/
-	mkdir -p $(OBJDIR)/vmc/src.old01/
-	mkdir -p $(OBJDIR)/vmc/src.old02/
-	mkdir -p $(OBJDIR)/vmc/src.old03/
-	mkdir -p $(OBJDIR)/vmc/src.old05/
-	mkdir -p $(OBJDIR)/vmc/src.old06/
-	mkdir -p $(OBJDIR)/vmc/src.old07/
-	mkdir -p $(OBJDIR)/vmc/src.old08/
-	mkdir -p $(OBJDIR)/vmc/src.old09/
-	mkdir -p $(OBJDIR)/vmc/src.old11/
-	mkdir -p $(OBJDIR)/vmc/src.old12/
-	mkdir -p $(OBJDIR)/vmc/src.old15/
-	mkdir -p $(OBJDIR)/vmc/src.old16/
-	mkdir -p $(OBJDIR)/vmc/src.old17/
-	mkdir -p $(OBJDIR)/vmc/src.old18/
-	mkdir -p $(OBJDIR)/vmc/src.old19/
-	mkdir -p $(OBJDIR)/vmc/src.old20/
-	mkdir -p $(OBJDIR)/vmc/src.old21/
-	mkdir -p $(OBJDIR)/vmc/src.old21/
-	mkdir -p $(OBJDIR)/vmc/src.oldd/
 endef
 
 revision_and_date.inc: $(SRCS)
@@ -666,457 +444,29 @@ debug_mpi:
 
 $(OBJDIR)/%.o:%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old21/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:vmc/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:vmc/src.old21/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:vmc/MPI/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:vmc/MPI/src.old21/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old03/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old15/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old02/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:MED_tools/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old04/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:fit/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:fit/src.old21/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:fit/MPI/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:fit/MPI/src.old21/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old07/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old13/%.f90
+$(OBJDIR)/%.o:commons/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:dmc/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:dmc/src.old21/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:dmc/dmc_elec/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:dmc/dmc_elec/src.old21/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:dmc/dmc_elec/MPI_global_pop_big/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old21/%.f90
+$(OBJDIR)/%.o:dmc/dmc_elec/MPI/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:dmc/dmc_elec/MPI_global_pop/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:dmc/dmc_elec/MPI_global_pop/src.old21/%.f90
+$(OBJDIR)/%.o:MED_tools/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:dmc/dmc_elec/MPI/%.f90
+$(OBJDIR)/%.o:vmc/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:dmc/dmc_elec/MPI/src.old21/%.f90
+$(OBJDIR)/%.o:vmc/MPI/%.f90
 	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old18/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old06/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old20/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old17/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old16/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old10/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old12/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old01/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old19/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old05/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:commons/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:commons/src.old21/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old11/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:src.old09/%.f90
-	$(F95) $(F95_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/%.o:%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old21/%.o:src.old21/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/%.o:vmc/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old21/%.o:vmc/src.old21/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old03/%.o:vmc/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old15/%.o:vmc/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old02/%.o:vmc/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old08/%.o:vmc/src.old08/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old07/%.o:vmc/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old18/%.o:vmc/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old06/%.o:vmc/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old20/%.o:vmc/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old17/%.o:vmc/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old16/%.o:vmc/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old12/%.o:vmc/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.oldd/%.o:vmc/src.oldd/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old01/%.o:vmc/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old19/%.o:vmc/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old05/%.o:vmc/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old11/%.o:vmc/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/src.old09/%.o:vmc/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old03/%.o:vmc/MPI/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old15/%.o:vmc/MPI/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old02/%.o:vmc/MPI/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old04/%.o:vmc/MPI/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old07/%.o:vmc/MPI/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old18/%.o:vmc/MPI/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old06/%.o:vmc/MPI/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old20/%.o:vmc/MPI/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old17/%.o:vmc/MPI/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old16/%.o:vmc/MPI/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old12/%.o:vmc/MPI/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old01/%.o:vmc/MPI/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old19/%.o:vmc/MPI/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old05/%.o:vmc/MPI/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old11/%.o:vmc/MPI/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/vmc/MPI/src.old09/%.o:vmc/MPI/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old03/%.o:src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old15/%.o:src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old02/%.o:src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old04/%.o:src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old03/%.o:fit/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old15/%.o:fit/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old02/%.o:fit/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old04/%.o:fit/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old07/%.o:fit/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old18/%.o:fit/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old06/%.o:fit/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old20/%.o:fit/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old17/%.o:fit/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old16/%.o:fit/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old12/%.o:fit/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old01/%.o:fit/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old19/%.o:fit/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old05/%.o:fit/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old11/%.o:fit/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/src.old09/%.o:fit/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old03/%.o:fit/MPI/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old15/%.o:fit/MPI/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old02/%.o:fit/MPI/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old04/%.o:fit/MPI/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old07/%.o:fit/MPI/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old18/%.o:fit/MPI/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old06/%.o:fit/MPI/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old20/%.o:fit/MPI/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old17/%.o:fit/MPI/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old16/%.o:fit/MPI/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old12/%.o:fit/MPI/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old01/%.o:fit/MPI/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old19/%.o:fit/MPI/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old05/%.o:fit/MPI/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old11/%.o:fit/MPI/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/fit/MPI/src.old09/%.o:fit/MPI/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old07/%.o:src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old13/%.o:src.old13/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old03/%.o:dmc/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old15/%.o:dmc/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old02/%.o:dmc/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old04/%.o:dmc/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old07/%.o:dmc/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old18/%.o:dmc/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old06/%.o:dmc/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old20/%.o:dmc/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old17/%.o:dmc/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old16/%.o:dmc/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old12/%.o:dmc/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old01/%.o:dmc/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old19/%.o:dmc/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old05/%.o:dmc/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old11/%.o:dmc/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/src.old09/%.o:dmc/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/%.o:dmc/dmc_elec/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old21/%.o:dmc/dmc_elec/src.old21/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old03/%.o:dmc/dmc_elec/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old15/%.o:dmc/dmc_elec/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old02/%.o:dmc/dmc_elec/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old04/%.o:dmc/dmc_elec/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old07/%.o:dmc/dmc_elec/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old18/%.o:dmc/dmc_elec/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old06/%.o:dmc/dmc_elec/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old20/%.o:dmc/dmc_elec/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old17/%.o:dmc/dmc_elec/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old03/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old15/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old02/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old04/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old07/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old18/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old06/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old20/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old17/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old16/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old12/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old01/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old19/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old05/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old11/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop_big/src.old09/%.o:dmc/dmc_elec/MPI_global_pop_big/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old16/%.o:dmc/dmc_elec/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old12/%.o:dmc/dmc_elec/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old01/%.o:dmc/dmc_elec/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old19/%.o:dmc/dmc_elec/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old05/%.o:dmc/dmc_elec/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old11/%.o:dmc/dmc_elec/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old03/%.o:dmc/dmc_elec/MPI_global_pop/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old15/%.o:dmc/dmc_elec/MPI_global_pop/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old02/%.o:dmc/dmc_elec/MPI_global_pop/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old04/%.o:dmc/dmc_elec/MPI_global_pop/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old07/%.o:dmc/dmc_elec/MPI_global_pop/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old18/%.o:dmc/dmc_elec/MPI_global_pop/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old06/%.o:dmc/dmc_elec/MPI_global_pop/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old20/%.o:dmc/dmc_elec/MPI_global_pop/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old17/%.o:dmc/dmc_elec/MPI_global_pop/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old16/%.o:dmc/dmc_elec/MPI_global_pop/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old12/%.o:dmc/dmc_elec/MPI_global_pop/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old01/%.o:dmc/dmc_elec/MPI_global_pop/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old19/%.o:dmc/dmc_elec/MPI_global_pop/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old05/%.o:dmc/dmc_elec/MPI_global_pop/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old11/%.o:dmc/dmc_elec/MPI_global_pop/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI_global_pop/src.old09/%.o:dmc/dmc_elec/MPI_global_pop/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/src.old09/%.o:dmc/dmc_elec/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old03/%.o:dmc/dmc_elec/MPI/src.old03/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old15/%.o:dmc/dmc_elec/MPI/src.old15/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old02/%.o:dmc/dmc_elec/MPI/src.old02/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old04/%.o:dmc/dmc_elec/MPI/src.old04/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old07/%.o:dmc/dmc_elec/MPI/src.old07/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old18/%.o:dmc/dmc_elec/MPI/src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old06/%.o:dmc/dmc_elec/MPI/src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old20/%.o:dmc/dmc_elec/MPI/src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old17/%.o:dmc/dmc_elec/MPI/src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old16/%.o:dmc/dmc_elec/MPI/src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old12/%.o:dmc/dmc_elec/MPI/src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old01/%.o:dmc/dmc_elec/MPI/src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old19/%.o:dmc/dmc_elec/MPI/src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old05/%.o:dmc/dmc_elec/MPI/src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old11/%.o:dmc/dmc_elec/MPI/src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/dmc/dmc_elec/MPI/src.old09/%.o:dmc/dmc_elec/MPI/src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old18/%.o:src.old18/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old06/%.o:src.old06/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old20/%.o:src.old20/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old17/%.o:src.old17/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old16/%.o:src.old16/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old12/%.o:src.old12/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old01/%.o:src.old01/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old19/%.o:src.old19/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old05/%.o:src.old05/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old11/%.o:src.old11/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old09/%.o:src.old09/%.f
-	$(F77) $(F77_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 $(OBJDIR)/%.o:%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old21/%.o:src.old21/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old03/%.o:src.old03/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old15/%.o:src.old15/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old02/%.o:src.old02/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old04/%.o:src.old04/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old07/%.o:src.old07/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old18/%.o:src.old18/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old06/%.o:src.old06/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old20/%.o:src.old20/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old17/%.o:src.old17/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old16/%.o:src.old16/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old12/%.o:src.old12/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old01/%.o:src.old01/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old19/%.o:src.old19/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old05/%.o:src.old05/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old11/%.o:src.old11/%.c
-	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
-$(OBJDIR)/src.old09/%.o:src.old09/%.c
 	$(CC) $(CC_FLAGS) $(INCCMD)$(INCDIR) $(MODCMD)$(MODDIR) -o $@ -c $<
 
 
@@ -1215,6 +565,9 @@ $(OBJDIR)/crystal_symmetries_mod.o: $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/all_tools_mod.o $(OBJDIR)/pjas_setup_mod.o
 $(OBJDIR)/csfs_mod.o: $(OBJDIR)/all_modules_mod.o $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/determinants_mod.o $(OBJDIR)/orbitals_mod.o
+$(OBJDIR)/cslater_cf_mod.o: $(OBJDIR)/types_mod.o
+$(OBJDIR)/cslater_mod.o: $(OBJDIR)/types_mod.o
+$(OBJDIR)/cslaterw_mod.o: $(OBJDIR)/types_mod.o
 $(OBJDIR)/cusp_mod.o: $(OBJDIR)/all_modules_mod.o $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/basis_mod.o $(OBJDIR)/orbitals_mod.o
 $(OBJDIR)/debug_mod.o: $(OBJDIR)/all_tools_mod.o
@@ -1268,6 +621,7 @@ $(OBJDIR)/extracule_mod.o: $(OBJDIR)/all_modules_mod.o \
 $(OBJDIR)/files_tools_mod.o: $(OBJDIR)/MED_tools/objects_mod.o \
 	$(OBJDIR)/basic_tools_mod.o $(OBJDIR)/constants_mod.o \
 	$(OBJDIR)/strings_tools_mod.o
+$(OBJDIR)/fitdet_mod.o: $(OBJDIR)/types_mod.o
 $(OBJDIR)/forces_mod.o: $(OBJDIR)/all_modules_mod.o $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/electrons_mod.o $(OBJDIR)/eloc_mod.o \
 	$(OBJDIR)/forces_pulay_mod.o $(OBJDIR)/grid_mod.o \
@@ -1530,9 +884,9 @@ $(OBJDIR)/fit/deriv_nonloc_pot.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contrl_opt_mod.o \
 	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/derivjas_mod.o \
 	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/optim_mod.o \
-	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/control_mod.o \
-	$(OBJDIR)/deriv_orb_mod.o $(OBJDIR)/eloc_mod.o \
-	$(OBJDIR)/periodic_jastrow_mod.o
+	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/commons/slater_mod.o \
+	$(OBJDIR)/control_mod.o $(OBJDIR)/deriv_orb_mod.o \
+	$(OBJDIR)/eloc_mod.o $(OBJDIR)/periodic_jastrow_mod.o
 $(OBJDIR)/fit/deriv_nonlpsi.o: $(OBJDIR)/commons/contr2_mod.o \
 	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/cuspmat4_mod.o \
 	$(OBJDIR)/commons/cuspmat_mod.o $(OBJDIR)/commons/dets_mod.o \
@@ -1565,7 +919,7 @@ $(OBJDIR)/fit/fit.o: $(OBJDIR)/all_tools_mod.o $(OBJDIR)/allocations_mod.o \
 	$(OBJDIR)/commons/numbas_mod.o $(OBJDIR)/commons/optim_mod.o \
 	$(OBJDIR)/commons/pars_mod.o $(OBJDIR)/commons/pointer_mod.o \
 	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/mpi_mod.o
+	$(OBJDIR)/control_mod.o $(OBJDIR)/mpi_mod.o $(OBJDIR)/orbitals_mod.o
 $(OBJDIR)/fit/fockcheck3.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/confg_mod.o $(OBJDIR)/commons/contr2_mod.o \
 	$(OBJDIR)/commons/jaspar3_mod.o $(OBJDIR)/commons/ncusp_mod.o \
@@ -1599,6 +953,13 @@ $(OBJDIR)/fit/jacobian.o: $(OBJDIR)/basic_tools_mod.o \
 	$(OBJDIR)/commons/mpioffset_mod.o $(OBJDIR)/commons/optim_mod.o \
 	$(OBJDIR)/commons/pars_mod.o $(OBJDIR)/fitdet_mod.o \
 	$(OBJDIR)/mpi_mod.o
+$(OBJDIR)/fit/orb_params.o: $(OBJDIR)/all_tools_mod.o $(OBJDIR)/basis_mod.o \
+	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
+	$(OBJDIR)/commons/basis2_mod.o $(OBJDIR)/commons/coefs_mod.o \
+	$(OBJDIR)/commons/contrl_opt_mod.o $(OBJDIR)/commons/dets_mod.o \
+	$(OBJDIR)/commons/dorb_mod.o $(OBJDIR)/commons/lbas_mod.o \
+	$(OBJDIR)/commons/numbas_mod.o $(OBJDIR)/commons/optim_mod.o \
+	$(OBJDIR)/orbitals_mod.o
 $(OBJDIR)/fit/plot_jas.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/bparm_mod.o $(OBJDIR)/commons/const_mod.o \
 	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/jaspar3_mod.o \
@@ -1610,67 +971,6 @@ $(OBJDIR)/fit/rewght.o: $(OBJDIR)/commons/confg_mod.o \
 $(OBJDIR)/fit/strech.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/confg_mod.o $(OBJDIR)/commons/const_mod.o \
 	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/dim_mod.o
-$(OBJDIR)/fit/orb_params.o: $(OBJDIR)/all_tools_mod.o \
-	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/coefs_mod.o \
-	$(OBJDIR)/commons/optim_mod.o $(OBJDIR)/commons/basis1_mod.o \
-	$(OBJDIR)/commons/numbas_mod.o $(OBJDIR)/commons/basis2_mod.o \
-	$(OBJDIR)/commons/lbas_mod.o $(OBJDIR)/basis_mod.o \
-	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dorb_mod.o \
-	$(OBJDIR)/orbitals_mod.o $(OBJDIR)/commons/contrl_opt_mod.o
-$(OBJDIR)/vmc/acuest.f: $(OBJDIR)/all_tools_mod.o \
-	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/config_mod.o \
-	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contr2_mod.o \
-	$(OBJDIR)/commons/contr3_mod.o $(OBJDIR)/commons/contrl_mod.o \
-	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/delocc_mod.o \
-	$(OBJDIR)/commons/denupdn_mod.o $(OBJDIR)/commons/dim_mod.o \
-	$(OBJDIR)/commons/distance_mod.o $(OBJDIR)/commons/div_v_mod.o \
-	$(OBJDIR)/commons/est2cm_mod.o $(OBJDIR)/commons/estcum_mod.o \
-	$(OBJDIR)/commons/estsig_mod.o $(OBJDIR)/commons/estsum_mod.o \
-	$(OBJDIR)/commons/forcepar_mod.o $(OBJDIR)/commons/forcest_mod.o \
-	$(OBJDIR)/commons/forcewt_mod.o $(OBJDIR)/commons/fourier_mod.o \
-	$(OBJDIR)/commons/pairden_mod.o $(OBJDIR)/commons/pseudo_mod.o \
-	$(OBJDIR)/commons/qua_mod.o $(OBJDIR)/commons/stepv_mod.o \
-	$(OBJDIR)/commons/zigzag_mod.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/eloc_mod.o \
-	$(OBJDIR)/montecarlo_mod.o $(OBJDIR)/mpi_mod.o \
-	$(OBJDIR)/optimization_mod.o $(OBJDIR)/variables_mod.o
-$(OBJDIR)/vmc/determinant.f: $(OBJDIR)/MED_tools/objects_mod.o \
-	$(OBJDIR)/all_tools_mod.o $(OBJDIR)/basic_tools_mod.o \
-	$(OBJDIR)/commons/coefs_mod.o $(OBJDIR)/commons/const_mod.o \
-	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/contr3_mod.o \
-	$(OBJDIR)/commons/contrl_opt2_mod.o \
-	$(OBJDIR)/commons/contrl_opt_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
-	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dim_mod.o \
-	$(OBJDIR)/commons/dorb_mod.o $(OBJDIR)/commons/kinet_mod.o \
-	$(OBJDIR)/commons/optim_mod.o $(OBJDIR)/commons/optimo_mod.o \
-	$(OBJDIR)/commons/orb_mod.o $(OBJDIR)/commons/slater_mod.o \
-	$(OBJDIR)/commons/wfsec_mod.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/deriv_csf_mod.o
-$(OBJDIR)/vmc/determinante.f: $(OBJDIR)/commons/const_mod.o \
-	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
-	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dorb_mod.o \
-	$(OBJDIR)/commons/orbe_mod.o $(OBJDIR)/commons/slater_mod.o \
-	$(OBJDIR)/commons/slatn_mod.o $(OBJDIR)/commons/wfsec_mod.o \
-	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o
-$(OBJDIR)/vmc/hpsie.f: $(OBJDIR)/commons/const_mod.o \
-	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/contr3_mod.o \
-	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/dim_mod.o \
-	$(OBJDIR)/commons/distance_mod.o $(OBJDIR)/commons/jaspar4_mod.o \
-	$(OBJDIR)/commons/wfsec_mod.o $(OBJDIR)/control_mod.o
-$(OBJDIR)/vmc/metrop_slat_mov1.f: $(OBJDIR)/all_tools_mod.o \
-	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/config_mod.o \
-	$(OBJDIR)/commons/const2_mod.o $(OBJDIR)/commons/const_mod.o \
-	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/delocc_mod.o \
-	$(OBJDIR)/commons/denupdn_mod.o $(OBJDIR)/commons/dets_mod.o \
-	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/div_v_mod.o \
-	$(OBJDIR)/commons/estsig_mod.o $(OBJDIR)/commons/estsum_mod.o \
-	$(OBJDIR)/commons/forcepar_mod.o $(OBJDIR)/commons/forcewt_mod.o \
-	$(OBJDIR)/commons/jel_sph2_mod.o $(OBJDIR)/commons/kinet_mod.o \
-	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/commons/stepv_mod.o \
-	$(OBJDIR)/constants_mod.o $(OBJDIR)/deriv_exp_mod.o \
-	$(OBJDIR)/determinants_mod.o $(OBJDIR)/eloc_mod.o \
-	$(OBJDIR)/montecarlo_mod.o $(OBJDIR)/opt_lin_mod.o \
-	$(OBJDIR)/opt_ptb_mod.o
 $(OBJDIR)/vmc/acuest.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/config_mod.o \
 	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contr2_mod.o \
@@ -1695,7 +995,8 @@ $(OBJDIR)/vmc/basis_fns.o: $(OBJDIR)/all_tools_mod.o $(OBJDIR)/basis_mod.o \
 	$(OBJDIR)/commons/deriv_phifun_mod.o $(OBJDIR)/commons/dim_mod.o \
 	$(OBJDIR)/commons/numbas_mod.o $(OBJDIR)/commons/orbpar_mod.o \
 	$(OBJDIR)/commons/periodic_1d_mod.o $(OBJDIR)/commons/phifun_mod.o \
-	$(OBJDIR)/commons/wfsec_mod.o $(OBJDIR)/constants_mod.o
+	$(OBJDIR)/commons/wfsec_mod.o $(OBJDIR)/constants_mod.o \
+	$(OBJDIR)/vmc/basis_fns.o
 $(OBJDIR)/vmc/basis_fnse2.o: $(OBJDIR)/all_tools_mod.o $(OBJDIR)/basis_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
 	$(OBJDIR)/commons/basis2_mod.o $(OBJDIR)/commons/const_mod.o \
@@ -1713,6 +1014,9 @@ $(OBJDIR)/vmc/basis_norm_dot.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/basis1_mod.o $(OBJDIR)/commons/basis3_mod.o \
 	$(OBJDIR)/commons/basisnorm_mod.o $(OBJDIR)/commons/coefs_mod.o \
 	$(OBJDIR)/commons/const_mod.o
+$(OBJDIR)/vmc/bffden2d.o: $(OBJDIR)/commons/const_mod.o \
+	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dim_mod.o \
+	$(OBJDIR)/commons/pairden_mod.o
 $(OBJDIR)/vmc/cbasis_fns.o: $(OBJDIR)/basis_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
 	$(OBJDIR)/commons/basis2_mod.o $(OBJDIR)/commons/basis3_mod.o \
@@ -2052,35 +1356,19 @@ $(OBJDIR)/vmc/nonloc.o: $(OBJDIR)/MED_tools/average_mod.o \
 	$(OBJDIR)/commons/dorb_mod.o $(OBJDIR)/commons/jaso_mod.o \
 	$(OBJDIR)/commons/jaspar_mod.o $(OBJDIR)/commons/optim_mod.o \
 	$(OBJDIR)/commons/orbe_mod.o $(OBJDIR)/commons/periodic_mod.o \
-	$(OBJDIR)/commons/phifun_mod.o $(OBJDIR)/commons/pseudo_mod.o \
-	$(OBJDIR)/commons/qua_mod.o $(OBJDIR)/commons/slatn2_mod.o \
+	$(OBJDIR)/commons/phifun_mod.o $(OBJDIR)/commons/pjase_mod.o \
+	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/commons/qua_mod.o \
+	$(OBJDIR)/commons/slater_mod.o $(OBJDIR)/commons/slatn2_mod.o \
 	$(OBJDIR)/commons/slatn_mod.o $(OBJDIR)/commons/wfsec_mod.o \
 	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o \
 	$(OBJDIR)/deriv_orb_mod.o $(OBJDIR)/eloc_mod.o \
-	$(OBJDIR)/periodic_jastrow_mod.o
-$(OBJDIR)/vmc/tmove.o: $(OBJDIR)/MED_tools/average_mod.o \
-	$(OBJDIR)/all_tools_mod.o $(OBJDIR)/commons/atom_mod.o \
-	$(OBJDIR)/commons/bparm_mod.o $(OBJDIR)/commons/coefs_mod.o \
-	$(OBJDIR)/commons/config_dmc_mod.o $(OBJDIR)/commons/const_mod.o \
-	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/contr3_mod.o \
-	$(OBJDIR)/commons/contrl_opt2_mod.o \
-	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/contrldmc_mod.o \
-	$(OBJDIR)/commons/delocc_mod.o $(OBJDIR)/commons/dets_mod.o \
-	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/div_v_dmc_mod.o \
-	$(OBJDIR)/commons/dorb_mod.o $(OBJDIR)/commons/jaso_mod.o \
-	$(OBJDIR)/commons/jaspar_mod.o $(OBJDIR)/commons/optim_mod.o \
-	$(OBJDIR)/commons/orbe_mod.o $(OBJDIR)/commons/periodic_mod.o \
-	$(OBJDIR)/commons/phifun_mod.o $(OBJDIR)/commons/pseudo_mod.o \
-	$(OBJDIR)/commons/qua_mod.o $(OBJDIR)/commons/slatn2_mod.o \
-	$(OBJDIR)/commons/slatn_mod.o $(OBJDIR)/commons/wfsec_mod.o \
-	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o \
-	$(OBJDIR)/deriv_orb_mod.o $(OBJDIR)/eloc_mod.o \
-	$(OBJDIR)/periodic_jastrow_mod.o
+	$(OBJDIR)/periodic_jastrow_mod.o $(OBJDIR)/variables_mod.o
 $(OBJDIR)/vmc/nonloc_pot.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
 	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/pseudo_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/deriv_orb_mod.o \
-	$(OBJDIR)/eloc_mod.o $(OBJDIR)/periodic_jastrow_mod.o
+	$(OBJDIR)/commons/slater_mod.o $(OBJDIR)/control_mod.o \
+	$(OBJDIR)/deriv_orb_mod.o $(OBJDIR)/eloc_mod.o \
+	$(OBJDIR)/periodic_jastrow_mod.o
 $(OBJDIR)/vmc/nonlpsi.o: $(OBJDIR)/commons/contr2_mod.o \
 	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/dets_mod.o \
 	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/jaspar1_mod.o \
@@ -2143,7 +1431,7 @@ $(OBJDIR)/vmc/psi.o: $(OBJDIR)/commons/contr2_mod.o \
 	$(OBJDIR)/commons/pars_mod.o $(OBJDIR)/commons/wfsec_mod.o \
 	$(OBJDIR)/constants_mod.o
 $(OBJDIR)/vmc/quad_min.o: $(OBJDIR)/commons/contrl_opt_mod.o \
-	$(OBJDIR)/commons/gradhess_mod.o
+	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/gradhess_mod.o
 $(OBJDIR)/vmc/read_bas_num.o: $(OBJDIR)/all_tools_mod.o $(OBJDIR)/basis_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
 	$(OBJDIR)/commons/basis2_mod.o $(OBJDIR)/commons/coefs_mod.o \
@@ -2184,11 +1472,12 @@ $(OBJDIR)/vmc/read_orb_dot.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/basis1_mod.o $(OBJDIR)/commons/basis2_mod.o \
 	$(OBJDIR)/commons/basis3_mod.o $(OBJDIR)/commons/coefs_mod.o \
 	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contr2_mod.o \
-	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/dim_mod.o \
-	$(OBJDIR)/commons/forcepar_mod.o $(OBJDIR)/commons/numbas_mod.o \
-	$(OBJDIR)/commons/optimo_mod.o $(OBJDIR)/commons/orbpar_mod.o \
-	$(OBJDIR)/commons/periodic_1d_mod.o $(OBJDIR)/commons/pseudo_mod.o \
-	$(OBJDIR)/control_mod.o
+	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/dets_mod.o \
+	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/forcepar_mod.o \
+	$(OBJDIR)/commons/numbas_mod.o $(OBJDIR)/commons/optimo_mod.o \
+	$(OBJDIR)/commons/orbpar_mod.o $(OBJDIR)/commons/periodic_1d_mod.o \
+	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/control_mod.o \
+	$(OBJDIR)/files_tools_mod.o
 $(OBJDIR)/vmc/read_orb_loc.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
 	$(OBJDIR)/commons/basis2_mod.o $(OBJDIR)/commons/coefs_mod.o \
@@ -2236,7 +1525,8 @@ $(OBJDIR)/vmc/scale_dist.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/jaspar_mod.o $(OBJDIR)/commons/wfsec_mod.o \
 	$(OBJDIR)/constants_mod.o
 $(OBJDIR)/vmc/sites.o: $(OBJDIR)/commons/atom_mod.o \
-	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/dim_mod.o \
+	$(OBJDIR)/commons/coefs_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
+	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dim_mod.o \
 	$(OBJDIR)/commons/dorb_mod.o $(OBJDIR)/commons/jel_sph2_mod.o \
 	$(OBJDIR)/commons/orbpar_mod.o $(OBJDIR)/commons/periodic_mod.o \
 	$(OBJDIR)/commons/pseudo_mod.o $(OBJDIR)/commons/wfsec_mod.o \
@@ -2249,6 +1539,14 @@ $(OBJDIR)/vmc/strech.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/forcepar_mod.o $(OBJDIR)/commons/wfsec_mod.o \
 	$(OBJDIR)/constants_mod.o $(OBJDIR)/correlated_sampling_mod.o \
 	$(OBJDIR)/nuclei_mod.o
+$(OBJDIR)/vmc/tmove.o: $(OBJDIR)/MED_tools/average_mod.o \
+	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/config_dmc_mod.o \
+	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
+	$(OBJDIR)/commons/contrldmc_mod.o $(OBJDIR)/commons/dim_mod.o \
+	$(OBJDIR)/commons/distance_mod.o $(OBJDIR)/commons/periodic_mod.o \
+	$(OBJDIR)/commons/pjase_mod.o $(OBJDIR)/commons/pseudo_mod.o \
+	$(OBJDIR)/commons/qua_mod.o $(OBJDIR)/control_mod.o \
+	$(OBJDIR)/periodic_jastrow_mod.o $(OBJDIR)/types_mod.o
 $(OBJDIR)/vmc/vmc.o: $(OBJDIR)/MED_tools/average_mod.o \
 	$(OBJDIR)/all_tools_mod.o $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/basis1_mod.o $(OBJDIR)/commons/bparm_mod.o \
@@ -2326,7 +1624,7 @@ $(OBJDIR)/dmc/dmc_good_ap.o: $(OBJDIR)/MED_tools/average_mod.o \
 	$(OBJDIR)/commons/iterat_mod.o $(OBJDIR)/commons/jacobsave_mod.o \
 	$(OBJDIR)/commons/pop_control_mod.o $(OBJDIR)/commons/stats_mod.o \
 	$(OBJDIR)/commons/stepv_mod.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/dmc/projector.o
+	$(OBJDIR)/control_mod.o $(OBJDIR)/dmc/projector.o
 $(OBJDIR)/dmc/dmc_good_inhom_movall.o: $(OBJDIR)/commons/age_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/branch_mod.o \
 	$(OBJDIR)/commons/config_dmc_mod.o $(OBJDIR)/commons/const_mod.o \
@@ -2338,7 +1636,7 @@ $(OBJDIR)/dmc/dmc_good_inhom_movall.o: $(OBJDIR)/commons/age_mod.o \
 	$(OBJDIR)/commons/forcepar_mod.o $(OBJDIR)/commons/iterat_mod.o \
 	$(OBJDIR)/commons/jacobsave_mod.o $(OBJDIR)/commons/pop_control_mod.o \
 	$(OBJDIR)/commons/stats_mod.o $(OBJDIR)/commons/stepv_mod.o \
-	$(OBJDIR)/constants_mod.o
+	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o
 $(OBJDIR)/dmc/dmc_good_movall.o: $(OBJDIR)/MED_tools/average_mod.o \
 	$(OBJDIR)/commons/age_mod.o $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/branch_mod.o $(OBJDIR)/commons/config_dmc_mod.o \
@@ -2350,7 +1648,8 @@ $(OBJDIR)/dmc/dmc_good_movall.o: $(OBJDIR)/MED_tools/average_mod.o \
 	$(OBJDIR)/commons/force_dmc_mod.o $(OBJDIR)/commons/forcepar_mod.o \
 	$(OBJDIR)/commons/iterat_mod.o $(OBJDIR)/commons/jacobsave_mod.o \
 	$(OBJDIR)/commons/pop_control_mod.o $(OBJDIR)/commons/stats_mod.o \
-	$(OBJDIR)/commons/stepv_mod.o $(OBJDIR)/constants_mod.o
+	$(OBJDIR)/commons/stepv_mod.o $(OBJDIR)/constants_mod.o \
+	$(OBJDIR)/control_mod.o
 $(OBJDIR)/dmc/dmc_good_ps_movall.o: $(OBJDIR)/commons/age_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/branch_mod.o \
 	$(OBJDIR)/commons/config_dmc_mod.o $(OBJDIR)/commons/config_mod.o \
@@ -2365,7 +1664,7 @@ $(OBJDIR)/dmc/dmc_good_ps_movall.o: $(OBJDIR)/commons/age_mod.o \
 	$(OBJDIR)/commons/jacobsave_mod.o $(OBJDIR)/commons/pairden_mod.o \
 	$(OBJDIR)/commons/pop_control_mod.o $(OBJDIR)/commons/stats_mod.o \
 	$(OBJDIR)/commons/stepv_mod.o $(OBJDIR)/commons/zigzag_mod.o \
-	$(OBJDIR)/constants_mod.o
+	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o
 $(OBJDIR)/dmc/dumper_dmc_movall.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/age_mod.o $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/basis1_mod.o $(OBJDIR)/commons/branch_mod.o \
@@ -2498,11 +1797,12 @@ $(OBJDIR)/dmc/dmc_elec/dmc_good_ps_mov1.o: $(OBJDIR)/MED_tools/average_mod.o \
 	$(OBJDIR)/commons/forcepar_mod.o $(OBJDIR)/commons/forcest_dmc_mod.o \
 	$(OBJDIR)/commons/fourier_mod.o $(OBJDIR)/commons/iterat_mod.o \
 	$(OBJDIR)/commons/jacobsave_mod.o $(OBJDIR)/commons/pairden_mod.o \
-	$(OBJDIR)/commons/pop_control_mod.o $(OBJDIR)/commons/qua_mod.o \
-	$(OBJDIR)/commons/slaterw_mod.o $(OBJDIR)/commons/stats_mod.o \
-	$(OBJDIR)/commons/stepv_mod.o $(OBJDIR)/commons/velratio_mod.o \
-	$(OBJDIR)/commons/zigzag_mod.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/eloc_mod.o $(OBJDIR)/jastrow_mod.o
+	$(OBJDIR)/commons/pop_control_mod.o $(OBJDIR)/commons/pseudo_mod.o \
+	$(OBJDIR)/commons/qua_mod.o $(OBJDIR)/commons/slaterw_mod.o \
+	$(OBJDIR)/commons/stats_mod.o $(OBJDIR)/commons/stepv_mod.o \
+	$(OBJDIR)/commons/velratio_mod.o $(OBJDIR)/commons/zigzag_mod.o \
+	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o \
+	$(OBJDIR)/eloc_mod.o $(OBJDIR)/jastrow_mod.o
 $(OBJDIR)/dmc/dmc_elec/dumper_dmc_mov1.o: $(OBJDIR)/commons/age_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/basis1_mod.o \
 	$(OBJDIR)/commons/branch_mod.o $(OBJDIR)/commons/coefs_mod.o \
@@ -2549,7 +1849,8 @@ $(OBJDIR)/dmc/dmc_elec/splitj_mov1.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/control_mod.o
 $(OBJDIR)/dmc/dmc_elec/walksav_det.o: $(OBJDIR)/commons/const_mod.o \
 	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dorb_mod.o \
-	$(OBJDIR)/commons/slater_mod.o $(OBJDIR)/commons/slaterw_mod.o
+	$(OBJDIR)/commons/qua_mod.o $(OBJDIR)/commons/slater_mod.o \
+	$(OBJDIR)/commons/slaterw_mod.o
 $(OBJDIR)/dmc/dmc_elec/walksav_jas.o: $(OBJDIR)/commons/const_mod.o \
 	$(OBJDIR)/commons/jaso_mod.o $(OBJDIR)/commons/jasow_mod.o
 $(OBJDIR)/fit/MPI/func_mpi.o: $(OBJDIR)/all_tools_mod.o \

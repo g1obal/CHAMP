@@ -729,6 +729,7 @@
 !               write (6,*) (xnc(1,iii),iii=1,nelec)
                 if(izigzag.gt.0) call zigzag2d(Wtgp,wtgq,xoc,xnc,i)
                 if(ifixe.le.-2) call pairden2d(wtgp,wtgq,xoc,xnc)
+                if(ifixe.le.-2 .and. M_bff.gt.0) call bffden2d(wtgp,wtgq,xoc,xnc)
                 if(ifourier.eq.1 .or. ifourier.eq.3) call fourierrk(wtgp,wtgq,xoc,xnc)
                 if(ifourier.eq.2 .or. ifourier.eq.3) call fourierkk(wtgp,wtgq,xoc,xnc)
               endif

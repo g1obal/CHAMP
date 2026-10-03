@@ -23,7 +23,7 @@ module pairden_mod
  double precision :: psi_M_acc_bff(20)
  
 ! Variables for Inter-Ring Phase Correlation
- integer, parameter :: NIRBINS_bff = 360
+ integer, parameter :: NIRBINS_bff = 100
  double precision, allocatable :: irphase_bff(:)
 
 end module pairden_mod

@@ -18,7 +18,7 @@
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
       
 ! Local variables for BFF and Inter-Ring Phase Correlation writing
-      double precision :: pi_bff, del_phase_bff, angle_bff, alg_weight
+      double precision :: range_half_bff, del_phase_bff, angle_bff, alg_weight
       integer :: in1_bff, ir
       
 ! Normalization variables of pairden
@@ -332,7 +332,7 @@
             ri = in1*dely
             ri2 = 1.0  ! no need to normalize by 1/r^2 for wires
           elseif(rring.eq.0.d0) then
-            ri=(in1*1.d0-0.5d0)*delx
+            ri=(in1*1.d0-0.5d0)*del1
             ri2 = ri*ri
           else
             ri = in1/delradi + rmean
@@ -544,11 +544,12 @@
             open(49,status='scratch')
           endif
           
-          pi_bff = 4.d0 * datan(1.d0)
-          del_phase_bff = 2.d0 * pi_bff / dble(NIRBINS_bff)
+          ! Extract theoretical limits based on M_bff modulo wrapping
+          range_half_bff = pi / dble(M_bff)
+          del_phase_bff = 2.d0 * range_half_bff / dble(NIRBINS_bff)
           
           do in1_bff = 1, NIRBINS_bff
-            angle_bff = -pi_bff + (dble(in1_bff) - 0.5d0) * del_phase_bff
+            angle_bff = -range_half_bff + (dble(in1_bff) - 0.5d0) * del_phase_bff
             ! Divide by del_phase_bff to create a true continuous PDF
             write(49,'(2G20.8E3)') angle_bff, (irphase_bff(in1_bff) * alg_weight) / (passes * del_phase_bff)
           enddo

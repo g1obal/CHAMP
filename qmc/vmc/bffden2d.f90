@@ -29,7 +29,7 @@
       real*8 :: Thetain_n_bff, Thetaout_n_bff, dTheta_n_bff
       integer :: Min_bff, Mout_bff, ibin_o_bff, ibin_n_bff
       integer :: n_skip_in_bff, n_skip_out_bff
-      real*8 :: pi_bff
+      real*8 :: range_half_bff
       
       integer :: ix1roto, ix2roto, ix1rotn, ix2rotn
 
@@ -136,29 +136,19 @@
          dTheta_o_bff = Thetaout_o_bff - Thetain_o_bff
          dTheta_n_bff = Thetaout_n_bff - Thetain_n_bff
 
-         ! Wrap to [-pi, pi] rigidly
-         pi_bff = 4.d0 * datan(1.d0)
-         do while (dTheta_o_bff .gt. pi_bff)
-            dTheta_o_bff = dTheta_o_bff - 2.d0 * pi_bff
-         end do
-         do while (dTheta_o_bff .lt. -pi_bff)
-            dTheta_o_bff = dTheta_o_bff + 2.d0 * pi_bff
-         end do
+         ! Wrap rigidly to [-pi/M_bff, pi/M_bff] using modulo to fold the convolution tails
+         dTheta_o_bff = modulo(dTheta_o_bff + pi/dble(M_bff), 2.d0*pi/dble(M_bff)) - pi/dble(M_bff)
+         dTheta_n_bff = modulo(dTheta_n_bff + pi/dble(M_bff), 2.d0*pi/dble(M_bff)) - pi/dble(M_bff)
 
-         do while (dTheta_n_bff .gt. pi_bff)
-            dTheta_n_bff = dTheta_n_bff - 2.d0 * pi_bff
-         end do
-         do while (dTheta_n_bff .lt. -pi_bff)
-            dTheta_n_bff = dTheta_n_bff + 2.d0 * pi_bff
-         end do
+         ! Set binning range to the modulo bounds (adds 5% padding to eliminate empty zeros)
+         range_half_bff = pi / dble(M_bff)
 
-         ! Binning
-         ibin_o_bff = int((dTheta_o_bff + pi_bff) / (2.d0 * pi_bff) * NIRBINS_bff) + 1
+         ibin_o_bff = int((dTheta_o_bff + range_half_bff) / (2.d0 * range_half_bff) * NIRBINS_bff) + 1
          if (ibin_o_bff .lt. 1) ibin_o_bff = 1
          if (ibin_o_bff .gt. NIRBINS_bff) ibin_o_bff = NIRBINS_bff
          irphase_bff(ibin_o_bff) = irphase_bff(ibin_o_bff) + q
 
-         ibin_n_bff = int((dTheta_n_bff + pi_bff) / (2.d0 * pi_bff) * NIRBINS_bff) + 1
+         ibin_n_bff = int((dTheta_n_bff + range_half_bff) / (2.d0 * range_half_bff) * NIRBINS_bff) + 1
          if (ibin_n_bff .lt. 1) ibin_n_bff = 1
          if (ibin_n_bff .gt. NIRBINS_bff) ibin_n_bff = NIRBINS_bff
          irphase_bff(ibin_n_bff) = irphase_bff(ibin_n_bff) + p

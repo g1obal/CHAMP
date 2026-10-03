@@ -688,6 +688,21 @@
             xx0probuu(i1,i2,i3)=0
   100       xx0probud(i1,i2,i3)=0
       endif
+      if (ifixe.le.-2 .and. M_bff.gt.0) then
+        call alloc_range ('bffden2d_t', bffden2d_t, -NAX, NAX, -NAX, NAX)
+        call alloc_range ('bffden2d_u', bffden2d_u, -NAX, NAX, -NAX, NAX)
+        call alloc_range ('bffden2d_d', bffden2d_d, -NAX, NAX, -NAX, NAX)
+        call alloc ('irphase_bff', irphase_bff, NIRBINS_bff)
+        do 105 i2=-NAX,NAX
+          do 105 i1=-NAX,NAX
+            bffden2d_t(i1,i2)=0.d0
+            bffden2d_u(i1,i2)=0.d0
+  105       bffden2d_d(i1,i2)=0.d0
+        do 106 i1=1,NIRBINS_bff
+  106     irphase_bff(i1)=0.d0
+        do 107 i1=1,20
+  107     psi_M_acc_bff(i1)=0.d0
+      endif
       if (ifourier.ne.0) then
       call alloc_range ('fourierrk_t', fourierrk_t, -NAX, NAX, 0, NAK1)
       call alloc_range ('fourierrk_u', fourierrk_u, -NAX, NAX, 0, NAK1)

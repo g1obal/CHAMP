@@ -45,6 +45,7 @@
       dimension zzpairtot(-NAX:NAX,-NAX:NAX),zzdenijtot(-NAX:NAX,0:(nelec-1))
       dimension zzcorrtot(0:NAX), zzcorrijtot(0:(nelec-1))
       dimension zzave(nzzvars), zzerr(nzzvars)
+      real*8 :: irphaset(NIRBINS_bff), psit(20)
 
       character*80 fmt
 !JT      character*80 title,fmt
@@ -175,7 +176,31 @@
           do 16 i2=-NAX,NAX
    16       pot_ee2d_u(i1,i2)=pot_ee2dt(i1,i2)
 
+        if (ifixe.le.-2 .and. M_bff.gt.0) then
+          call mpi_reduce(bffden2d_t,den2dt,naxt,mpi_double_precision,mpi_sum,0,MPI_COMM_WORLD,ierr)
+          do 117 i1=-NAX,NAX
+            do 117 i2=-NAX,NAX
+  117         bffden2d_t(i1,i2)=den2dt(i1,i2)
 
+          call mpi_reduce(bffden2d_u,den2dt,naxt,mpi_double_precision,mpi_sum,0,MPI_COMM_WORLD,ierr)
+          do 118 i1=-NAX,NAX
+            do 118 i2=-NAX,NAX
+  118         bffden2d_u(i1,i2)=den2dt(i1,i2)
+
+          call mpi_reduce(bffden2d_d,den2dt,naxt,mpi_double_precision,mpi_sum,0,MPI_COMM_WORLD,ierr)
+          do 119 i1=-NAX,NAX
+            do 119 i2=-NAX,NAX
+  119         bffden2d_d(i1,i2)=den2dt(i1,i2)
+
+          call mpi_reduce(psi_M_acc_bff,psit,20,mpi_double_precision,mpi_sum,0,MPI_COMM_WORLD,ierr)
+          do 120 i1=1,20
+  120       psi_M_acc_bff(i1)=psit(i1)
+
+          call mpi_reduce(irphase_bff,irphaset,NIRBINS_bff,mpi_double_precision,mpi_sum,0,MPI_COMM_WORLD,ierr)
+          do 121 i1=1,NIRBINS_bff
+  121       irphase_bff(i1)=irphaset(i1)
+        endif
+        
       endif
 
       if(ifourier .ne. 0) then

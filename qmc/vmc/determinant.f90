@@ -20,6 +20,7 @@
       use contr3_mod
       use optimo_mod
       use kinet_mod
+      use d2orb_mod
       implicit real*8(a-h,o-z)
 
 ! Routine to calculate the value, gradient and Laplacian of the
@@ -51,12 +52,15 @@
 ! So, we check in read_input that nup and ndn are each <= MELEC/2.
 
       common /dojasderiv/ ijasderiv
+      common /s2l2/ el2_det, s2_det, s2o, el2o, s2sum, el2sum, s2cum, el2cum, s2cm2, el2cm2
+      common /s2l2_switches/ icalc_L2, icalc_S2
 
       dimension x(3,*),rvec_en(3,nelec,*),r_en(nelec,*),ddet_det(3,*),div_vd(nelec)
       
 ! >>> ALLOCATE LARGE MEMORY ONCE IN BSS TO SAVE MEMORY BANDWIDTH <<< !GO
       real*8, allocatable, save :: dporb(:,:,:,:), d2porb(:,:,:,:,:)
       real*8, allocatable, save :: ddporb(:,:,:,:,:), d2dporb(:,:,:,:)
+      
       logical, save :: is_dporb_allocated = .false.
       
       if (.not. is_dporb_allocated) then
@@ -64,6 +68,7 @@
         allocate(d2porb(notype,notype,nbasis,nelec,norb))
         allocate(ddporb(3,notype,nbasis,nelec,norb))
         allocate(d2dporb(notype,nbasis,nelec,norb))
+        
         dporb = 0.0d0
         d2porb = 0.0d0
         ddporb = 0.0d0
@@ -293,6 +298,10 @@
           ddet_det(k,i)=ddet_det(k,i)*detinv
           div_vd(i)=div_vd(i)-ddet_det(k,i)**2
   120     d2lndet=d2lndet-ddet_det(k,i)**2
+
+! EXACT L_Z^2 AND S^2 OBSERVABLE ESTIMATORS
+      if (icalc_L2 .eq. 1) call calc_l2_exact(x, detinv, el2_det)
+      if (icalc_S2 .eq. 1) call calc_s2_exact(detinv, s2_det)
 
 ! Derivatives wrt to csf_coefs for optimizing them
 ! Note that the arrays that are needed for vmc and dmc are over ndet but
@@ -749,6 +758,7 @@
                 enddo
 
                 if (iopt .eq. 2) then
+                  ! Orbital-Orbital second derivatives
                   do jparm0=1,iparm0
                     jparm=jparm0+nparmcsf
                     detij_det(iparm,jparm) = detij_det(iparm,jparm) + term &
@@ -756,6 +766,16 @@
      &              + (detui(iparm0,iwdetup(idet)) + detdi(iparm0,iwdetdn(idet))) &
      &              * (detui(jparm0,iwdetup(idet)) + detdi(jparm0,iwdetdn(idet))))
                     detij_det(jparm,iparm)=detij_det(iparm,jparm)
+                  enddo
+                  
+                  ! CSF-Orbital cross derivatives
+                  do jparm_csf=1,nparmcsf
+                    if (iwcsf(jparm_csf) .eq. icsf) then
+                      term_cross = detu(iwdetup(idet))*detd(iwdetdn(idet))*cdet_in_csf(idet_in_csf,icsf)*detinv
+                      detij_det(iparm, jparm_csf) = detij_det(iparm, jparm_csf) + term_cross &
+     &                * (detui(iparm0,iwdetup(idet)) + detdi(iparm0,iwdetdn(idet)))
+                      detij_det(jparm_csf, iparm) = detij_det(iparm, jparm_csf)
+                    endif
                   enddo
                 endif
               else
@@ -776,12 +796,23 @@
                 enddo
 
                 if (iopt .eq. 2) then
+                  ! Orbital-Orbital second derivatives
                   do jparm0=1,iparm0
                     jparm=jparm0+nparmcsf
                     detij_det(iparm,jparm) = detij_det(iparm,jparm) + term &
      &              * (detuij(jparm0,iwdetup(idet)) &
      &              + detui(iparm0,iwdetup(idet)) * detui(jparm0,iwdetup(idet)))
                     detij_det(jparm,iparm)=detij_det(iparm,jparm)
+                  enddo
+                  
+                  ! CSF-Orbital cross derivatives
+                  do jparm_csf=1,nparmcsf
+                    if (iwcsf(jparm_csf) .eq. icsf) then
+                      term_cross = detu(iwdetup(idet))*cdet_in_csf(idet_in_csf,icsf)*detinv
+                      detij_det(iparm, jparm_csf) = detij_det(iparm, jparm_csf) + term_cross &
+     &                * detui(iparm0,iwdetup(idet))
+                      detij_det(jparm_csf, iparm) = detij_det(iparm, jparm_csf)
+                    endif
                   enddo
                 endif
               endif
@@ -904,5 +935,242 @@
       return
       end
       
+!--------------------------------------------------------------------------------------
 
+      subroutine calc_l2_exact(x, detinv, el2_det_out)
+! Evaluates exact analytical L_z^2 direct local estimator
+! GO, Oct 2026
+      use all_tools_mod
+      use constants_mod
+      use control_mod
+      use deriv_csf_mod
+      use orb_mod
+      use dorb_mod
+      use d2orb_mod
+      use coefs_mod
+      use dets_mod
+      use slater_mod
+      use optim_mod
+      use const_mod
+      use dim_mod
+      use contr2_mod
+      use contrl_opt2_mod
+      use wfsec_mod
+      use contrl_per_mod
+      use contrl_opt_mod
+      use contr3_mod
+      use optimo_mod
+      use kinet_mod
+      implicit real*8(a-h,o-z)
+
+      dimension x(3,*)
+      real*8 :: detinv, el2_det_out
+      
+      real*8, allocatable, save :: lz_up(:), lz2_up(:), lz_dn(:), lz2_dn(:)
+      real*8, allocatable, save :: T_x_u(:,:), T_y_u(:,:), M_u(:,:)
+      real*8, allocatable, save :: T_x_d(:,:), T_y_d(:,:), M_d(:,:)
+      logical, save :: is_l2_allocated = .false.
+      
+      real*8 :: H_xx, H_yy, H_xy, tr_M, tr_M2, sum_H, sum_D, tx, ty
+      real*8 :: term_l2, term_csf
+      
+      if (.not. is_l2_allocated) then
+        allocate(lz_up(ndetup), lz2_up(ndetup))
+        if (ndn .gt. 0) allocate(lz_dn(ndetdn), lz2_dn(ndetdn))
+        allocate(T_x_u(nup,nup), T_y_u(nup,nup), M_u(nup,nup))
+        if (ndn .gt. 0) allocate(T_x_d(ndn,ndn), T_y_d(ndn,ndn), M_d(ndn,ndn))
+        is_l2_allocated = .true.
+      endif
+
+      el2_det_out = 0.d0
+
+      ! Calculate L_z and L_z^2 components for Up determinants
+      do idet = 1, ndetup
+        do i = 1, nup
+          do k = 1, nup
+            tx = 0.d0
+            ty = 0.d0
+            do m = 1, nup
+               tx = tx + dorb(1, i, iworbdup(m, idet)) * slmui(m + (k-1)*nup, idet)
+               ty = ty + dorb(2, i, iworbdup(m, idet)) * slmui(m + (k-1)*nup, idet)
+            enddo
+            T_x_u(i,k) = tx
+            T_y_u(i,k) = ty
+          enddo
+        enddo
+
+        tr_M = 0.d0
+        tr_M2 = 0.d0
+        sum_H = 0.d0
+        sum_D = 0.d0
+
+        do i = 1, nup
+          do k = 1, nup
+            M_u(i,k) = x(1,i) * T_y_u(i,k) - x(2,i) * T_x_u(i,k)
+          enddo
+        enddo
+
+        do i = 1, nup
+          tr_M = tr_M + M_u(i,i)
+          do k = 1, nup
+            tr_M2 = tr_M2 + M_u(i,k) * M_u(k,i)
+          enddo
+          
+          H_xx = 0.d0
+          H_yy = 0.d0
+          H_xy = 0.d0
+          do m = 1, nup
+             H_xx = H_xx + d2orb_xx(i, iworbdup(m, idet)) * slmui(m + (i-1)*nup, idet)
+             H_yy = H_yy + d2orb_yy(i, iworbdup(m, idet)) * slmui(m + (i-1)*nup, idet)
+             H_xy = H_xy + d2orb_xy(i, iworbdup(m, idet)) * slmui(m + (i-1)*nup, idet)
+          enddo
+          
+          sum_H = sum_H + x(1,i)**2 * H_yy + x(2,i)**2 * H_xx - 2.d0 * x(1,i) * x(2,i) * H_xy
+          sum_D = sum_D + x(1,i) * T_x_u(i,i) + x(2,i) * T_y_u(i,i)
+        enddo
+
+        lz_up(idet) = tr_M
+        ! Exact Eigenstate Lz2 estimator: -hbar^2 [ (Tr M)^2 - Tr(M^2) + sum_H - sum_D ]
+        lz2_up(idet) = - ( tr_M**2 - tr_M2 + sum_H - sum_D )
+      enddo
+
+      ! Calculate L_z and L_z^2 components for Down determinants
+      if (ndn .ge. 1) then
+        do idet = 1, ndetdn
+          do i = 1, ndn
+            ie = i + nup
+            do k = 1, ndn
+              tx = 0.d0
+              ty = 0.d0
+              do m = 1, ndn
+                 tx = tx + dorb(1, ie, iworbddn(m, idet)) * slmdi(m + (k-1)*ndn, idet)
+                 ty = ty + dorb(2, ie, iworbddn(m, idet)) * slmdi(m + (k-1)*ndn, idet)
+              enddo
+              T_x_d(i,k) = tx
+              T_y_d(i,k) = ty
+            enddo
+          enddo
+
+          tr_M = 0.d0
+          tr_M2 = 0.d0
+          sum_H = 0.d0
+          sum_D = 0.d0
+
+          do i = 1, ndn
+            ie = i + nup
+            do k = 1, ndn
+              M_d(i,k) = x(1,ie) * T_y_d(i,k) - x(2,ie) * T_x_d(i,k)
+            enddo
+          enddo
+
+          do i = 1, ndn
+            ie = i + nup
+            tr_M = tr_M + M_d(i,i)
+            do k = 1, ndn
+              tr_M2 = tr_M2 + M_d(i,k) * M_d(k,i)
+            enddo
+            
+            H_xx = 0.d0
+            H_yy = 0.d0
+            H_xy = 0.d0
+            do m = 1, ndn
+               H_xx = H_xx + d2orb_xx(ie, iworbddn(m, idet)) * slmdi(m + (i-1)*ndn, idet)
+               H_yy = H_yy + d2orb_yy(ie, iworbddn(m, idet)) * slmdi(m + (i-1)*ndn, idet)
+               H_xy = H_xy + d2orb_xy(ie, iworbddn(m, idet)) * slmdi(m + (i-1)*ndn, idet)
+            enddo
+            
+            sum_H = sum_H + x(1,ie)**2 * H_yy + x(2,ie)**2 * H_xx - 2.d0 * x(1,ie) * x(2,ie) * H_xy
+            sum_D = sum_D + x(1,ie) * T_x_d(i,i) + x(2,ie) * T_y_d(i,i)
+          enddo
+
+          lz_dn(idet) = tr_M
+          lz2_dn(idet) = - ( tr_M**2 - tr_M2 + sum_H - sum_D )
+        enddo
+      endif
+
+      ! Combine components across all CSFs to form exact total L_z^2 expectation value
+      do icsf = 1, ncsf
+        do idet_in_csf = 1, ndet_in_csf(icsf)
+          idet = iwdet_in_csf(idet_in_csf, icsf)
+          if (ndn .ge. 1) then
+            term_csf = detu(iwdetup(idet)) * detd(iwdetdn(idet)) * csf_coef(icsf,iwf) * cdet_in_csf(idet_in_csf,icsf)
+            ! Total operator cross-terms: L_z^2 = L_{z,up}^2 + L_{z,dn}^2 + 2 L_{z,up} L_{z,dn}
+            ! The -2.d0 corrects for the imaginary phase in the cross product since L_z_up is Tr(M_up).
+            term_l2 = lz2_up(iwdetup(idet)) + lz2_dn(iwdetdn(idet)) - 2.d0 * lz_up(iwdetup(idet)) * lz_dn(iwdetdn(idet))
+          else
+            term_csf = detu(iwdetup(idet)) * csf_coef(icsf,iwf) * cdet_in_csf(idet_in_csf,icsf)
+            term_l2 = lz2_up(iwdetup(idet))
+          endif
+          el2_det_out = el2_det_out + term_l2 * term_csf * detinv
+        enddo
+      enddo
+
+      return
+      end
+
+!--------------------------------------------------------------------------------------
+
+      subroutine calc_s2_exact(detinv, s2_det_out)
+! Calculates S^2 using Sherman-Morrison rank-1 swap updates
+! GO, Oct 2026
+      use all_tools_mod
+      use constants_mod
+      use control_mod
+      use deriv_csf_mod
+      use orb_mod
+      use dorb_mod
+      use d2orb_mod
+      use coefs_mod
+      use dets_mod
+      use slater_mod
+      use optim_mod
+      use const_mod
+      use dim_mod
+      use contr2_mod
+      use contrl_opt2_mod
+      use wfsec_mod
+      use contrl_per_mod
+      use contrl_opt_mod
+      use contr3_mod
+      use optimo_mod
+      use kinet_mod
+      implicit real*8(a-h,o-z)
+
+      real*8 :: detinv, s2_det_out
+      real*8 :: ratio_sum, rat_up, rat_dn, term
+
+      s2_det_out = 0.d0
+      if (ndn .ge. 1 .and. nup .ge. 1) then
+        do i = 1, nup
+          do j = nup+1, nelec
+            ratio_sum = 0.d0
+            do icsf = 1, ncsf
+              do idet_in_csf = 1, ndet_in_csf(icsf)
+                idet = iwdet_in_csf(idet_in_csf, icsf)
+                rat_up = 0.d0
+                ik = nup*(i-1)
+                do k = 1, nup
+                  rat_up = rat_up + orb(j, iworbdup(k, iwdetup(idet))) * slmui(k+ik, iwdetup(idet))
+                enddo
+                rat_dn = 0.d0
+                ik = ndn*(j-nup-1)
+                do m = 1, ndn
+                  rat_dn = rat_dn + orb(i, iworbddn(m, iwdetdn(idet))) * slmdi(m+ik, iwdetdn(idet))
+                enddo
+                if (ndn .ge. 1) then
+                  term = detu(iwdetup(idet)) * detd(iwdetdn(idet)) * csf_coef(icsf,iwf) * cdet_in_csf(idet_in_csf,icsf)
+                else
+                  term = detu(iwdetup(idet)) * csf_coef(icsf,iwf) * cdet_in_csf(idet_in_csf,icsf)
+                endif
+                ratio_sum = ratio_sum + term * rat_up * rat_dn
+              enddo
+            enddo
+            s2_det_out = s2_det_out + ratio_sum * detinv
+          enddo
+        enddo
+      endif
+
+      return
+      end
+      
 

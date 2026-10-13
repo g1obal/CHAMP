@@ -122,14 +122,10 @@
    12   continue
       endif
 
-! second derivatives involving orbitals:
-      if(nparmot.gt.0) then
-        if(nparmcsf.gt.0) stop 'cant optimize both orbitals and csf yet'
-! (easily doable but for testing dont optimize both for now)
-        do i=1,nparmot
-          iparm=i+nparmcsf
-          do j=1,i
-            jparm=j+nparmcsf
+! second derivatives involving orbitals and csfs:
+      if(nparmot.gt.0 .or. nparmcsf.gt.0) then
+        do iparm=1, nparmcsf+nparmot
+          do jparm=1, iparm
             d2j(iparm,jparm)=d2j(iparm,jparm)+wt*(p*detij_det(iparm,jparm) &
      &                                       +q*detij_det_old(iparm,jparm))
             d2j_e(iparm,jparm)=d2j_e(iparm,jparm)+wt*(p*detij_det(iparm,jparm)*enew &

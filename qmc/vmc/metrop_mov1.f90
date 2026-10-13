@@ -44,6 +44,7 @@
 
 !     common /contr3/ mode
       common /circularmesh/ rmin,rmax,rmean,delradi,delti,nmeshr,nmesht,icoosys
+      common /s2l2/ el2_det, s2_det, s2o, el2o, s2sum, el2sum, s2cum, el2cum, s2cm2, el2cm2
 
       dimension dx(3,nelec),idist(nelec),ixo(3),ixn(3)
       dimension xstrech(3,nelec)
@@ -295,6 +296,9 @@
       if(nforce.gt.1) call strech(xold,xstrech,ajacob,1,0)
       call hpsi(xold,psido,psijo,vold,div_vo,d2o,peo,peio,eold(1),denergy,1)
       psi2o(1)=2*(dlog(dabs(psido))+psijo)
+      
+      s2o=s2_det
+      el2o=el2_det
 
       eloc = eold(1)                 !JT
       psi_det = psido                !JT
@@ -314,6 +318,8 @@
       peisum=peisum+peio
       tpbsum=tpbsum+(eold(1)-peo)
       tjfsum=tjfsum+tjfo
+      s2sum=s2sum+s2o
+      el2sum=el2sum+el2o
 !      if(nefp.gt.0) then
 !        call sample_efp(1,xold,eold(1),1.d0)
 !        call efpsav

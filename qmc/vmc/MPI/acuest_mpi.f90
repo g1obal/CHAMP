@@ -25,11 +25,15 @@
       use estsum_mod
       use zigzag_mod
       implicit real*8(a-h,o-z)
+      
+      common /s2l2/ el2_det, s2_det, s2o, el2o, s2sum, el2sum, s2cum, el2cum, s2cm2, el2cm2
 
       real(dp) :: esum_collect(nforce), wcollect(nforce)
       real(dp) :: pesum_collect, peisum_collect, tpbsum_collect, tjfsum_collect, r1sum_collect, r2sum_collect, accsum_collect
       real(dp) :: r3sum_collect, r4sum_collect
       real(dp) :: d_node_log_collect
+ 
+      real(dp) :: s2sum_collect, el2sum_collect
 
       dimension zzsum_collect(nzzvars)
 ! statement function for error calculation
@@ -76,6 +80,9 @@
       call mpi_allreduce(d_node_log_sum,d_node_log_collect,1,mpi_double_precision,mpi_sum,MPI_COMM_WORLD,ierr)
       call mpi_allreduce(wsum,wcollect,nforce,mpi_double_precision,mpi_sum,MPI_COMM_WORLD,ierr)
 
+      call mpi_allreduce(s2sum,s2sum_collect,1,mpi_double_precision,mpi_sum,MPI_COMM_WORLD,ierr)
+      call mpi_allreduce(el2sum,el2sum_collect,1,mpi_double_precision,mpi_sum,MPI_COMM_WORLD,ierr)
+      
 ! Warning this flush and barrier should not be necessary
       call systemflush(6)
       call mpi_barrier(MPI_COMM_WORLD,ierr)
@@ -99,6 +106,9 @@
       endif
       accsum = accsum_collect
       d_node_log_sum = d_node_log_collect
+      
+      s2sum = s2sum_collect
+      el2sum = el2sum_collect
 
 !     pesum=ecollect(MFORCE+1)
 !     peisum=ecollect(MFORCE+2)

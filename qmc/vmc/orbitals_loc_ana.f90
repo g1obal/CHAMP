@@ -10,6 +10,7 @@
       use contrl_per_mod
       use phifun_mod
       use atom_mod
+      use d2orb_mod
       implicit real*8(a-h,o-z)
 
       dimension rvec_en(3,nelec,ncent),r_en(nelec,ncent) &
@@ -59,12 +60,21 @@
             dorb(1,ie,iorb) = c_val*dphin(1,iorb,ie)
             dorb(2,ie,iorb) = c_val*dphin(2,iorb,ie)
             dorb(3,ie,iorb) = c_val*dphin(3,iorb,ie)
-   24       ddorb(ie,iorb) = c_val*d2phin(iorb,ie)
+            ddorb(ie,iorb) = c_val*d2phin(iorb,ie)
+            
+            d2orb_xx(ie,iorb) = c_val*d2phin_xx(iorb,ie)
+            d2orb_yy(ie,iorb) = c_val*d2phin_yy(iorb,ie)
+   24       d2orb_xy(ie,iorb) = c_val*d2phin_xy(iorb,ie)
       else 
         ! >>> BRANCHLESS, CACHE-OPTIMIZED O(N^3) FALLBACK FOR LCAO <<<
         orb = 0.0d0
         dorb = 0.0d0
         ddorb = 0.0d0
+        
+        d2orb_xx = 0.0d0
+        d2orb_yy = 0.0d0
+        d2orb_xy = 0.0d0
+        
         do iorb=1,norb
           do m=1,nbasis
             c_val = coef(m,iorb,iwf)
@@ -74,6 +84,10 @@
               dorb(2,ie,iorb) = dorb(2,ie,iorb) + c_val*dphin(2,m,ie)
               dorb(3,ie,iorb) = dorb(3,ie,iorb) + c_val*dphin(3,m,ie)
               ddorb(ie,iorb) = ddorb(ie,iorb) + c_val*d2phin(m,ie)
+              
+              d2orb_xx(ie,iorb) = d2orb_xx(ie,iorb) + c_val*d2phin_xx(m,ie)
+              d2orb_yy(ie,iorb) = d2orb_yy(ie,iorb) + c_val*d2phin_yy(m,ie)
+              d2orb_xy(ie,iorb) = d2orb_xy(ie,iorb) + c_val*d2phin_xy(m,ie)
             enddo
           enddo
         enddo
@@ -111,7 +125,7 @@
       endif
 
       if((ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.8) .and. coef_is_diag) then !GO
-        ! >>> ADDED MISSING DIAGONAL SHORTCUT <<<
+        ! DIAGONAL SHORTCUT
         do iorb=1,norb
           orb(iorb)=coef(iorb,iorb,iwf)*phin(iorb,iel)
         enddo
@@ -144,6 +158,7 @@
       use optimo_mod
       use atom_mod
       use deriv_phifun_mod
+      use d2orb_mod
       implicit real*8(a-h,o-z)
 
       dimension rvec_en(3,nelec,ncent),r_en(nelec,ncent)
@@ -180,22 +195,21 @@
         stop 'deriv_orbitals: ibasis must be 4, 5, 6, 7 or 8'
       endif
       
-      ! These are small, safe to zero globally
-      orb = 0.0d0
-      dorb = 0.0d0
-      ddorb = 0.0d0
-      
       if ((ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.8) .and. coef_is_diag) then
         ! >>> ADDED MASSIVE DIAGONAL SHORTCUT FOR OPTIMIZER <<<
         ! >>> ELIMINATE LARGE MEMORY FLUSH (OVERWRITE MODE) <<<
         do iorb=1,norb
           c_val = coef(iorb,iorb,iwf)
           do ie=nelec1,nelec2
-            orb(ie,iorb) = orb(ie,iorb) + c_val*phin(iorb,ie)
+            orb(ie,iorb) = c_val*phin(iorb,ie)
             do idim=1,ndim
-              dorb(idim,ie,iorb) = dorb(idim,ie,iorb) + c_val*dphin(idim,iorb,ie)
+              dorb(idim,ie,iorb) = c_val*dphin(idim,iorb,ie)
             enddo
-            ddorb(ie,iorb) = ddorb(ie,iorb) + c_val*d2phin(iorb,ie)
+            ddorb(ie,iorb) = c_val*d2phin(iorb,ie)
+            
+            d2orb_xx(ie,iorb) = c_val*d2phin_xx(iorb,ie)
+            d2orb_yy(ie,iorb) = c_val*d2phin_yy(iorb,ie)
+            d2orb_xy(ie,iorb) = c_val*d2phin_xy(iorb,ie)
 
             do it=1,notype
               ! Directly overwriting the specific non-zero elements!
@@ -216,6 +230,14 @@
         
       else
         ! >>> DENSE FALLBACK MUST BE ZEROED GLOBALLY <<<
+        orb = 0.0d0
+        dorb = 0.0d0
+        ddorb = 0.0d0
+      
+        d2orb_xx = 0.0d0
+        d2orb_yy = 0.0d0
+        d2orb_xy = 0.0d0
+      
         dporb = 0.0d0
         d2dporb = 0.0d0
         ddporb = 0.0d0
@@ -230,6 +252,10 @@
                 dorb(idim,ie,iorb)=dorb(idim,ie,iorb)+c_val*dphin(idim,m,ie)
               enddo
               ddorb(ie,iorb)=ddorb(ie,iorb)+c_val*d2phin(m,ie)
+              
+              d2orb_xx(ie,iorb)=d2orb_xx(ie,iorb)+c_val*d2phin_xx(m,ie)
+              d2orb_yy(ie,iorb)=d2orb_yy(ie,iorb)+c_val*d2phin_yy(m,ie)
+              d2orb_xy(ie,iorb)=d2orb_xy(ie,iorb)+c_val*d2phin_xy(m,ie)
 
               do it=1,notype
                 dporb(it,m,ie,iorb)=dporb(it,m,ie,iorb)+c_val*dparam(it,m,ie)

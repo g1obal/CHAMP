@@ -35,6 +35,8 @@
 
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
       common /compferm/ emagv,nv,idot
+      common /s2l2/ el2_det, s2_det, s2o, el2o, s2sum, el2sum, s2cum, el2cum, s2cm2, el2cm2
+      common /s2l2_switches/ icalc_L2, icalc_S2
 
 
 !MS Jellium sphere
@@ -84,6 +86,9 @@
         zzfin(:)=zzcum(:)/passes
       endif
       accfin=acccum/passes
+      
+      s2fin=((dble(nup) - dble(ndn)) / 2.d0)**2 + dble(nelec)/2.d0 - s2cum/passes
+      el2fin=el2cum/passes
 
 ! In all-electron move algorithm, eerr1 differs from sigma in that eerr1 contains
 ! p*new+q*old, so eerr1 is a bit smaller than sigma.  sigma is a property
@@ -110,6 +115,8 @@
         zzerr(iz)=err(zzcum(iz),zzcm2(iz),1)
        enddo
       endif
+      s2err=err(s2cum,s2cm2,1)
+      el2err=err(el2cum,el2cm2,1)      
 !     tcsq=eerr/eerr1
       tcsq=eerr/eer1s
       call alloc ('eloc_tc', eloc_tc, nforce)
@@ -244,6 +251,9 @@
         write(6,'(''<r3> ='',t8,f21.4,'' +-'',f11.5,f9.2)') r3fin,r3err,r3err*rtpass
         write(6,'(''<r4> ='',t8,f21.2,'' +-'',f11.3,f9.1)') r4fin,r4err,r4err*rtpass
       endif
+      
+      if (icalc_S2 .eq. 1) write(6,'("<S^2> =          ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') s2fin,s2err,s2err*rtpass
+      if (icalc_L2 .eq. 1) write(6,'("<L^2> =          ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') el2fin,el2err,el2err*rtpass
 
       if(izigzag.ge.1) then
         call print_zigzag_vars(zzfin,zzerr,rtpass)

@@ -29,6 +29,7 @@
       implicit real*8(a-h,o-z)
 
       common /circularmesh/ rmin,rmax,rmean,delradi,delti,nmeshr,nmesht,icoosys
+      common /s2l2/ el2_det, s2_det, s2o, el2o, s2sum, el2sum, s2cum, el2cum, s2cm2, el2cm2
 
       dimension dx(3,nelec),div_vn(nelec),ixo(3),ixn(3)
       dimension xstrech(3,nelec)
@@ -83,7 +84,10 @@
       if(nforce.gt.1) call strech(xnew,xstrech,ajacob,1,0)
       call hpsi(xnew,psidn,psijn,vnew,div_vn,d2,pen,pein,enew(1),denergy,1)
       psi2n(1)=2*(dlog(dabs(psidn))+psijn)
-
+      
+      s2n=s2_det
+      el2n=el2_det
+      
 ! save electrostatic potential at new configuration
 !   Note that we already called distances.f from hpsi, otherwise
 !   we should add a call to distances here (ACM)
@@ -130,6 +134,8 @@
       peisum=peisum+p*pein+q*peio
       tpbsum=tpbsum+p*(enew(1)-pen)+q*(eold(1)-peo)
       tjfsum=tjfsum+p*tjfn+q*tjfo
+      s2sum=s2sum+p*s2n+q*s2o
+      el2sum=el2sum+p*el2n+q*el2o
       do 25 k=1,ndim
         do 25 i=1,nelec
    25     r2sum=r2sum+p*xnew(k,i)**2+q*xold(k,i)**2
@@ -236,6 +242,8 @@
         peo=pen
         peio=pein
         tjfo=tjfn
+        s2o=s2n
+        el2o=el2n
         psido=psidn
         psijo=psijn
 

@@ -693,6 +693,11 @@
           dphin(2,ib,ie)=-wez*x2rel*phin(ib,ie)
 
           d2phin(ib,ie)=wez*(wez*rrel2-2.d0)*phin(ib,ie)
+          
+          ! 2D HESSIANS
+          d2phin_xx(ib,ie) = wez*(wez*x1rel*x1rel - 1.d0)*phin(ib,ie)
+          d2phin_yy(ib,ie) = wez*(wez*x2rel*x2rel - 1.d0)*phin(ib,ie)
+          d2phin_xy(ib,ie) = wez*wez*x1rel*x2rel*phin(ib,ie)
 
         enddo
       enddo
@@ -776,6 +781,11 @@
           dphin(2,ib,ie)=-wez*x2rel*phin(ib,ie)
 
           d2phin(ib,ie)=wez*(wez*rrel2-2.d0)*phin(ib,ie)
+          
+          ! 2D HESSIANS
+          d2phin_xx(ib,ie) = wez*(wez*x1rel*x1rel - 1.d0)*phin(ib,ie)
+          d2phin_yy(ib,ie) = wez*(wez*x2rel*x2rel - 1.d0)*phin(ib,ie)
+          d2phin_xy(ib,ie) = wez*wez*x1rel*x2rel*phin(ib,ie)
 
 ! parameter derivatives:
           dparam(1,ib,ie)=-dphin(1,ib,ie)                                  ! wrt xg1
@@ -910,6 +920,11 @@
             dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
             dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
             d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
+            
+            ! 2D HESSIANS
+            d2phin_xx(ib,ie) = wez_pgs*(wez_pgs*x1*x1 - 1.d0)*phin(ib,ie)
+            d2phin_yy(ib,ie) = wez_pgs*(wez_pgs*x2*x2 - 1.d0)*phin(ib,ie)
+            d2phin_xy(ib,ie) = wez_pgs*wez_pgs*x1*x2*phin(ib,ie)
           
           else
             ! --- SCALE-INVARIANT TANGENT ELLIPSE FOR RINGS ---
@@ -936,6 +951,15 @@
             dphin(2,ib,ie) = Py_pgs * phin(ib,ie)
 
             d2phin(ib,ie) = (dlap_pgs + Px_pgs*Px_pgs + Py_pgs*Py_pgs) * phin(ib,ie)
+            
+            ! 2D HESSIANS
+            dPx_dx_pgs = -wez_pgs*c0_pgs*c0_pgs - wt_pgs*s0_pgs*s0_pgs
+            dPy_dy_pgs = -wez_pgs*s0_pgs*s0_pgs - wt_pgs*c0_pgs*c0_pgs
+            dPx_dy_pgs = (-wez_pgs + wt_pgs)*s0_pgs*c0_pgs
+            
+            d2phin_xx(ib,ie) = (dPx_dx_pgs + Px_pgs*Px_pgs)*phin(ib,ie)
+            d2phin_yy(ib,ie) = (dPy_dy_pgs + Py_pgs*Py_pgs)*phin(ib,ie)
+            d2phin_xy(ib,ie) = (dPx_dy_pgs + Px_pgs*Py_pgs)*phin(ib,ie)
           endif
 
         enddo
@@ -1015,6 +1039,11 @@
             dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
             d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
             
+            ! 2D HESSIANS
+            d2phin_xx(ib,ie) = wez_pgs*(wez_pgs*x1*x1 - 1.d0)*phin(ib,ie)
+            d2phin_yy(ib,ie) = wez_pgs*(wez_pgs*x2*x2 - 1.d0)*phin(ib,ie)
+            d2phin_xy(ib,ie) = wez_pgs*wez_pgs*x1*x2*phin(ib,ie)
+            
             dparam(:,ib,ie) = 0.d0
             d2param(:,:,ib,ie) = 0.d0
             ddparam(:,:,ib,ie) = 0.d0
@@ -1055,6 +1084,15 @@
             dphin(1,ib,ie) = Px_pgs * phin(ib,ie)
             dphin(2,ib,ie) = Py_pgs * phin(ib,ie)
             d2phin(ib,ie) = (dlap_pgs + Px_pgs*Px_pgs + Py_pgs*Py_pgs) * phin(ib,ie)
+            
+            ! 2D HESSIANS
+            dPx_dx_pgs = -wez_pgs*c0_pgs*c0_pgs - wt_pgs*s0_pgs*s0_pgs
+            dPy_dy_pgs = -wez_pgs*s0_pgs*s0_pgs - wt_pgs*c0_pgs*c0_pgs
+            dPx_dy_pgs = (-wez_pgs + wt_pgs)*s0_pgs*c0_pgs
+            
+            d2phin_xx(ib,ie) = (dPx_dx_pgs + Px_pgs*Px_pgs)*phin(ib,ie)
+            d2phin_yy(ib,ie) = (dPy_dy_pgs + Py_pgs*Py_pgs)*phin(ib,ie)
+            d2phin_xy(ib,ie) = (dPx_dy_pgs + Px_pgs*Py_pgs)*phin(ib,ie)
             
             ! 1st derivatives (P1 absorbs scale_r for dimensionless optimization)
             P1_pgs = wez_pgs*dr_pgs*scale_r
@@ -1199,6 +1237,11 @@
             dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
             dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
             d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
+            
+            ! 2D HESSIANS
+            d2phin_xx(ib,ie) = wez_pgs*(wez_pgs*x1*x1 - 1.d0)*phin(ib,ie)
+            d2phin_yy(ib,ie) = wez_pgs*(wez_pgs*x2*x2 - 1.d0)*phin(ib,ie)
+            d2phin_xy(ib,ie) = wez_pgs*wez_pgs*x1*x2*phin(ib,ie)
           
           else
             ! --- DAMPED POLAR GAUSSIAN (UN-NORMALIZED) ---
@@ -1260,6 +1303,26 @@
             dphin(1,ib,ie) = Pxtot_pgs * phin(ib,ie)
             dphin(2,ib,ie) = Pytot_pgs * phin(ib,ie)
             d2phin(ib,ie) = (dlapdamp_pgs + dlapE_pgs + Pxtot_pgs*Pxtot_pgs + Pytot_pgs*Pytot_pgs) * phin(ib,ie)
+          
+            ! 2D HESSIANS WITH DAMPING CHAIN RULE
+            dPxdamp_dx = hval_pgs - x1*x1 * eX_H2_pgs
+            dPydamp_dy = hval_pgs - x2*x2 * eX_H2_pgs
+            dPxdamp_dy = - x1*x2 * eX_H2_pgs
+            
+            dPxE_dx = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x1*x1/r3_pgs) &
+     &                + wt_pgs * ( -(2.d0*c0_pgs*x1 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x1*x1/(r_pgs*r3_pgs) )
+            dPyE_dy = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x2*x2/r3_pgs) &
+     &                + wt_pgs * ( -(2.d0*s0_pgs*x2 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x2*x2/(r_pgs*r3_pgs) )
+            dPxE_dy = -wez_pgs * (xg1we_pgs*x1*x2/r3_pgs) &
+     &                + wt_pgs * ( -(c0_pgs*x2 + s0_pgs*x1)/r3_pgs + 3.d0*u0_pgs*x1*x2/(r_pgs*r3_pgs) )
+     
+            dPx_dx_tot = dPxdamp_dx + dPxE_dx
+            dPy_dy_tot = dPydamp_dy + dPyE_dy
+            dPx_dy_tot = dPxdamp_dy + dPxE_dy
+            
+            d2phin_xx(ib,ie) = (dPx_dx_tot + Pxtot_pgs*Pxtot_pgs)*phin(ib,ie)
+            d2phin_yy(ib,ie) = (dPy_dy_tot + Pytot_pgs*Pytot_pgs)*phin(ib,ie)
+            d2phin_xy(ib,ie) = (dPx_dy_tot + Pxtot_pgs*Pytot_pgs)*phin(ib,ie)
           endif
 
         enddo
@@ -1330,6 +1393,11 @@
             dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
             dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
             d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
+            
+            ! 2D HESSIANS
+            d2phin_xx(ib,ie) = wez_pgs*(wez_pgs*x1*x1 - 1.d0)*phin(ib,ie)
+            d2phin_yy(ib,ie) = wez_pgs*(wez_pgs*x2*x2 - 1.d0)*phin(ib,ie)
+            d2phin_xy(ib,ie) = wez_pgs*wez_pgs*x1*x2*phin(ib,ie)
             
             dparam(:,ib,ie) = 0.d0
             d2param(:,:,ib,ie) = 0.d0
@@ -1404,7 +1472,27 @@
             dphin(1,ib,ie) = Pxtot_pgs * phin(ib,ie)
             dphin(2,ib,ie) = Pytot_pgs * phin(ib,ie)
             d2phin(ib,ie) = (dlapdamp_pgs + dlapE_pgs + Pxtot_pgs*Pxtot_pgs + Pytot_pgs*Pytot_pgs) * phin(ib,ie)
+
+            ! 2D HESSIANS WITH DAMPING CHAIN RULE
+            dPxdamp_dx = hval_pgs - x1*x1 * eX_H2_pgs
+            dPydamp_dy = hval_pgs - x2*x2 * eX_H2_pgs
+            dPxdamp_dy = - x1*x2 * eX_H2_pgs
             
+            dPxE_dx = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x1*x1/r3_pgs) &
+     &                + wt_pgs * ( -(2.d0*c0_pgs*x1 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x1*x1/(r_pgs*r3_pgs) )
+            dPyE_dy = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x2*x2/r3_pgs) &
+     &                + wt_pgs * ( -(2.d0*s0_pgs*x2 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x2*x2/(r_pgs*r3_pgs) )
+            dPxE_dy = -wez_pgs * (xg1we_pgs*x1*x2/r3_pgs) &
+     &                + wt_pgs * ( -(c0_pgs*x2 + s0_pgs*x1)/r3_pgs + 3.d0*u0_pgs*x1*x2/(r_pgs*r3_pgs) )
+     
+            dPx_dx_tot = dPxdamp_dx + dPxE_dx
+            dPy_dy_tot = dPydamp_dy + dPyE_dy
+            dPx_dy_tot = dPxdamp_dy + dPxE_dy
+            
+            d2phin_xx(ib,ie) = (dPx_dx_tot + Pxtot_pgs*Pxtot_pgs)*phin(ib,ie)
+            d2phin_yy(ib,ie) = (dPy_dy_tot + Pytot_pgs*Pytot_pgs)*phin(ib,ie)
+            d2phin_xy(ib,ie) = (dPx_dy_tot + Pxtot_pgs*Pytot_pgs)*phin(ib,ie)
+
             ! 1st parameter derivatives (Normalization scalars stripped)
             P1_pgs = wez_pgs * scale_r * (r_pgs - xg1we_pgs)
             P2_pgs = wt_pgs * v0_pgs / r_pgs

@@ -45,7 +45,7 @@ SRCS =	accumulation_mod.f90 all_modules_mod.f90 all_tools_mod.f90 \
 	commons/contrl_per_mod.f90 commons/contrldmc_mod.f90 \
 	commons/cphifun_mod.f90 commons/cslatn_mod.f90 \
 	commons/cuspmat4_mod.f90 commons/cuspmat_mod.f90 \
-	commons/delocc_mod.f90 commons/denupdn_mod.f90 \
+	commons/d2orb_mod.f90 commons/delocc_mod.f90 commons/denupdn_mod.f90 \
 	commons/deriv_phifun_mod.f90 commons/derivjas_mod.f90 \
 	commons/dets_mod.f90 commons/dim_mod.f90 commons/distance_mod.f90 \
 	commons/distance_sav_mod.f90 commons/div_v_dmc_mod.f90 \
@@ -211,11 +211,11 @@ OBJS =	$(OBJDIR)/accumulation_mod.o $(OBJDIR)/all_modules_mod.o \
 	$(OBJDIR)/commons/contrl_opt_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
 	$(OBJDIR)/commons/contrldmc_mod.o $(OBJDIR)/commons/cphifun_mod.o \
 	$(OBJDIR)/commons/cslatn_mod.o $(OBJDIR)/commons/cuspmat4_mod.o \
-	$(OBJDIR)/commons/cuspmat_mod.o $(OBJDIR)/commons/delocc_mod.o \
-	$(OBJDIR)/commons/denupdn_mod.o $(OBJDIR)/commons/deriv_phifun_mod.o \
-	$(OBJDIR)/commons/derivjas_mod.o $(OBJDIR)/commons/dets_mod.o \
-	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/distance_mod.o \
-	$(OBJDIR)/commons/distance_sav_mod.o \
+	$(OBJDIR)/commons/cuspmat_mod.o $(OBJDIR)/commons/d2orb_mod.o \
+	$(OBJDIR)/commons/delocc_mod.o $(OBJDIR)/commons/denupdn_mod.o \
+	$(OBJDIR)/commons/deriv_phifun_mod.o $(OBJDIR)/commons/derivjas_mod.o \
+	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dim_mod.o \
+	$(OBJDIR)/commons/distance_mod.o $(OBJDIR)/commons/distance_sav_mod.o \
 	$(OBJDIR)/commons/div_v_dmc_mod.o $(OBJDIR)/commons/div_v_mod.o \
 	$(OBJDIR)/commons/doefp_mod.o $(OBJDIR)/commons/dorb_mod.o \
 	$(OBJDIR)/commons/est2cm_mod.o $(OBJDIR)/commons/estcm2_mod.o \
@@ -486,10 +486,10 @@ $(OBJDIR)/all_modules_mod.o: $(OBJDIR)/commons/age_mod.o \
 	$(OBJDIR)/commons/contrl_opt2_mod.o \
 	$(OBJDIR)/commons/contrl_opt_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
 	$(OBJDIR)/commons/contrldmc_mod.o $(OBJDIR)/commons/cslatn_mod.o \
-	$(OBJDIR)/commons/delocc_mod.o $(OBJDIR)/commons/denupdn_mod.o \
-	$(OBJDIR)/commons/derivjas_mod.o $(OBJDIR)/commons/dets_mod.o \
-	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/distance_mod.o \
-	$(OBJDIR)/commons/distance_sav_mod.o \
+	$(OBJDIR)/commons/d2orb_mod.o $(OBJDIR)/commons/delocc_mod.o \
+	$(OBJDIR)/commons/denupdn_mod.o $(OBJDIR)/commons/derivjas_mod.o \
+	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dim_mod.o \
+	$(OBJDIR)/commons/distance_mod.o $(OBJDIR)/commons/distance_sav_mod.o \
 	$(OBJDIR)/commons/div_v_dmc_mod.o $(OBJDIR)/commons/div_v_mod.o \
 	$(OBJDIR)/commons/doefp_mod.o $(OBJDIR)/commons/dorb_mod.o \
 	$(OBJDIR)/commons/estcm2_mod.o $(OBJDIR)/commons/estcum_dmc_mod.o \
@@ -736,6 +736,7 @@ $(OBJDIR)/commons/config_mod.o: $(OBJDIR)/constants_mod.o
 $(OBJDIR)/commons/const_mod.o: $(OBJDIR)/constants_mod.o
 $(OBJDIR)/commons/contrldmc_mod.o: $(OBJDIR)/constants_mod.o
 $(OBJDIR)/commons/cslatn_mod.o: $(OBJDIR)/constants_mod.o
+$(OBJDIR)/commons/d2orb_mod.o: $(OBJDIR)/constants_mod.o
 $(OBJDIR)/commons/delocc_mod.o: $(OBJDIR)/constants_mod.o
 $(OBJDIR)/commons/denupdn_mod.o: $(OBJDIR)/constants_mod.o
 $(OBJDIR)/commons/derivjas_mod.o: $(OBJDIR)/constants_mod.o
@@ -1081,12 +1082,13 @@ $(OBJDIR)/vmc/determinant.o: $(OBJDIR)/MED_tools/objects_mod.o \
 	$(OBJDIR)/commons/contr2_mod.o $(OBJDIR)/commons/contr3_mod.o \
 	$(OBJDIR)/commons/contrl_opt2_mod.o \
 	$(OBJDIR)/commons/contrl_opt_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
-	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dim_mod.o \
-	$(OBJDIR)/commons/dorb_mod.o $(OBJDIR)/commons/kinet_mod.o \
-	$(OBJDIR)/commons/optim_mod.o $(OBJDIR)/commons/optimo_mod.o \
-	$(OBJDIR)/commons/orb_mod.o $(OBJDIR)/commons/slater_mod.o \
-	$(OBJDIR)/commons/wfsec_mod.o $(OBJDIR)/constants_mod.o \
-	$(OBJDIR)/control_mod.o $(OBJDIR)/deriv_csf_mod.o
+	$(OBJDIR)/commons/d2orb_mod.o $(OBJDIR)/commons/dets_mod.o \
+	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/dorb_mod.o \
+	$(OBJDIR)/commons/kinet_mod.o $(OBJDIR)/commons/optim_mod.o \
+	$(OBJDIR)/commons/optimo_mod.o $(OBJDIR)/commons/orb_mod.o \
+	$(OBJDIR)/commons/slater_mod.o $(OBJDIR)/commons/wfsec_mod.o \
+	$(OBJDIR)/constants_mod.o $(OBJDIR)/control_mod.o \
+	$(OBJDIR)/deriv_csf_mod.o
 $(OBJDIR)/vmc/determinant_up_dn.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/dets_mod.o $(OBJDIR)/commons/dorb_mod.o
 $(OBJDIR)/vmc/determinante.o: $(OBJDIR)/commons/const_mod.o \
@@ -1387,9 +1389,10 @@ $(OBJDIR)/vmc/opt_wf.o: $(OBJDIR)/all_tools_mod.o \
 $(OBJDIR)/vmc/orbitals_loc_ana.o: $(OBJDIR)/all_tools_mod.o \
 	$(OBJDIR)/commons/atom_mod.o $(OBJDIR)/commons/coefs_mod.o \
 	$(OBJDIR)/commons/const_mod.o $(OBJDIR)/commons/contrl_per_mod.o \
-	$(OBJDIR)/commons/deriv_phifun_mod.o $(OBJDIR)/commons/dim_mod.o \
-	$(OBJDIR)/commons/optimo_mod.o $(OBJDIR)/commons/phifun_mod.o \
-	$(OBJDIR)/commons/wfsec_mod.o $(OBJDIR)/control_mod.o
+	$(OBJDIR)/commons/d2orb_mod.o $(OBJDIR)/commons/deriv_phifun_mod.o \
+	$(OBJDIR)/commons/dim_mod.o $(OBJDIR)/commons/optimo_mod.o \
+	$(OBJDIR)/commons/phifun_mod.o $(OBJDIR)/commons/wfsec_mod.o \
+	$(OBJDIR)/control_mod.o
 $(OBJDIR)/vmc/orbitals_loc_ana_grade.o: $(OBJDIR)/commons/atom_mod.o \
 	$(OBJDIR)/commons/coefs_mod.o $(OBJDIR)/commons/const_mod.o \
 	$(OBJDIR)/commons/contrl_per_mod.o $(OBJDIR)/commons/dim_mod.o \

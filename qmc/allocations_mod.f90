@@ -28,6 +28,10 @@ module allocations_mod
   call alloc ('phin', phin, nbasis, nelec)
   call alloc ('dphin', dphin, 3, nbasis, nelec)
   call alloc ('d2phin', d2phin, nbasis, nelec)
+  
+  call alloc ('d2phin_xx', d2phin_xx, nbasis, nelec)
+  call alloc ('d2phin_yy', d2phin_yy, nbasis, nelec)
+  call alloc ('d2phin_xy', d2phin_xy, nbasis, nelec)
 
   call alloc ('orb', orb, nelec, orb_tot_nb)
   call alloc ('dorb', dorb, 3, nelec, orb_tot_nb)
@@ -35,6 +39,10 @@ module allocations_mod
   call alloc ('orbe', orbe, orb_tot_nb)
   call alloc ('dorbe', dorbe, 3, orb_tot_nb)
   call alloc ('ddorbe', ddorbe, orb_tot_nb)
+  
+  call alloc ('d2orb_xx', d2orb_xx, nelec, orb_tot_nb)
+  call alloc ('d2orb_yy', d2orb_yy, nelec, orb_tot_nb)
+  call alloc ('d2orb_xy', d2orb_xy, nelec, orb_tot_nb)
 
   call object_provide ('nupdn_square')
   call object_provide ('ndetupdn')

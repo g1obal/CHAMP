@@ -39,6 +39,7 @@
 
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
       common /compferm/ emagv,nv,idot
+      common /s2l2/ el2_det, s2_det, s2o, el2o, s2sum, el2sum, s2cum, el2cum, s2cm2, el2cm2
 
       dimension xstrech(3,nelec)
       dimension zznow(nzzvars)
@@ -150,6 +151,11 @@
             zzcm2(:)=zzcm2(:)+zzsum(:)*zznow(:)
           endif
 
+          s2now=s2sum/wsum(ifr)
+          el2now=el2sum/wsum(ifr)
+          s2cm2=s2cm2+s2sum*s2now
+          el2cm2=el2cm2+el2sum*el2now
+
           pecum=pecum+pesum
           peicum=peicum+peisum
           tpbcum=tpbcum+tpbsum
@@ -168,6 +174,9 @@
            else
             acccum=acccum+accsum/nelec
           endif
+          
+          s2cum=s2cum+s2sum
+          el2cum=el2cum+el2sum
 
 !JT          if (.not. l_opt_lin .and. .not. l_opt_ptb) then  !JT
 !JTc          call grad_hess_jas_cum(wsum(ifr),enow(ifr))
@@ -283,6 +292,9 @@
         zzsum(:)=0.d0
       endif
       d_node_log_sum = 0
+      
+      s2sum=0.d0
+      el2sum=0.d0
 
       call systemflush(6)
 
@@ -374,6 +386,9 @@
 !      walker_weights_sum = 0
 !      call object_modified_by_index (walker_weights_sum_index)
 
+      s2cum=0.d0
+      el2cum=0.d0
+
       pecm2=0
       peicm2=0
       tpbcm2=0
@@ -387,6 +402,9 @@
       endif
       ecm21=0
 !     ecm21s=0
+
+      s2cm2=0.d0
+      el2cm2=0.d0
 
       pair_hits_u = 0.d0
       pair_hits_d = 0.d0
@@ -550,6 +568,8 @@
       if(nforce.gt.1) call strech(xold,xstrech,ajacob,1,0)
       call hpsi(xold,psido,psijo,vold,div_vo,d2,peo,peio,eold(1),denergy,1)
       psi2o(1)=2*(dlog(dabs(psido))+psijo)
+      s2o=s2_det
+      el2o=el2_det
       tjfo=d2
       tjfo=-tjfo*half*hb
 

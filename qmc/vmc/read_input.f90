@@ -83,10 +83,12 @@
 ! subroutine that is called both from fit and read_input.
 !     common /fit/ nsig,ncalls,iopt,ipr_opt
 
+      common /s2l2_switches/ icalc_L2, icalc_S2
+
 !     namelist /opt_list/ igradhess
       namelist /opt_list/ iring_coulomb, iantiferromagnetic, iper_gaussian_type, xmax,xfix,fmax1,fmax2,rring,ifixe,nv,idot,ifourier &
      &,iperturb,ang_perturb,amp_perturb,shrp_perturb,omg_perturb,rmin,rmax,nmeshr,nmesht,icoosys,dot_bump_height,dot_bump_radius &
-     &,nmeshk1,izigzag,zzdelyr,gndot_k,oparm3_max,oparm3_min,Cdamp_pgs,M_bff,nrings_bff,conf_bff
+     &,nmeshk1,izigzag,zzdelyr,gndot_k,oparm3_max,oparm3_min,Cdamp_pgs,M_bff,nrings_bff,conf_bff,icalc_L2,icalc_S2
 
       common /jel_sph1/ dn_background,rs_jel,radius_b ! RM
 
@@ -1574,6 +1576,8 @@
       M_bff = 0 ! Default values for M-fold BFF density ! GO
       nrings_bff = 0 ! Default values for M-fold BFF density ! GO
       conf_bff = 0 ! Default values for M-fold BFF density ! GO
+      icalc_L2 = 0
+      icalc_S2 = 0
 !     default values of dot_bump_height and dot_bump_radius are set above
 !        where w0, etc... are read in
 

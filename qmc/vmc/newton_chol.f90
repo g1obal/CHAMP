@@ -1120,7 +1120,7 @@
       write(6,'(/,''New wave function:'')')
 
       if(ncsf.gt.0) then
-        write(fmt,'(''('',i3,''f15.8,a)'')') ncsf
+        write(fmt,'(''(1p'',i4,''g22.14,a)'')') ncsf !GO
        else
         write(fmt,'(''(a)'')')
       endif
@@ -1140,7 +1140,7 @@
       endif
       if(nparmot.gt.0) then
         do it=1,notype
-          write(fmt,'(''('',i4,''f15.8,a)'')') nbasis !GO
+          write(fmt,'(''(1p'',i4,''g22.14,a)'')') nbasis !GO
           if(ipr_new.eq.0 .or. (ipr_new.eq.1 .and. iflag.ne.0)) then
             if(ibasis.eq.5 .or. ibasis.eq.8) then
               if(it.eq.1) then
@@ -1208,11 +1208,11 @@
       if(nparms.gt.0) then
         write(6,'(/,''scalek parameter:'')')
         if(ipr_new.eq.0 .or. (ipr_new.eq.1 .and. iflag.ne.0)) then
-          write(6,'(f9.6,'' 0. scalek,a21'')') scalek(iadd_diag)
-          write(2,'(f9.6,'' 0. scalek,a21'')') scalek(iadd_diag)
+          write(6,'(1pg22.14,'' 0. scalek,a21'')') scalek(iadd_diag)
+          write(2,'(1pg22.14,'' 0. scalek,a21'')') scalek(iadd_diag)
          else
-          write(6,'(f9.6,'' 0. scalek_new,a21'')') scalek(iadd_diag)
-          write(2,'(f9.6,'' 0. scalek_new,a21'')') scalek(iadd_diag)
+          write(6,'(1pg22.14,'' 0. scalek_new,a21'')') scalek(iadd_diag)
+          write(2,'(1pg22.14,'' 0. scalek_new,a21'')') scalek(iadd_diag)
         endif
       endif
 

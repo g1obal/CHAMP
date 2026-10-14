@@ -745,14 +745,14 @@
       write(6,'(/,''Best wave function:'')')
 
       if(nparmcsf.gt.0) then
-        write(fmt,'(''(''i2,''f15.8,a)'')') ncsf
+        write(fmt,'(''(1p'',i4,''g22.14,a)'')') ncsf !GO
         write(6,fmt) (csf_coef_best(i),i=1,ncsf),' (csf_coef_best(icsf),icsf=1,ncsf)'
         write(2,fmt) (csf_coef_best(i),i=1,ncsf),' (csf_coef(icsf),icsf=1,ncsf)'
       endif
 
       if(nparmot.gt.0) then
         do it=1,notype
-          write(fmt,'(''(''i4,''f15.8,a)'')') nbasis !GO
+          write(fmt,'(''(1p'',i4,''g22.14,a)'')') nbasis !GO
           if(ibasis.eq.5 .or. ibasis.eq.8) then
             if(it.eq.1) then
               write(6,fmt) (oparm_best(it,i),i=1,nbasis),' (floating_gauss_rad_pos_best(it,i),i=1,nbasis)'
@@ -787,8 +787,8 @@
 
       if(nparms.gt.0) then
         write(6,'(/,''scalek parameter:'')')
-        write(6,'(f9.6,'' 0. scalek_best,a21'')') scalek_best
-        write(2,'(f9.6,'' 0. scalek_best,a21'')') scalek_best
+        write(6,'(1pg22.14,'' 0. scalek_best,a21'')') scalek_best
+        write(2,'(1pg22.14,'' 0. scalek_best,a21'')') scalek_best
       endif
 
       if(nparmj.gt.0) then

@@ -154,7 +154,7 @@
                   
                   ! Symmetric Angular generation
                   if (ibasis.eq.5) then
-                    width_t = 1.d0 / dsqrt(we * oparm(4, iworbd(ielec,1), iwf))
+                    width_t = 1.d0 / (xg1we_pgs * dsqrt(we * oparm(4, iworbd(ielec,1), iwf)))
                   else
                     width_t = 1.d0 / dsqrt(oparm(4, iworbd(ielec,1), iwf))
                   endif

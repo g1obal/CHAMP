@@ -915,29 +915,52 @@
 
 ! orbital parameters (type 1,2,3 and 4)
       if(nparmot.gt.0) then
-        write(6,'(''nparmot,nparmo(2)='',9i5)') nparmot,nparmo(2)
+!        write(6,'(''nparmot,nparmo(2)='',9i5)') nparmot,nparmo(2)
         if(nparmo(1).ne.0) then
-          dparm_norm=0
+          dparm_norm=0.d0
+!          fract_max=0.d0
           do i=1,iabs(nparmo(1))
             iparm=iparm+1
-            dparm_norm=dparm_norm+dparm(iparm)**2
+            if(ibasis.eq.5 .or. ibasis.eq.8) then
+              fract_change = dparm(iparm) / oparm(1,iwo(i,1),1)
+              dparm_norm = dparm_norm + fract_change**2
+!              if (abs(fract_change) .gt. fract_max) then
+!                 fract_max = abs(fract_change)
+!              endif
+            else
+              dparm_norm=dparm_norm+dparm(iparm)**2
+            endif
           enddo
           dparm_norm=sqrt(dparm_norm/abs(nparmo(1)))
-          if(dparm_norm.gt.1/(3*scalek(iadd_diag))) then
-            iflag=1
-            write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
-     &      '' iflag=1. This is a bad move because dparm_norm>1/3scalek for otype 1 params'')') &
-     &    iadd_diag,add_diag(iadd_diag),dparm_norm
+          if(ibasis.eq.5 .or. ibasis.eq.8) then
+            if(dparm_norm .gt. 0.5d0) then
+              iflag=1
+              write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
+     &        '' iflag=1. Bad move: dparm_norm > 0.5 for otype 1 params'')') iadd_diag, dparm_norm
+            endif
+          else
+            if(dparm_norm.gt.1/(3*scalek(iadd_diag))) then
+              iflag=1
+              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
+     &        '' iflag=1. This is a bad move because dparm_norm>1/3scalek for otype 1 params'')') &
+     &      iadd_diag,add_diag(iadd_diag),dparm_norm
+            endif
           endif
         endif
         if(nparmo(2).ne.0) then
-          dparm_norm=0
+          dparm_norm=0.d0
           do i=1,iabs(nparmo(2))
             iparm=iparm+1
             dparm_norm=dparm_norm+dparm(iparm)**2
           enddo
           dparm_norm=sqrt(dparm_norm/abs(nparmo(2)))
-          if(ibasis.eq.4 .or. ibasis.eq.5 .or. ibasis.eq.6 .or. ibasis.eq.7 .or. ibasis.eq.8) then
+          if(ibasis.eq.5 .or. ibasis.eq.8) then
+            if(dparm_norm .gt. 0.5d0) then
+              iflag=1
+              write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
+     &        '' iflag=1. Bad move: dparm_norm > 0.5 for otype 2 params'')') iadd_diag, dparm_norm
+            endif
+          elseif(ibasis.eq.4 .or. ibasis.eq.6 .or. ibasis.eq.7) then
             if(dparm_norm.gt.1/(3*scalek(iadd_diag))) then
               iflag=1
               write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,f9.2, &
@@ -958,10 +981,10 @@
 !            endif
           enddo
           dparm_norm = sqrt(dparm_norm / abs(nparmo(3)))
-          if(dparm_norm .gt. 2.d0) then
+          if(dparm_norm .gt. 0.5d0) then
             iflag=1
             write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
-     &      '' iflag=1. Bad move: dparm_norm > 2 for otype 3 params'')') iadd_diag, dparm_norm
+     &      '' iflag=1. Bad move: dparm_norm > 0.5 for otype 3 params'')') iadd_diag, dparm_norm
           endif
           ! New Failsafe (Any single parameter > 50%)
 !          if(fract_max .gt. 0.50d0) then
@@ -983,10 +1006,10 @@
 !              endif
             enddo
             dparm_norm = sqrt(dparm_norm / abs(nparmo(4)))
-            if(dparm_norm .gt. 2.d0) then
+            if(dparm_norm .gt. 0.5d0) then
               iflag=1
               write(6,'(''iadd_diag='',i2,'' dparm_norm='',f9.2, &
-     &        '' iflag=1. Bad move: dparm_norm > 2 for otype 4 params'')') iadd_diag, dparm_norm
+     &        '' iflag=1. Bad move: dparm_norm > 0.5 for otype 4 params'')') iadd_diag, dparm_norm
             endif
             ! New Failsafe (Any single parameter > 50%)
 !            if(fract_max .gt. 0.50d0) then

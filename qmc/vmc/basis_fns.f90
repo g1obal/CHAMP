@@ -1252,7 +1252,7 @@
             u0_pgs = x1*c0_pgs + x2*s0_pgs
             
             ! Hardcoded Damping crater targeting r = 1.0d-4 Bohr
-            !Cdamp_pgs = 2000.d0
+            !Cdamp_pgs = 1000.d0
             gamma_damp = Cdamp_pgs * we
             damp_arg = gamma_damp * r2_pgs
             
@@ -1262,21 +1262,21 @@
                ex_neg = 0.d0
                hval_pgs = 0.d0
                eX_H2_pgs = 0.d0
+               fdamp_pgs = 1.d0
             elseif (damp_arg .lt. 1.d-8) then
                ! Taylor expansion for r -> 0 (prevents 0/0 NaN crash)
-               ! 1 - exp(-x) ~ x. Therefore, hval ~ 2/r2 and eX_H2 ~ 4/r4
+               ex_neg = 1.d0 - damp_arg ! or approximate if needed for consistency
                fdamp_pgs = damp_arg
                hval_pgs = 2.d0 / r2_pgs
                eX_H2_pgs = 4.d0 / (r2_pgs * r2_pgs)
             else
                ! Standard evaluation
                ex_neg = dexp(-damp_arg)
+               fdamp_pgs = 1.d0 - ex_neg
                denom_pgs = 1.d0 - ex_neg
                hval_pgs = 2.d0 * gamma_damp * ex_neg / denom_pgs
                eX_H2_pgs = 4.d0 * gamma_damp * gamma_damp * ex_neg / (denom_pgs * denom_pgs)
             endif
-            
-            fdamp_pgs = 1.d0 - ex_neg
             
             E_val = -0.5d0 * wez_pgs * (r_pgs - xg1we_pgs)**2 &
      &              + wt_pgs * (u0_pgs / r_pgs - 1.d0)
@@ -1428,7 +1428,7 @@
             v0_pgs = -x1*s0_pgs + x2*c0_pgs
             
             ! Hardcoded Damping crater targeting r = 1.0d-4 Bohr
-            !Cdamp_pgs = 2000.d0
+            !Cdamp_pgs = 1000.d0
             gamma_damp = Cdamp_pgs * we
             damp_arg = gamma_damp * r2_pgs
             
@@ -1438,21 +1438,21 @@
                ex_neg = 0.d0
                hval_pgs = 0.d0
                eX_H2_pgs = 0.d0
+               fdamp_pgs = 1.d0
             elseif (damp_arg .lt. 1.d-8) then
                ! Taylor expansion for r -> 0 (prevents 0/0 NaN crash)
-               ! 1 - exp(-x) ~ x. Therefore, hval ~ 2/r2 and eX_H2 ~ 4/r4
+               ex_neg = 1.d0 - damp_arg ! or approximate if needed for consistency
                fdamp_pgs = damp_arg
                hval_pgs = 2.d0 / r2_pgs
                eX_H2_pgs = 4.d0 / (r2_pgs * r2_pgs)
             else
                ! Standard evaluation
                ex_neg = dexp(-damp_arg)
+               fdamp_pgs = 1.d0 - ex_neg
                denom_pgs = 1.d0 - ex_neg
                hval_pgs = 2.d0 * gamma_damp * ex_neg / denom_pgs
                eX_H2_pgs = 4.d0 * gamma_damp * gamma_damp * ex_neg / (denom_pgs * denom_pgs)
             endif
-            
-            fdamp_pgs = 1.d0 - ex_neg
             
             E_val = -0.5d0 * wez_pgs * (r_pgs - xg1we_pgs)**2 &
      &              + wt_pgs * (u0_pgs / r_pgs - 1.d0)

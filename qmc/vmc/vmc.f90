@@ -54,7 +54,7 @@
       use jaspar2_mod
       use distance_mod
       implicit real*8(a-h,o-z)
-      integer fflag
+      integer fflag,iwcheck
       character*80 fmt
 
       common /fflags/ fflag
@@ -140,6 +140,13 @@
 !        isite  = flag if 1 then take initial configuration from
 !                 sites routine
 
+
+! Gaussian parameters do not change during a VMC calculation.
+      if(ndim.eq.2.and.(ibasis.eq.4.or.ibasis.eq.5.or.ibasis.eq.8)) then
+        do iwcheck=1,nwftype
+          call check_gaussian_basis(iwcheck)
+        enddo
+      endif
 
 !      initial printing
        write(6,*)

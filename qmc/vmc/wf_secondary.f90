@@ -522,6 +522,9 @@
       cent (1:ndim,1:ncent) = cent_sav (1:ndim,1:ncent)
       call object_modified ('cent')
 
+! Restore scale-dependent Jastrow caches with their parameters.
+      call set_scale_dist(-1,1)
+
       return
       end
 !-----------------------------------------------------------------------
@@ -730,6 +733,8 @@
       call object_valid_or_die ('cent_best')
       cent (1:ndim,1:ncent) = cent_best (1:ndim,1:ncent)
       call object_modified ('cent')
+
+      if(nparms.eq.1) call set_scale_dist(-1,1)
 
       return
 !-----------------------------------------------------------------------

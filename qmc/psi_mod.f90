@@ -327,7 +327,7 @@ module psi_mod
   integer dim_i
   integer elec_i, elec_up_i, elec_dn_i
   integer csf_i, det_in_csf_i
-  real(dp) coefficient
+  real(dp) coefficient, det_up_factor, det_dn_factor
 
 ! header
   if (header_exe) then
@@ -372,17 +372,23 @@ module psi_mod
 
     coefficient = csf_coef (csf_i, 1) * cdet_in_csf (det_in_csf_i, csf_i)
 
+! The determinant of an empty spin sector is one; its table index can be zero.
+    det_up_factor = 1.d0
+    det_dn_factor = 1.d0
+    if (nup > 0) det_up_factor = detu (det_unq_up_i)
+    if (ndn > 0) det_dn_factor = detd (det_unq_dn_i)
+
     do dim_i = 1, ndim
 
     elec_i = 0
     do elec_up_i = 1, nup
      elec_i = elec_i + 1
-     grd_psid_over_psid (dim_i, elec_i) = grd_psid_over_psid (dim_i, elec_i) + coefficient * grd_det_unq_up (dim_i, elec_up_i, det_unq_up_i) * detd (det_unq_dn_i)
+     grd_psid_over_psid (dim_i, elec_i) = grd_psid_over_psid (dim_i, elec_i) + coefficient * grd_det_unq_up (dim_i, elec_up_i, det_unq_up_i) * det_dn_factor
     enddo
 
     do elec_dn_i = 1, ndn
      elec_i = elec_i + 1
-     grd_psid_over_psid (dim_i, elec_i) = grd_psid_over_psid (dim_i, elec_i) + coefficient * detu (det_unq_up_i) * grd_det_unq_dn (dim_i, elec_dn_i, det_unq_dn_i)
+     grd_psid_over_psid (dim_i, elec_i) = grd_psid_over_psid (dim_i, elec_i) + coefficient * det_up_factor * grd_det_unq_dn (dim_i, elec_dn_i, det_unq_dn_i)
     enddo
 
     enddo ! dim_i
@@ -410,7 +416,7 @@ module psi_mod
   integer det_i, det_unq_up_i, det_unq_dn_i
   integer elec_i, elec_up_i, elec_dn_i
   integer csf_i, det_in_csf_i
-  real(dp) coefficient
+  real(dp) coefficient, det_up_factor, det_dn_factor
 
 ! header
   if (header_exe) then
@@ -453,15 +459,21 @@ module psi_mod
 
     coefficient = csf_coef (csf_i, 1) * cdet_in_csf (det_in_csf_i, csf_i)
 
+! The determinant of an empty spin sector is one; its table index can be zero.
+    det_up_factor = 1.d0
+    det_dn_factor = 1.d0
+    if (nup > 0) det_up_factor = detu (det_unq_up_i)
+    if (ndn > 0) det_dn_factor = detd (det_unq_dn_i)
+
     elec_i = 0
     do elec_up_i = 1, nup
      elec_i = elec_i + 1
-     lap_psid_over_psid (elec_i) = lap_psid_over_psid (elec_i) + coefficient * lap_det_unq_up (elec_up_i, det_unq_up_i) * detd (det_unq_dn_i)
+     lap_psid_over_psid (elec_i) = lap_psid_over_psid (elec_i) + coefficient * lap_det_unq_up (elec_up_i, det_unq_up_i) * det_dn_factor
     enddo
 
     do elec_dn_i = 1, ndn
      elec_i = elec_i + 1
-     lap_psid_over_psid (elec_i) = lap_psid_over_psid (elec_i) + coefficient * detu (det_unq_up_i) * lap_det_unq_dn (elec_dn_i, det_unq_dn_i)
+     lap_psid_over_psid (elec_i) = lap_psid_over_psid (elec_i) + coefficient * det_up_factor * lap_det_unq_dn (elec_dn_i, det_unq_dn_i)
     enddo
 
 

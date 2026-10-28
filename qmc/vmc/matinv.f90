@@ -1,6 +1,9 @@
       subroutine matinv(a,nsub,det)
 ! Written by Kevin Schmidt or from some standard library?
 
+      use, intrinsic :: iso_fortran_env, only: error_unit
+      use mpi_mod, only: idtask
+      use wfsec_mod, only: iwf
       implicit real*8(a-h,o-z)
       parameter (zero=0.d0,one=1.d0)
 
@@ -58,6 +61,8 @@
 !           write(6,'(100es9.1)') (a(irow*n+k),k=1,n)
 !       enddo
         if(adiag.eq.0.d0) then
+          write(error_unit,'(a,4i8)') 'matinv: rank, wavefunction slot, dimension, pivot =',idtask,iwf,nsub,i
+          flush(error_unit)
           write(6,'(''in matinv, n='',i5)') n
           call systemflush(6)
           write(6,'(''adiag=0 in matinv, slater matrix is singular., dimension='',i5,/, &

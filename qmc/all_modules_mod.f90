@@ -43,6 +43,8 @@ module all_modules_mod
   use contr3_mod
   use div_v_mod
   use phifun_mod
+  use deriv_phifun_mod
+  use deriv_det_mod
   use distance_mod
   use distance_sav_mod
   use periodic_mod

@@ -22,17 +22,24 @@
       use dim_mod
       use contr2_mod
       use gradhess_mod
+      use gradhess_sav_mod, only: grad_sav
       use contrl_opt2_mod
+      use contrl_opt_mod
+      use optimo_mod
+      use optim_mod, only: nparmcsf, nparms
       use forcepar_mod
       use wfsec_mod
 !      use doefp_mod
+      use, intrinsic :: ieee_arithmetic
       implicit real*8(a-h,o-z)
 
       dimension ene_var(3)
+      logical bad_energy,bad_sigma,bad_statistics,basis_newton
 
       pi=four*datan(one)
 
       call vmc_init
+      basis_newton=mod(iopt,10).eq.2.and.nparmot.gt.0
 
 ! If add_diag(1) <= 0 turn OFF add_diag optimization and use fixed, add_diag
 ! equal to abs(add_diag) specified in input.  Usually you do NOT want to do this
@@ -73,14 +80,20 @@
         energy_plus_err_best=1.d99
 
         do 430 iopt_iter=1,nopt_iter
+          iref_refresh=0
 
 ! Do vmc computing gradient and hessian but no correlated sampling
-          igradhess=1
+  404     igradhess=1
           nforce=1
           nwftype=1
           iadd_diag_loop1=0
           iadd_diag_loop2=0
   405     call vmc
+          if(iref_refresh.gt.0) then
+            if(.not.ieee_is_finite(energy(1)).or..not.ieee_is_finite(energy_err(1)).or. &
+     &        .not.ieee_is_finite(energy_sigma(1))) &
+     &        call die ('opt_wf: invalid refreshed reference statistics')
+          endif
 
           ene_var(1)=(1-p_var)*energy(1)+p_var*energy_sigma(1)**2
 
@@ -90,37 +103,35 @@
 ! Although we have overwritten grad and hess with new ones obtained from a worse wave function, we
 ! have not overwritten grad_sav and hess_sav and the wavefunction.  So, go back to the previous wf,
 ! increase add_diag(1) and use the previous grad and hess to create a new wf.
-          if(iopt_iter.ge.2 .and. (energy_sigma(1).gt.(2.5d0-p_var)*energy_sigma_sav &
+          if(iopt_iter.ge.2.and.iref_refresh.eq.0 .and. (energy_sigma(1).gt.(2.5d0-p_var)*energy_sigma_sav &
      &    .or. energy(1)-energy_sav.gt.3*(1+p_var)*(sqrt(energy_err(1)**2+energy_err_sav**2)))) then
             iadd_diag_loop1=iadd_diag_loop1+1
-            if(iadd_diag_loop1.gt.6) stop 'sigma went up considerably and iadd_diag_loop1>6'
-            write(6,'(/,''Going back to previous wavefn. to generate new grad, hess, ham, ovlp'',/)')
-            call wf_restore
-!           if(iadd_diag_opt.ne.0) then
-  406       if(add_diag(1).gt.0.d0) then
-              add_diag(1)=100*add_diag(1)
-             else
-              add_diag(1)=1.d-6*100**iadd_diag_loop2
-              write(6,'(''Temporarily change add_diag from 0 to 1.d-6*100^iadd_diag_loop2='',d12.4, &
-     &        '' and back to 0 after calling new_param'')') add_diag(1)
+            if(iadd_diag_loop1.gt.6) then
+              if(refresh_newton_reference()) goto 404
+              stop 'sigma went up considerably and iadd_diag_loop1>6'
             endif
+            write(6,'(/,''Going back to previous wavefn. to generate new grad, hess, ham, ovlp'',/)')
+! Every recovery attempt uses the wavefunction that produced the saved matrices.
+  406       call wf_restore
+            iadd_diag_loop2=iadd_diag_loop2+1
+            if(iadd_diag_loop2.gt.6) then
+              if(refresh_newton_reference()) goto 404
+              stop 'iadd_diag_loop2>6'
+            endif
+            call opt_wf_increase_diag(add_diag(1),100.d0)
             write(6,'(''Energy_sigma got significantly worse in grad_hess call to vmc so increase add_diag(1) to'', &
      &      1pd11.4)') add_diag(1)
             write(6,'(''add_diag_log_min,add_diag_min='',f7.3,1p,d9.2)') &
      &      dlog10(add_diag(1)),add_diag(1)
             call new_param(1,1,1,iflag1)
             if(iflag1.ne.0) then
-              iadd_diag_loop2=iadd_diag_loop2+1
               goto 406
             endif
             if(iadd_diag_opt.eq.0) add_diag(1)=add_diag_sav
-! just in case mc config is in crazy place, reset mc_configs by calling sites
-            isite=1
-            call mc_configs_read
-            iadd_diag_loop2=iadd_diag_loop2+1
-            if(iadd_diag_loop2.gt.6) then
-              write(6,'(''iadd_diag_loop2>4'')')
-              stop 'iadd_diag_loop2>6'
+! Keep the sampled configuration for a finite basis-Newton retry.
+            if(.not.basis_newton) then
+              isite=1
+              call mc_configs_read
             endif
             goto 405
           endif
@@ -131,7 +142,7 @@
           energy_sigma_sav=energy_sigma(1)
           energy_err_sav=energy_err(1)
           ene_var_sav=(1-p_var)*energy(1)+p_var*energy_sigma(1)**2
-          increase_nblk=increase_nblk+1
+          if(iref_refresh.eq.0) increase_nblk=increase_nblk+1
 
 ! If this is the best yet, save it.  Since we are primarily interested in the energy we always use
 ! that as part of the criterion.  By adding in energy_err we favor those iterations where the energy
@@ -159,7 +170,6 @@
 ! In grad_sav and hess_sav, use appropriate linear combination of energy and variance.
 ! Evaluate the eigenvalues of the Hessian of the objective function (linear comb of energy and variance).
           call ham_ovlp_grad_hess
-
 ! Turn correlated sampling on/off
           if(iadd_diag_opt.eq.1) then
 
@@ -167,11 +177,7 @@
 !           add_diag(1)=1.d-8
             add_diag(1)=add_diag_sav
 
-! Make sure that the add_diag values are not tiny compared to eig_min
-! Done in ham_ovlp_grad_hess now
-!           add_diag(1)=max(add_diag(1),1.d-1*eig_min)
-!           add_diag(2)=0.1d0*add_diag(1)
-!           add_diag(3)=10.d0*add_diag(1)
+! Evaluate the original three shifts around the current search value.
 
             iadd_diag_loop3=0
             iadd_diag_loop4=0
@@ -183,13 +189,10 @@
             call new_param(2,1,0,iflag2)
             call new_param(3,0,0,iflag3)
             call new_param(1,0,0,iflag1)
-            call set_scale_dist(ipr,1)
-            call set_scale_dist(ipr,2)
-            call set_scale_dist(ipr,3)
             if(iflag1.eq.1 .or. iflag2.eq.1 .or. iflag3.eq.1) then
 !           if(iflag1.eq.1 .and. iflag2.eq.1 .and. iflag3.eq.1) then
               call wf_restore
-              add_diag(1)=10**(iflag1+iflag2+iflag3)*add_diag(1)
+              call opt_wf_increase_diag(add_diag(1),10.d0**(iflag1+iflag2+iflag3))
               write(6,'(''change in params. too large or a(2) or b(2) < -scalek, add_diag(1) increased to'',1pd12.4)') add_diag(1)
               iadd_diag_loop4=iadd_diag_loop4+1
               if(iadd_diag_loop4.lt.9) then
@@ -198,6 +201,10 @@
                 stop 'iadd_diag_loop4 too large'
               endif
             endif
+
+            call set_scale_dist(ipr,1)
+            call set_scale_dist(ipr,2)
+            call set_scale_dist(ipr,3)
 
 ! Do vmc not computing gradient and hessian but do correlated sampling. Use smaller nblk
             igradhess=0
@@ -220,20 +227,40 @@
 ! For variance minimization we allow it to be at most 6 std dev. worse
 ! For energy   minimization we allow it to be at most 3 std dev. worse
 
-            if(energy_sigma(1).gt.(2.5d0-p_var)*energy_sigma_sav .or. energy_sigma(3).gt.(2.5d0-p_var)*energy_sigma_sav &
-     &      .or. energy(1)-energy_sav.gt.3*(1+p_var)*(sqrt(energy_err(1)**2+energy_err_sav**2)) &
-     &      .or. energy(3)-energy_sav.gt.3*(1+p_var)*(sqrt(energy_err(3)**2+energy_err_sav**2))) then
+            bad_statistics=.not.all(ieee_is_finite(energy(1:3))).or. &
+     &        .not.all(ieee_is_finite(energy_err(1:3))).or. &
+     &        .not.all(ieee_is_finite(energy_sigma(1:3)))
+            bad_energy=.false.
+            bad_sigma=.false.
+            if(.not.bad_statistics) then
+              bad_sigma=energy_sigma(1).gt.(2.5d0-p_var)*energy_sigma_sav.or. &
+     &                  energy_sigma(3).gt.(2.5d0-p_var)*energy_sigma_sav
+              bad_energy=energy(1)-energy_sav.gt.3*(1+p_var)*sqrt(energy_err(1)**2+energy_err_sav**2).or. &
+     &                   energy(3)-energy_sav.gt.3*(1+p_var)*sqrt(energy_err(3)**2+energy_err_sav**2)
+            endif
+            if(bad_energy.or.bad_sigma.or.bad_statistics) then
+              write(6,'(a,3l3)') 'Correlated-sampling rejection: energy, sigma, non-finite=', &
+     &          bad_energy,bad_sigma,bad_statistics
+              write(6,'(a,3es16.7)') 'Reference energy, error, sigma=',energy_sav,energy_err_sav,energy_sigma_sav
+              do iadd_diag=1,3
+                write(6,'(a,i2,a,4es16.7)') 'Trial ',iadd_diag,': add_diag, energy, error, sigma=', &
+     &            add_diag(iadd_diag),energy(iadd_diag),energy_err(iadd_diag),energy_sigma(iadd_diag)
+              enddo
               call wf_restore
 !             call set_scale_dist(ipr,1)
               iadd_diag_loop3=iadd_diag_loop3+1
-              add_diag(1)=100*add_diag(1)
+              call opt_wf_increase_diag(add_diag(1),100.d0)
               write(6,'(''Objective function went up too much, add_diag(1) increased to'',1pd12.4)') add_diag(1)
               if(iadd_diag_loop3.lt.9 .and. add_diag(1).lt.1.d10) then
-! just in case mc config is in crazy place, reset mc_configs by calling sites
-                isite=1
-                call mc_configs_read
+                if(.not.basis_newton) then
+                  isite=1
+                  call mc_configs_read
+                endif
                 goto 408
                else
+                if(.not.bad_statistics) then
+                  if(refresh_newton_reference()) goto 404
+                endif
                 write(6,'(''iadd_diag_loop3 or add_diag(1) too large'')')
                 stop 'iadd_diag_loop3 or add_diag(1) too large'
               endif
@@ -256,7 +283,7 @@
   409       call new_param(1,0,0,iflag1)
             if(iflag1.ne.0) then
               call wf_restore
-              add_diag(1)=10**(iflag1)*add_diag(1)
+              call opt_wf_increase_diag(add_diag(1),10.d0**iflag1)
               write(6,'(''change in params. too large or a(2) or b(2) < -scalek, add_diag(1) increased to'',1pd12.4)') add_diag(1)
               iadd_diag_loop5=iadd_diag_loop5+1
               if(iadd_diag_loop5.lt.9) then
@@ -266,8 +293,11 @@
               endif
             endif
 
+            add_diag1_sav=add_diag(1)
           endif  ! 1st if(iadd_diag_opt.eq.1)
 
+          iadd_diag_loop6=0
+  407     call wf_restore
 ! Calculate optimized wavefunction for the optimal a_diag
 ! If add_diag(1).ge.0.1d0*add_diag1_sav then use ipr_new=2 to put _new subscript when writing
 ! parameters regardless of the value of iflag1
@@ -276,24 +306,16 @@
            else
             call new_param(1,0,1,iflag1)
           endif
+          if(iflag1.ne.0) then
+            iadd_diag_loop6=iadd_diag_loop6+1
+            if(iadd_diag_loop6.ge.9) stop 'final parameter update rejected nine times'
+            call opt_wf_increase_diag(add_diag(1),10.d0)
+            if(iadd_diag_opt.eq.1) add_diag(1)=max(add_diag(1),0.1d0*add_diag1_sav)
+            goto 407
+          endif
           call set_scale_dist(ipr,1)
-          add_diag(1)=add_diag_sav
 
           if(iadd_diag_opt.eq.1) then
-
-! It is still possible that move is too large if add_diag_log_min was set to
-! a smaller value than add_diag_log(1)-1 in quad_min.f.  In quad_min.f we allow values as
-! small as add_diag_log(1)-2.d0), i.e. setting add_diag(1) to 0.01*add_diag(1).
-! So check iflag1 if this is the case.
-            if(iflag1.ne.0 .and. add_diag(1).lt.0.1d0*add_diag1_sav) then
-              write(6,'(''Increasing add_diag(1) because iflag.ne.0'')')
-              call wf_restore
-!             add_diag(1)=10*add_diag(1)
-              add_diag(1)=0.1d0*add_diag1_sav
-              call new_param(1,0,1,iflag1)
-              call set_scale_dist(ipr,1)
-              if(iflag1.ne.0) stop 'iflag.ne.0 should not occur here'
-            endif
 
 ! Check if optimized wavefunction energies for 3 different values of a_diag
 ! are less than the tolerance
@@ -308,8 +330,13 @@
 ! Increase nblk if near convergence to value needed to get desired statistical error
 !           increase_nblk=increase_nblk+1
             add_diag_ratio=(add_diag(1)+2*max(-eig_min,0.d0))/add_diag(1)
+            if(basis_newton.and.add_diag_ratio*e_diff.lt.tol_energy.and. &
+     &      force_err(2).lt.tol_energy.and.force_err(3).lt.tol_energy.and. &
+     &      add_diag(1).gt.max(abs(eig_min),abs(eig_max)).and.any(grad_sav.ne.0.d0)) &
+     &      write(6,'(a)') 'Trial energies agree under strong damping; continuing basis optimization.'
             if(add_diag_ratio*e_diff.lt.tol_energy .and. &
-     &      force_err(2).lt.tol_energy .and. force_err(3).lt.tol_energy) then
+     &      force_err(2).lt.tol_energy .and. force_err(3).lt.tol_energy .and. &
+     &      (.not.basis_newton.or.add_diag(1).le.max(abs(eig_min),abs(eig_max)).or.all(grad_sav.eq.0.d0))) then
 !             nblk_tmp=nblk*min(10.d0,max(1.d0,(energy_err_sav/tol_energy)**2))
               nblk_tmp=nblk*max(1.d0,(energy_err_sav/tol_energy)**2)
               nblk_tmp=int_round(nblk_tmp)
@@ -320,10 +347,14 @@
                 write(6,'(''nblk reset to'',i8,9d12.4)') nblk,energy_err(1),tol_energy
               endif
               write(6,'(''The difference in the energies for different add_diag is converged to'',d12.4)') tol_energy
+              add_diag(1)=add_diag_sav
               goto 440
             endif
 
           endif  ! 2nd if(iadd_diag_opt.eq.1)
+! Retain the selected shift for CSF, basis or scalek Newton recovery.
+! A fresh gradient/Hessian search resets add_diag above.
+          if(mod(iopt,10).ne.2.or.nparmcsf+nparmot+nparms.eq.0.or.iadd_diag_opt.ne.1) add_diag(1)=add_diag_sav
 
 ! At minimum increase nblk by a factor of 2 every other iteration
           if(increase_nblk.eq.2 .and. nblk.lt.nblk_max) then
@@ -377,6 +408,21 @@
       endif
 
       return
+      contains
+
+      logical function refresh_newton_reference()
+! Re-estimate the saved state when smaller steps cannot pass its old statistics.
+        refresh_newton_reference=.false.
+        if(.not.basis_newton.or.iref_refresh.ge.2) return
+        if(.not.ieee_is_finite(energy(1)).or..not.ieee_is_finite(energy_err(1)).or. &
+     &    .not.ieee_is_finite(energy_sigma(1))) return
+        call wf_restore
+        iref_refresh=iref_refresh+1
+        add_diag(1)=add_diag_sav
+        write(6,'(a,i2)') 'Recomputing saved-reference statistics, attempt: ',iref_refresh
+        refresh_newton_reference=.true.
+      end function refresh_newton_reference
+
       end
 !-----------------------------------------------------------------------
       function int_round(i)
@@ -401,5 +447,20 @@
       int_round=j*ipow
 !     write(6,*) i,rest,j,ipow,int_round
 
+      return
+      end
+
+!-----------------------------------------------------------------------
+      subroutine opt_wf_increase_diag(diag,factor)
+! Keep retry growth finite, including runs started with a fixed zero shift.
+      use, intrinsic :: ieee_arithmetic
+      implicit real*8(a-h,o-z)
+      if(.not.ieee_is_finite(diag)) stop 'non-finite add_diag before retry'
+      if(diag.eq.0.d0) then
+        diag=1.d-6
+       else
+        if(diag.gt.huge(diag)/factor) stop 'add_diag overflow prevented'
+        diag=diag*factor
+      endif
       return
       end

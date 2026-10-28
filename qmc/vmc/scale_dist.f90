@@ -11,7 +11,9 @@
       use jaspar6_mod
       use bparm_mod
       use forcepar_mod
+      use optim_mod, only: nparms
       implicit real*8(a-h,o-z)
+      real*8 scale_exp_ratio
 
 ! isc = 2,3 are exponential scalings
 ! isc = 4,5 are inverse power scalings
@@ -58,23 +60,30 @@
         val_cutjas_en=exp(-term)
         cutjasi_en=1/cutjas_en
         c1_jas6i_en=1-val_cutjas_en
+        if(nparms.eq.1) c1_jas6i_en=term*scale_exp_ratio(term)
         c1_jas6_en(iw)=1/c1_jas6i_en
         c2_jas6_en(iw)=val_cutjas_en*c1_jas6_en(iw)
         asymp_r_en(iw)=c1_jas6i_en/scalek(iw)
         dasymp_r_en(iw)=((term+1)*val_cutjas_en-1)/scalek2
         d2asymp_r_en(iw)=(2-(term*term+2*term+2)*val_cutjas_en)/(scalek2*scalek(iw))
+        if(nparms.eq.1) call deriv_exp_scale(third*cutjas_en,scalek(iw),val_cutjas_en, &
+     &    dasymp_r_en(iw),d2asymp_r_en(iw),2)
         if(ipr.eq.1) write(6,'(''cutjas_en,c1_jas6_en,c2_jas6_en='',f10.6,9d12.5)') &
      &       cutjas_en,c1_jas6_en(iw),c2_jas6_en(iw)
 
         term=third*scalek(1)*cutjas_ee
+        if(nparms.eq.1) term=third*scalek(iw)*cutjas_ee
         val_cutjas_ee=exp(-term)
         cutjasi_ee=1/cutjas_ee
         c1_jas6i_ee=1-val_cutjas_ee
+        if(nparms.eq.1) c1_jas6i_ee=term*scale_exp_ratio(term)
         c1_jas6_ee(iw)=1/c1_jas6i_ee
         c2_jas6_ee(iw)=val_cutjas_ee*c1_jas6_ee(iw)
         asymp_r_ee(iw)=c1_jas6i_ee/scalek(iw)
         dasymp_r_ee(iw)=((term+1)*val_cutjas_ee-1)/scalek2
         d2asymp_r_ee(iw)=(2-(term*term+2*term+2)*val_cutjas_ee)/(scalek2*scalek(iw))
+        if(nparms.eq.1) call deriv_exp_scale(third*cutjas_ee,scalek(iw),val_cutjas_ee, &
+     &    dasymp_r_ee(iw),d2asymp_r_ee(iw),2)
         if(ipr.eq.1) write(6,'(''cutjas_ee,c1_jas6_ee,c2_jas6_ee='',f10.6,9d12.5)') &
      &       cutjas_ee,c1_jas6_ee(iw),c2_jas6_ee(iw)
 
@@ -222,15 +231,15 @@
    35     asymp_jasb(i,iw)=sspinn*asymp_jasb(i,iw)
       endif
       if((ijas.eq.4.or.ijas.eq.5).and.ipr.ge.0) then
-        write(6,'(''ifr,asymp_r_en,asymp_r_ee='',i2,2f10.6)') iw,asymp_r_en(iw),asymp_r_ee(iw)
-        write(6,'(''ifr,asympa='',i2,10f10.6)') iw,(asymp_jasa(it,iw),it=1,nctype)
-        write(6,'(''ifr,asympb='',i2,10f10.6)') iw,(asymp_jasb(i,iw),i=1,2)
-        write(6,'(''ifr,dasymp_r_en,dasymp_r_ee='',i2,2f14.6)') iw,dasymp_r_en(iw),dasymp_r_ee(iw)
-        write(6,'(''ifr,dasympa='',i2,10f10.6)') iw,(dasymp_jasa(it,iw),it=1,nctype)
-        write(6,'(''ifr,dasympb='',i2,10f10.6)') iw,(dasymp_jasb(i,iw),i=1,2)
-        write(6,'(''ifr,d2asymp_r_en,d2asymp_r_ee='',i2,2f14.6)') iw,d2asymp_r_en(iw),d2asymp_r_ee(iw)
-        write(6,'(''ifr,d2asympa='',i2,10f10.6)') iw,(d2asymp_jasa(it,iw),it=1,nctype)
-        write(6,'(''ifr,d2asympb='',i2,10f10.6)') iw,(d2asymp_jasb(i,iw),i=1,2)
+        write(6,'(''ifr,asymp_r_en,asymp_r_ee='',i2,2es23.14e3)') iw,asymp_r_en(iw),asymp_r_ee(iw)
+        write(6,'(''ifr,asympa='',i2,10es23.14e3)') iw,(asymp_jasa(it,iw),it=1,nctype)
+        write(6,'(''ifr,asympb='',i2,10es23.14e3)') iw,(asymp_jasb(i,iw),i=1,2)
+        write(6,'(''ifr,dasymp_r_en,dasymp_r_ee='',i2,2es23.14e3)') iw,dasymp_r_en(iw),dasymp_r_ee(iw)
+        write(6,'(''ifr,dasympa='',i2,10es23.14e3)') iw,(dasymp_jasa(it,iw),it=1,nctype)
+        write(6,'(''ifr,dasympb='',i2,10es23.14e3)') iw,(dasymp_jasb(i,iw),i=1,2)
+        write(6,'(''ifr,d2asymp_r_en,d2asymp_r_ee='',i2,2es23.14e3)') iw,d2asymp_r_en(iw),d2asymp_r_ee(iw)
+        write(6,'(''ifr,d2asympa='',i2,10es23.14e3)') iw,(d2asymp_jasa(it,iw),it=1,nctype)
+        write(6,'(''ifr,d2asympb='',i2,10es23.14e3)') iw,(d2asymp_jasb(i,iw),i=1,2)
       endif
 
       return
@@ -244,7 +253,9 @@
       use wfsec_mod
       use jaspar3_mod
       use jaspar6_mod
+      use optim_mod, only: nparms
       implicit real*8(a-h,o-z)
+      real*8 scale_exp_ratio
 
 ! isc = 2,3 are exponential scalings
 ! isc = 4,5 are inverse power scalings
@@ -284,6 +295,8 @@
       if(scalek(iwf).ne.zero) then
         if(isc.eq.2 .or. (isc.eq.12.and.(iflag.eq.1.or.iflag.eq.2))) then
           rr=(one-dexp(-scalek(iwf)*r))/scalek(iwf)
+          if(nparms.eq.1.and.abs(scalek(iwf)*(r)).lt.0.1d0) &
+     &            rr=(r)*scale_exp_ratio(scalek(iwf)*(r))
          elseif(isc.eq.3) then
           rsc=scalek(iwf)*r
           rsc2=rsc*rsc
@@ -309,6 +322,8 @@
             term=(1-r_by_cut+third*r_by_cut2)
             if(ijas.eq.4.or.ijas.eq.5) then
               rr=(1-dexp(-scalek(iwf)*r*term))/scalek(iwf)
+              if(nparms.eq.1.and.abs(scalek(iwf)*(r*term)).lt.0.1d0) &
+     &                rr=(r*term)*scale_exp_ratio(scalek(iwf)*(r*term))
              elseif(ijas.eq.6) then
               rr=c1_jas6*dexp(-scalek(iwf)*r*term)-c2_jas6
             endif
@@ -349,6 +364,8 @@
             term=(1-d4b3*r_by_cut+half*r_by_cut2)
             if(ijas.eq.4.or.ijas.eq.5) then
               rr=(1-dexp(-scalek(iwf)*r**2*term))/scalek(iwf)
+              if(nparms.eq.1.and.abs(scalek(iwf)*(r**2*term)).lt.0.1d0) &
+     &                rr=(r**2*term)*scale_exp_ratio(scalek(iwf)*(r**2*term))
              elseif(ijas.eq.6) then
               rr=c1_jas6*dexp(-scalek(iwf)*r**2*term)-c2_jas6
             endif
@@ -356,6 +373,8 @@
          elseif(isc.eq.12 .and. iflag.ge.3) then
           if(ijas.eq.4.or.ijas.eq.5) then
             rr=(1-dexp(-scalek(iwf)*r**2))/scalek(iwf)
+            if(nparms.eq.1.and.abs(scalek(iwf)*(r**2)).lt.0.1d0) &
+     &              rr=(r**2)*scale_exp_ratio(scalek(iwf)*(r**2))
            elseif(ijas.eq.6) then
             rr=c1_jas6*dexp(-scalek(iwf)*r**2)-c2_jas6
           endif
@@ -402,7 +421,9 @@
       use wfsec_mod
       use jaspar3_mod
       use jaspar6_mod
+      use optim_mod, only: nparms
       implicit real*8(a-h,o-z)
+      real*8 scale_exp_ratio
 
 !JT   parameter (zero=0.d0,one=1.d0,half=0.5d0,third=1.d0/3.d0,d4b3=4.d0/3.d0)
       parameter (d4b3=4.d0/3.d0)
@@ -440,6 +461,8 @@
       if(scalek(iwf).ne.zero) then
         if(isc.eq.2 .or. (isc.eq.12.and.(iflag.eq.1.or.iflag.eq.2))) then
           rr=(one-dexp(-scalek(iwf)*r))/scalek(iwf)
+          if(nparms.eq.1.and.abs(scalek(iwf)*(r)).lt.0.1d0) &
+     &            rr=(r)*scale_exp_ratio(scalek(iwf)*(r))
           dd1=one-scalek(iwf)*rr
          elseif(isc.eq.3) then
           rsc=scalek(iwf)*r
@@ -471,6 +494,8 @@
             term2=(1-2*r_by_cut+r_by_cut2)
             if(ijas.eq.4.or.ijas.eq.5) then
               rr=(1-dexp(-scalek(iwf)*r*term))/scalek(iwf)
+              if(nparms.eq.1.and.abs(scalek(iwf)*(r*term)).lt.0.1d0) &
+     &                rr=(r*term)*scale_exp_ratio(scalek(iwf)*(r*term))
 !             rr_plus_c2=rr+c2_jas6
               dd1=(one-scalek(iwf)*rr)*term2
              elseif(ijas.eq.6) then
@@ -524,6 +549,8 @@
             term2=(1-2*r_by_cut+r_by_cut2)
             if(ijas.eq.4.or.ijas.eq.5) then
               rr=(1-dexp(-scalek(iwf)*r**2*term))/scalek(iwf)
+              if(nparms.eq.1.and.abs(scalek(iwf)*(r**2*term)).lt.0.1d0) &
+     &                rr=(r**2*term)*scale_exp_ratio(scalek(iwf)*(r**2*term))
               dd1=2*r*(one-scalek(iwf)*rr)*term2
              elseif(ijas.eq.6) then
               rr=c1_jas6*dexp(-scalek(iwf)*r**2*term)-c2_jas6
@@ -534,6 +561,8 @@
          elseif(isc.eq.12 .and. iflag.ge.3) then
           if(ijas.eq.4.or.ijas.eq.5) then
             rr=(1-dexp(-scalek(iwf)*r**2))/scalek(iwf)
+            if(nparms.eq.1.and.abs(scalek(iwf)*(r**2)).lt.0.1d0) &
+     &              rr=(r**2)*scale_exp_ratio(scalek(iwf)*(r**2))
             dd1=2*r*(one-scalek(iwf)*rr)
            elseif(ijas.eq.6) then
             rr=c1_jas6*dexp(-scalek(iwf)*r**2)-c2_jas6
@@ -592,7 +621,9 @@
       use wfsec_mod
       use jaspar3_mod
       use jaspar6_mod
+      use optim_mod, only: nparms
       implicit real*8(a-h,o-z)
+      real*8 scale_exp_ratio
 
 !JT   parameter (zero=0.d0,one=1.d0,two=2.d0,half=0.5d0,third=1.d0/3.d0,d4b3=4.d0/3.d0)
       parameter (d4b3=4.d0/3.d0)
@@ -631,6 +662,8 @@
       if(scalek(iwf).ne.zero) then
         if(isc.eq.2 .or. (isc.eq.12.and.(iflag.eq.1.or.iflag.eq.2))) then
           rr=(one-dexp(-scalek(iwf)*r))/scalek(iwf)
+          if(nparms.eq.1.and.abs(scalek(iwf)*(r)).lt.0.1d0) &
+     &            rr=(r)*scale_exp_ratio(scalek(iwf)*(r))
           dd1=one-scalek(iwf)*rr
           dd2=-scalek(iwf)*dd1
          elseif(isc.eq.3) then
@@ -667,6 +700,8 @@
             term2=(1-2*r_by_cut+r_by_cut2)
             if(ijas.eq.4.or.ijas.eq.5) then
               rr=(1-dexp(-scalek(iwf)*r*term))/scalek(iwf)
+              if(nparms.eq.1.and.abs(scalek(iwf)*(r*term)).lt.0.1d0) &
+     &                rr=(r*term)*scale_exp_ratio(scalek(iwf)*(r*term))
 !             rr_plus_c2=rr+c2_jas6
               dd1=(one-scalek(iwf)*rr)*term2
               dd2=-scalek(iwf)*dd1*term2+2*(one-scalek(iwf)*rr)*cutjasi*(r_by_cut-1)
@@ -728,6 +763,8 @@
             term2=(1-2*r_by_cut+r_by_cut2)
             if(ijas.eq.4.or.ijas.eq.5) then
               rr=(1-dexp(-scalek(iwf)*r**2*term))/scalek(iwf)
+              if(nparms.eq.1.and.abs(scalek(iwf)*(r**2*term)).lt.0.1d0) &
+     &                rr=(r**2*term)*scale_exp_ratio(scalek(iwf)*(r**2*term))
               dd1=2*r*(one-scalek(iwf)*rr)*term2
 !             dd2=-scalek(iwf)*dd1*term2+2*(one-scalek(iwf)*rr)*cutjasi*(r_by_cut-1)
               dd2=-2*(scalek(iwf)*r*dd1*term2 &
@@ -742,6 +779,8 @@
          elseif(isc.eq.12 .and. iflag.ge.3) then
           if(ijas.eq.4.or.ijas.eq.5) then
             rr=(1-dexp(-scalek(iwf)*r**2))/scalek(iwf)
+            if(nparms.eq.1.and.abs(scalek(iwf)*(r**2)).lt.0.1d0) &
+     &              rr=(r**2)*scale_exp_ratio(scalek(iwf)*(r**2))
             dd1=2*r*(one-scalek(iwf)*rr)
             dd2=-2*(scalek(iwf)*r*dd1-(one-scalek(iwf)*rr))
            elseif(ijas.eq.6) then

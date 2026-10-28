@@ -569,6 +569,10 @@
                 endif ! nparmj
 
                 if(ideriv.gt.0) then
+                  if(igradhess.gt.0.and.nparms.eq.1) then
+                    gpk=pu*dkij+ppi*dki+pj*dkj
+                    if(icutjasc.gt.0.or.iperiodic.ne.0) gpk=gpk*fcut
+                  endif
                   gp=pc
                   gu=pu
                   guu=puu
@@ -616,6 +620,7 @@
 
                       go(i,j,iparm)=go(i,j,iparm)+cd*gp
                       gvalue(iparm)=gvalue(iparm)+cd*gp
+                      if(igradhess.gt.0.and.nparms.eq.1) didk(iparm)=didk(iparm)+cd*gpk
 !       if we have an infinite wire, then for the en and een terms, we only
 !          use the distance from the electron to the center of the wire
 !          (for the first center, anyway)
@@ -655,10 +660,6 @@
 !                   jj=jj+1
 
 
-
-                    if(igradhess.gt.0 .and. nparms.eq.1) then
-                      didk(iparm)=didk(iparm)+cd*(pu*dkij+ppi*dki+pj*dkj)
-                    endif
 
                    elseif(ideriv.eq.2) then   ! independent parameters
 
@@ -700,7 +701,7 @@
                     jparm=jparm+1
 
                     if(igradhess.gt.0 .and. nparms.eq.1) then
-                      didk(iparm)=didk(iparm)+pu*dkij+ppi*dki+pj*dkj
+                      didk(iparm)=didk(iparm)+gpk
                     endif
 
                   endif
@@ -721,12 +722,30 @@
           gi=(dkij*fui*dd7 + dki*fii*dd7 + fi*dri + dkj*fij*dd7)/ri
           gj=(dkij*fuj*dd8 + dkj*fjj*dd8 + fj*drj + dki*fij*dd8)/rj
 
+          gui=dkij*fuui*dd1*dd7 + drij*fui*dd7 + dri*fui*dd1 + dki*fuii*dd1*dd7 + dkj*fuij*dd1*dd7
+          guj=dkij*fuuj*dd1*dd8 + drij*fuj*dd8 + drj*fuj*dd1 + dkj*fujj*dd1*dd8 + dki*fuij*dd1*dd8
+          gtu=dd2*(fuu*dkij + fui*dki + fuj*dkj) + 2*fuu*dd1*drij + fu*dr2ij &
+     &      + dd1*dd1*(fuuu*dkij + fuui*dki + fuuj*dkj)
+          gti=dd9*(fui*dkij + fii*dki + fij*dkj) + fi*dr2i + 2*fii*dd7*dri &
+     &      + dd7*dd7*(fuii*dkij + fiii*dki + fiij*dkj)
+          gtj=dd10*(fuj*dkij + fjj*dkj + fij*dki) + fj*dr2j + 2*fjj*dd8*drj &
+     &       + dd8*dd8*(fujj*dkij + fjjj*dkj + fijj*dki)
+
+! The spatial cutoff is independent of scalek; apply its product rule too.
+          if(icutjasc.gt.0.or.iperiodic.ne.0) then
+            gtu=gtu*fcut
+            gti=gti*fcut+(2*gi*ri*dfcuti+gp*d2fcuti)*fcutj
+            gtj=gtj*fcut+(2*gj*rj*dfcutj+gp*d2fcutj)*fcuti
+            gui=gui*fcut+gu*fcutj*dfcuti*rij
+            guj=guj*fcut+gu*fcuti*dfcutj*rij
+            gi=gi*fcut+gp*fcutj*dfcuti/ri
+            gj=gj*fcut+gp*fcuti*dfcutj/rj
+            gu=gu*fcut
+            gp=gp*fcut
+          endif
+
           go(i,j,iparm)=go(i,j,iparm) + gp
           gvalue(iparm)=gvalue(iparm) + gp
-!       if we have an infinite wire, then for the en and een terms, we only
-!          use the distance from the electron to the center of the wire
-!          (for the first center, anyway)
-!          thus, derivatives only depend on en distance in the y-direction
           if((iperiodic.eq.1).and.(nloc.eq.-4).and.(ic.eq.1)) then
             g(1,i,iparm)=g(1,i,iparm) + gu*rvec_ee(1,ij)
             g(2,i,iparm)=g(2,i,iparm) + gi*rvec_en(2,i,ic) + gu*rvec_ee(2,ij)
@@ -743,15 +762,6 @@
             g(3,j,iparm)=g(3,j,iparm) + gj*rvec_en(3,j,ic) - gu*rvec_ee(3,ij)
           endif
 
-          gui=dkij*fuui*dd1*dd7 + drij*fui*dd7 + dri*fui*dd1 + dki*fuii*dd1*dd7 + dkj*fuij*dd1*dd7
-          guj=dkij*fuuj*dd1*dd8 + drij*fuj*dd8 + drj*fuj*dd1 + dkj*fujj*dd1*dd8 + dki*fuij*dd1*dd8
-          gtu=dd2*(fuu*dkij + fui*dki + fuj*dkj) + 2*fuu*dd1*drij + fu*dr2ij &
-     &      + dd1*dd1*(fuuu*dkij + fuui*dki + fuuj*dkj)
-          gti=dd9*(fui*dkij + fii*dki + fij*dkj) + fi*dr2i + 2*fii*dd7*dri &
-     &      + dd7*dd7*(fuii*dkij + fiii*dki + fiij*dkj)
-          gtj=dd10*(fuj*dkij + fjj*dkj + fij*dki) + fj*dr2j + 2*fjj*dd8*drj &
-     &       + dd8*dd8*(fujj*dkij + fjjj*dkj + fijj*dki)
-
 !        check to see what gtu and gti are!
           if((iperiodic.eq.1).and.(nloc.eq.-4).and.(ic.eq.1)) then ! ri = yi
              d2g(iparm)=d2g(iparm) + (ndim- 1.)*2.*gu + 2.*gui*(ri-rj)/rij + 2.*guj*(rj-ri)/rij &
@@ -762,9 +772,11 @@
           endif
 
           if(igradhess.gt.0 .and. nparms.eq.1) then
-            didk(iparm)=didk(iparm)+(fuu*dkij+fui*dki+fuj*dkj)*dkij+fu*dk2ij &
+            gpk=(fuu*dkij+fui*dki+fuj*dkj)*dkij+fu*dk2ij &
      &                             +(fui*dkij+fii*dki+fij*dkj)*dki+fi*dk2i &
      &                             +(fuj*dkij+fij*dki+fjj*dkj)*dkj+fj*dk2j
+            if(icutjasc.gt.0.or.iperiodic.ne.0) gpk=gpk*fcut
+            didk(iparm)=didk(iparm)+gpk
           endif
 
         endif

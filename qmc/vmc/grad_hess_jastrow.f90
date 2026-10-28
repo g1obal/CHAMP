@@ -115,8 +115,15 @@
         iparm=nparmcsf+nparmot+1
         do 12 j=1,nparmj+nparms
           jparm=nparmcsf+nparmot+j
-          d2j(jparm,iparm)=d2j(jparm,iparm)+wt*(p*didk(j)+q*didk_old(j))
-          d2j_e(jparm,iparm)=d2j_e(jparm,iparm)+wt*(p*didk(j)*enew+q*didk_old(j)*eoldr)
+! Do not read derivatives of a state whose sampling weight is zero.
+          if(p.ne.0.d0) then
+            d2j(jparm,iparm)=d2j(jparm,iparm)+wt*p*didk(j)
+            d2j_e(jparm,iparm)=d2j_e(jparm,iparm)+wt*p*didk(j)*enew
+          endif
+          if(q.ne.0.d0) then
+            d2j(jparm,iparm)=d2j(jparm,iparm)+wt*q*didk_old(j)
+            d2j_e(jparm,iparm)=d2j_e(jparm,iparm)+wt*q*didk_old(j)*eold
+          endif
 !         d2j(jparm,iparm)=0.d0
 !         d2j_e(jparm,iparm)=0.d0
    12   continue
@@ -461,9 +468,11 @@
       use gradhessder_mod
       use gradjerr_mod
       use linear_mod
+      use, intrinsic :: ieee_arithmetic
       implicit real*8(a-h,o-z)
 
       character*20 fmt
+      logical use_uf_j
 
       common /gradjerrb/ ngrad_jas_blocks,ngrad_jas_bcum,nb_current
 
@@ -496,6 +505,8 @@
 ! Use symmetrized dj_de
       topsum_j=0
       botsum_j=0
+      botabs_j=0.d0
+      use_uf_j=.false.
       topsum_csf_j=0
       botsum_csf_j=0
       do 25 i=1,nparm
@@ -503,9 +514,16 @@
            if(j.gt.nparmcsf+nparmot) then
              bot_j=dj_de(i,j)+dj_de(j,i)-(dj(i)*de(j)+dj(j)*de(i))/passes
              top_j=bot_j+2*(2*(dj_dj_e(i,j)-eave*dj_dj(i,j))-grad(i)*dj(j)-grad(j)*dj(i))
-             if(ipr_opt.ge.-2) write(6,'(''i,j,top_j,bot_j,ratio='',i2,i3,1p2d11.3,0pf6.2)') i,j,top_j,bot_j,top_j/bot_j
+             if(ipr_opt.ge.-2) then
+               if(nparms.eq.0) then
+                 write(6,'(''i,j,top_j,bot_j,ratio='',i2,i3,1p2d11.3,0pf6.2)') i,j,top_j,bot_j,top_j/bot_j
+               else
+                 write(6,'(''i,j,top_j,bot_j='',2i5,2es23.14e3)') i,j,top_j,bot_j
+               endif
+             endif
              botsum_j=botsum_j+bot_j
              topsum_j=topsum_j+top_j
+             if(nparms.eq.1) botabs_j=botabs_j+abs(bot_j)
              check=(2*(2*(dj_dj_e(i,j)-eave*dj_dj(i,j)) &
      &             -grad(i)*dj(j)-grad(j)*dj(i)) &
      &             +dj_de(i,j)+dj_de(j,i)-(dj(i)*de(j)+dj(j)*de(i))/passes)
@@ -518,9 +536,27 @@
              endif
            endif
    25 continue
-      ratio_j=topsum_j/botsum_j
+      ratio_j=1.d0
+      if(nparms.eq.1) then
+! Fall back to the unrescaled Hessian if the rescaling ratio is undefined
+! or loses precision through cancellation. iopt=102 never needs this ratio.
+        use_uf_j=mod(iopt/100,10).eq.1
+        if(.not.use_uf_j) then
+          use_uf_j=.true.
+          if(ieee_is_finite(topsum_j).and.ieee_is_finite(botsum_j).and.ieee_is_finite(botabs_j)) then
+            if(abs(botsum_j).gt.sqrt(epsilon(1.d0))*max(botabs_j,abs(topsum_j))) then
+              ratio_j=topsum_j/botsum_j
+              use_uf_j=.not.ieee_is_finite(ratio_j)
+            endif
+          endif
+          if(use_uf_j.and.ipr_opt.ge.-4) &
+     &      write(6,'(a)') 'Ill-conditioned Jastrow Hessian rescaling; using the unrescaled Hessian.'
+        endif
+      else
+        if(nparmj.gt.0) ratio_j=topsum_j/botsum_j
+      endif
 !     ratio_csf_j=topsum_csf_j/botsum_csf_j
-      if(ipr_opt.ge.-4) write(6,'(''ratio_j,grad_norm,grad_var_norm='',f9.5,9f11.5)') ratio_j,grad_norm,grad_var_norm
+      if(ipr_opt.ge.-4) write(6,'(''ratio_j,grad_norm,grad_var_norm='',3es23.14e3)') ratio_j,grad_norm,grad_var_norm
 
 ! Note the "2" in 2*dj_dj_e(i,j) and 2*eave*dj_dj(i,j) is because d2j is not the
 ! second derivative of psi divided by psi, but rather the second derivative of the log of psi.
@@ -578,7 +614,7 @@
      &      -grad(i)*dj(j)-grad(j)*dj(i) ) &
      &      +dj_de(i,j)+dj_de(j,i)-(dj(i)*de(j)+dj(j)*de(i))/passes)/passes
            elseif(j.gt.nparmcsf+nparmot) then                                  ! i,j > nparmcsf
-            if(mod(iopt/100,10).eq.1) then ! do not rescale Hessian
+            if(mod(iopt/100,10).eq.1.or.use_uf_j) then ! do not rescale Hessian
               hess(i,j)=(2*( second_der + dj_dj_e(i,j)-eave*dj_dj(i,j) &
      &        -grad(i)*dj(j)-grad(j)*dj(i) ) &
      &        +dj_de(i,j)+dj_de(j,i)-(dj(i)*de(j)+dj(j)*de(i))/passes)/passes

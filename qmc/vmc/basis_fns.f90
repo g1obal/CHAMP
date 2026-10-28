@@ -674,6 +674,7 @@
       endif
 
       ic=1
+      dphin(3,:,nelec1:nelec2)=0.d0
 
       do ie=nelec1,nelec2
         x1=rvec_en(1,ie,ic) + cent(1,ic)
@@ -701,7 +702,6 @@
 
         enddo
       enddo
-
       return
       end
 !--------------------------------------------------------------------------
@@ -748,6 +748,8 @@
       nelec2=nelec
 
       ic=1
+      dphin(3,:,nelec1:nelec2)=0.d0
+      ddparam(3,:,:,nelec1:nelec2)=0.d0
       
       do ie=nelec1,nelec2
         x1=rvec_en(1,ie,ic) + cent(1,ic)
@@ -759,9 +761,6 @@
 ! I will however keep it this way in case we are interested in other
 ! application than crystals.
         do ib=1,nbasis
-          if(oparm(3,ib,iwf).lt.0.d0) then
-            stop 'oparm(3,ib,iwf).lt.0.d0 in deriv_2dgauss. '
-          endif
 ! pre-defined variables
           wez=we*oparm(3,ib,iwf)
           xg3i=1.d0/oparm(3,ib,iwf)
@@ -822,7 +821,6 @@
 
         enddo
       enddo
-
       return
       end
 
@@ -845,7 +843,8 @@
 
 ! Wave functions are given by:
 
-! For the central dot orbital (when xg1 < 1.d-6 / dsqrt(we)):
+! Central/ring identities are fixed at setup using the initial radius.
+! For a central dot orbital:
 ! phi = fnorm * exp(-we*xg3/2 * (x1^2 + x2^2))
 
 ! For the ring orbitals:
@@ -888,11 +887,11 @@
       endif
 
       ic=1
-      ! Scale-invariant cutoff for central orbital
-      xg1cut_pgs = 1.d-6 / dsqrt(we)
+      dphin(3,:,nelec1:nelec2)=0.d0
+      ! The central/ring mask is prepared once by initialize_gaussian_basis.
       
       ! >>> PHYSICAL WIGNER SCALING <<<
-      scale_r = we**(-2.d0/3.d0)
+      scale_r = gauss_scale_r
 
       do ie=nelec1,nelec2
         x1=rvec_en(1,ie,ic) + cent(1,ic)
@@ -910,7 +909,7 @@
           wez_pgs = we * xg3
           wt_pgs  = we * xg4
 
-          if (xg1we_pgs .lt. xg1cut_pgs) then
+          if (gauss_central(ib)) then
             ! --- STRICT ISOTROPIC CENTRAL DOT ---
             ! Uses exact 2D isotropic norm, ignores xg4 completely
             fnorm_pgs = dsqrt(wez_pgs)
@@ -964,18 +963,6 @@
 
         enddo
       enddo
-
-      phimax=maxval(abs(phin))
-
-      do ie=nelec1,nelec2
-        phicolmax=maxval(abs(phin(:,ie)))
-        if(phicolmax.lt.1.d-100*phimax) write(6,'(''Warning: ie, phicolmax, phimax='',i5,9e12.4)')  ie, phicolmax, phimax
-        if(phicolmax.eq.0.d0) then
-          write(6,'(''Warning stop: ie, phicolmax, phimax='',i5,9e12.4)')  ie, phicolmax, phimax
-          stop 'phicolmax = 0'
-        endif
-      enddo
-
       return
       end
 
@@ -1006,12 +993,13 @@
       nelec1=1
       nelec2=nelec
       ic=1
+      dphin(3,:,nelec1:nelec2)=0.d0
+      ddparam(3,:,:,nelec1:nelec2)=0.d0
       
-      ! Scale-invariant cutoff for central orbital
-      xg1cut_pgs = 1.d-6 / dsqrt(we)
+      ! The central/ring mask is prepared once by initialize_gaussian_basis.
       
       ! >>> PHYSICAL WIGNER SCALING <<<
-      scale_r = we**(-2.d0/3.d0)
+      scale_r = gauss_scale_r
 
       do ie=nelec1,nelec2
         x1=rvec_en(1,ie,ic) + cent(1,ic)
@@ -1029,7 +1017,7 @@
           wez_pgs = we * xg3
           wt_pgs  = we * xg4
 
-          if (xg1we_pgs .lt. xg1cut_pgs) then
+          if (gauss_central(ib)) then
             ! --- STRICT ISOTROPIC CENTRAL DOT ---
             fnorm_pgs = dsqrt(wez_pgs)
             c3_pgs = 0.5d0 / xg3
@@ -1175,7 +1163,6 @@
 
         enddo
       enddo
-      
       return
       end
 
@@ -1183,173 +1170,72 @@
 !-------------------------------------------------------------------------
 
       subroutine basis_fns_polargauss_damped(iel,rvec_en,r_en)
-! Written by Gokhan Oztarhan, Aug 2026
-
-! 2-dimensional damped polar Gaussian with Pure Angle and Fixed C-Damping.
-! Damping is strictly decoupled from the optimizable radial width.
-! Normalization factor explicitly removed for simplicity.
-
+! Central orbitals retain the original unnormalized isotropic Gaussian.
+! Ring orbitals use one shared evaluation for values and all spatial derivatives.
+      use all_tools_mod, only: die
       use atom_mod
       use coefs_mod
       use const_mod
       use wfsec_mod
       use phifun_mod
       use orbpar_mod
-      implicit real*8(a-h,o-z)
+      implicit none
+      integer :: ie,ib,first,last
+      integer :: iel
+      double precision :: rvec_en(3,nelec,*),r_en(nelec,*)
+      double precision :: x,y,r2,a,scale_r,p3,p3x,p3y,value,gradient(2),hessian(2,2)
+      double precision :: parameter_gradient(4),parameter_hessian(4,4),mixed(2,4),lap_parameter(4)
+      double precision :: w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3dot,p4,rring
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3dot,p4,rring
 
-      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
-
-      dimension rvec_en(3,nelec,*),r_en(nelec,*)
-
-      if(iel.eq.0) then
-        nelec1=1
-        nelec2=nelec
-      else
-        nelec1=iel
-        nelec2=iel
+      first=1
+      last=nelec
+      if(iel.gt.0) then
+        first=iel
+        last=iel
       endif
-
-      ic=1
-      xg1cut_pgs = 1.d-6 / dsqrt(we)
-      scale_r = we**(-2.d0/3.d0)
-
-      do ie=nelec1,nelec2
-        x1=rvec_en(1,ie,ic) + cent(1,ic)
-        x2=rvec_en(2,ie,ic) + cent(2,ic)
-        
-        r2_pgs = x1*x1 + x2*x2
-        r_pgs  = dsqrt(r2_pgs)
-        r3_pgs = r_pgs * r2_pgs
-
+! Coordinates change during sampling; the ring Hessian is undefined at r=0.
+      if(any(.not.gauss_central)) then
+        if(any(rvec_en(1,first:last,1).eq.-cent(1,1).and. &
+     &         rvec_en(2,first:last,1).eq.-cent(2,1))) &
+     &    call die ('damped polar ring: no unique Hessian at the origin')
+      endif
+      dphin(3,:,first:last)=0.d0
+      scale_r=gauss_scale_r
+      do ie=first,last
+        x=rvec_en(1,ie,1)+cent(1,1)
+        y=rvec_en(2,ie,1)+cent(2,1)
+        r2=x*x+y*y
         do ib=1,nbasis
-          xg1=oparm(1,ib,iwf)
-          xg1we_pgs = xg1 * scale_r
-          xg2=oparm(2,ib,iwf)
-          xg3=oparm(3,ib,iwf)
-          xg4=oparm(4,ib,iwf)
-
-          wez_pgs = we * xg3
-
-          if (xg1we_pgs .lt. xg1cut_pgs) then
-            ! --- STRICT ISOTROPIC CENTRAL DOT (UN-NORMALIZED) ---
-            phin(ib,ie) = dexp(-0.5d0*wez_pgs*r2_pgs)
-            
-            dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
-            dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
-            d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
-            
-            ! 2D HESSIANS
-            d2phin_xx(ib,ie) = wez_pgs*(wez_pgs*x1*x1 - 1.d0)*phin(ib,ie)
-            d2phin_yy(ib,ie) = wez_pgs*(wez_pgs*x2*x2 - 1.d0)*phin(ib,ie)
-            d2phin_xy(ib,ie) = wez_pgs*wez_pgs*x1*x2*phin(ib,ie)
-          
+          a=we*oparm(3,ib,iwf)
+          if(gauss_central(ib)) then
+            phin(ib,ie)=exp(-0.5d0*a*r2)
+            dphin(1,ib,ie)=-a*x*phin(ib,ie)
+            dphin(2,ib,ie)=-a*y*phin(ib,ie)
+            d2phin_xx(ib,ie)=a*(a*x*x-1.d0)*phin(ib,ie)
+            d2phin_yy(ib,ie)=a*(a*y*y-1.d0)*phin(ib,ie)
+            d2phin_xy(ib,ie)=a*a*x*y*phin(ib,ie)
+            d2phin(ib,ie)=d2phin_xx(ib,ie)+d2phin_yy(ib,ie)
           else
-            ! --- DAMPED POLAR GAUSSIAN (UN-NORMALIZED) ---
-            wt_pgs = xg4
-            
-            c0_pgs = dcos(xg2)
-            s0_pgs = dsin(xg2)
-            u0_pgs = x1*c0_pgs + x2*s0_pgs
-            
-            ! Hardcoded Damping crater targeting r = 1.0d-4 Bohr
-            !Cdamp_pgs = 1000.d0
-            gamma_damp = Cdamp_pgs * we
-            damp_arg = gamma_damp * r2_pgs
-            
-            ! Prevents dexp underflow
-            if (damp_arg .gt. 100.d0) then
-               ! Safe upper limit (prevents IEEE_UNDERFLOW_FLAG at large R)
-               ex_neg = 0.d0
-               hval_pgs = 0.d0
-               eX_H2_pgs = 0.d0
-               fdamp_pgs = 1.d0
-            elseif (damp_arg .lt. 1.d-8) then
-               ! Taylor expansion for r -> 0 (prevents 0/0 NaN crash)
-               ex_neg = 1.d0 - damp_arg ! or approximate if needed for consistency
-               fdamp_pgs = damp_arg
-               hval_pgs = 2.d0 / r2_pgs
-               eX_H2_pgs = 4.d0 / (r2_pgs * r2_pgs)
-            else
-               ! Standard evaluation
-               ex_neg = dexp(-damp_arg)
-               fdamp_pgs = 1.d0 - ex_neg
-               denom_pgs = 1.d0 - ex_neg
-               hval_pgs = 2.d0 * gamma_damp * ex_neg / denom_pgs
-               eX_H2_pgs = 4.d0 * gamma_damp * gamma_damp * ex_neg / (denom_pgs * denom_pgs)
-            endif
-            
-            E_val = -0.5d0 * wez_pgs * (r_pgs - xg1we_pgs)**2 &
-     &              + wt_pgs * (u0_pgs / r_pgs - 1.d0)
-            
-            phin(ib,ie) = fdamp_pgs * dexp(E_val)
-
-            dlapdamp_pgs = 2.d0 * hval_pgs - r2_pgs * eX_H2_pgs
-            
-            Pxdamp_pgs = x1 * hval_pgs
-            Pydamp_pgs = x2 * hval_pgs
-
-            PxE_pgs = -wez_pgs * x1 * (1.d0 - xg1we_pgs / r_pgs) &
-     &                + wt_pgs * (c0_pgs / r_pgs - u0_pgs * x1 / r3_pgs)
-            
-            PyE_pgs = -wez_pgs * x2 * (1.d0 - xg1we_pgs / r_pgs) &
-     &                + wt_pgs * (s0_pgs / r_pgs - u0_pgs * x2 / r3_pgs)
-            
-            dlapE_pgs = -wez_pgs * (2.d0 - xg1we_pgs / r_pgs) &
-     &                  - wt_pgs * u0_pgs / r3_pgs
-
-            Pxtot_pgs = Pxdamp_pgs + PxE_pgs
-            Pytot_pgs = Pydamp_pgs + PyE_pgs
-
-            dphin(1,ib,ie) = Pxtot_pgs * phin(ib,ie)
-            dphin(2,ib,ie) = Pytot_pgs * phin(ib,ie)
-            d2phin(ib,ie) = (dlapdamp_pgs + dlapE_pgs + Pxtot_pgs*Pxtot_pgs + Pytot_pgs*Pytot_pgs) * phin(ib,ie)
-          
-            ! 2D HESSIANS WITH DAMPING CHAIN RULE
-            dPxdamp_dx = hval_pgs - x1*x1 * eX_H2_pgs
-            dPydamp_dy = hval_pgs - x2*x2 * eX_H2_pgs
-            dPxdamp_dy = - x1*x2 * eX_H2_pgs
-            
-            dPxE_dx = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x1*x1/r3_pgs) &
-     &                + wt_pgs * ( -(2.d0*c0_pgs*x1 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x1*x1/(r_pgs*r3_pgs) )
-            dPyE_dy = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x2*x2/r3_pgs) &
-     &                + wt_pgs * ( -(2.d0*s0_pgs*x2 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x2*x2/(r_pgs*r3_pgs) )
-            dPxE_dy = -wez_pgs * (xg1we_pgs*x1*x2/r3_pgs) &
-     &                + wt_pgs * ( -(c0_pgs*x2 + s0_pgs*x1)/r3_pgs + 3.d0*u0_pgs*x1*x2/(r_pgs*r3_pgs) )
-     
-            dPx_dx_tot = dPxdamp_dx + dPxE_dx
-            dPy_dy_tot = dPydamp_dy + dPyE_dy
-            dPx_dy_tot = dPxdamp_dy + dPxE_dy
-            
-            d2phin_xx(ib,ie) = (dPx_dx_tot + Pxtot_pgs*Pxtot_pgs)*phin(ib,ie)
-            d2phin_yy(ib,ie) = (dPy_dy_tot + Pytot_pgs*Pytot_pgs)*phin(ib,ie)
-            d2phin_xy(ib,ie) = (dPx_dy_tot + Pxtot_pgs*Pytot_pgs)*phin(ib,ie)
+            call evaluate_damped_polar_gaussian(x,y,oparm(1,ib,iwf)*scale_r,oparm(2,ib,iwf), &
+     &        oparm(3,ib,iwf),oparm(4,ib,iwf),we,scale_r,value,gradient,hessian, &
+     &        parameter_gradient,parameter_hessian,mixed,lap_parameter,.false.)
+            phin(ib,ie)=value
+            dphin(1:2,ib,ie)=gradient
+            d2phin_xx(ib,ie)=hessian(1,1)
+            d2phin_yy(ib,ie)=hessian(2,2)
+            d2phin_xy(ib,ie)=hessian(1,2)
+            d2phin(ib,ie)=hessian(1,1)+hessian(2,2)
           endif
-
         enddo
       enddo
-
-      phimax=maxval(abs(phin))
-
-      do ie=nelec1,nelec2
-        phicolmax=maxval(abs(phin(:,ie)))
-        if(phicolmax.lt.1.d-100*phimax) write(6,'(''Warning: ie, phicolmax, phimax='',i5,9e12.4)')  ie, phicolmax, phimax
-        if(phicolmax.eq.0.d0) then
-          write(6,'(''Warning stop: ie, phicolmax, phimax='',i5,9e12.4)')  ie, phicolmax, phimax
-          stop 'phicolmax = 0'
-        endif
-      enddo
-
-      return
-      end
-
+      end subroutine basis_fns_polargauss_damped
 !-------------------------------------------------------------------------
 
       subroutine deriv_polargauss_damped(rvec_en,r_en)
-! Written by Gokhan Oztarhan, Aug 2026
-
-! Parameter derivatives for Damped Polar Gaussian.
-! Normalization factor and its derivatives explicitly removed.
-
+! Central orbitals retain the original unnormalized isotropic Gaussian.
+! Ring orbitals use one shared evaluation for values and all spatial derivatives.
+      use all_tools_mod, only: die
       use atom_mod
       use coefs_mod
       use const_mod
@@ -1357,230 +1243,69 @@
       use phifun_mod
       use orbpar_mod
       use deriv_phifun_mod
-      implicit real*8(a-h,o-z)
+      implicit none
+      integer :: ie,ib,first,last
+      double precision :: rvec_en(3,nelec,*),r_en(nelec,*)
+      double precision :: x,y,r2,a,scale_r,p3,p3x,p3y,value,gradient(2),hessian(2,2)
+      double precision :: parameter_gradient(4),parameter_hessian(4,4),mixed(2,4),lap_parameter(4)
+      double precision :: w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3dot,p4,rring
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3dot,p4,rring
 
-      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
-
-      dimension rvec_en(3,nelec,*),r_en(nelec,*)
-
-      nelec1=1
-      nelec2=nelec
-      ic=1
-      
-      xg1cut_pgs = 1.d-6 / dsqrt(we)
-      scale_r = we**(-2.d0/3.d0)
-
-      do ie=nelec1,nelec2
-        x1=rvec_en(1,ie,ic) + cent(1,ic)
-        x2=rvec_en(2,ie,ic) + cent(2,ic)
-        
-        r2_pgs = x1*x1 + x2*x2
-        r_pgs  = dsqrt(r2_pgs)
-        r3_pgs = r_pgs * r2_pgs
-
+      first=1
+      last=nelec
+! Coordinates change during sampling; the ring Hessian is undefined at r=0.
+      if(any(.not.gauss_central)) then
+        if(any(rvec_en(1,first:last,1).eq.-cent(1,1).and. &
+     &         rvec_en(2,first:last,1).eq.-cent(2,1))) &
+     &    call die ('damped polar ring: no unique Hessian at the origin')
+      endif
+      dphin(3,:,first:last)=0.d0
+      ddparam(3,:,:,first:last)=0.d0
+      scale_r=gauss_scale_r
+      do ie=first,last
+        x=rvec_en(1,ie,1)+cent(1,1)
+        y=rvec_en(2,ie,1)+cent(2,1)
+        r2=x*x+y*y
         do ib=1,nbasis
-          xg1=oparm(1,ib,iwf)
-          xg1we_pgs = xg1 * scale_r
-          xg2=oparm(2,ib,iwf)
-          xg3=oparm(3,ib,iwf)
-          xg4=oparm(4,ib,iwf)
-          
-          wez_pgs = we * xg3
-
-          if (xg1we_pgs .lt. xg1cut_pgs) then
-            ! --- STRICT ISOTROPIC CENTRAL DOT (UN-NORMALIZED) ---
-            phin(ib,ie) = dexp(-0.5d0*wez_pgs*r2_pgs)
-            dphin(1,ib,ie) = -wez_pgs * x1 * phin(ib,ie)
-            dphin(2,ib,ie) = -wez_pgs * x2 * phin(ib,ie)
-            d2phin(ib,ie)  = wez_pgs * (wez_pgs*r2_pgs - 2.d0) * phin(ib,ie)
-            
-            ! 2D HESSIANS
-            d2phin_xx(ib,ie) = wez_pgs*(wez_pgs*x1*x1 - 1.d0)*phin(ib,ie)
-            d2phin_yy(ib,ie) = wez_pgs*(wez_pgs*x2*x2 - 1.d0)*phin(ib,ie)
-            d2phin_xy(ib,ie) = wez_pgs*wez_pgs*x1*x2*phin(ib,ie)
-            
-            dparam(:,ib,ie) = 0.d0
-            d2param(:,:,ib,ie) = 0.d0
-            ddparam(:,:,ib,ie) = 0.d0
-            d2dparam(:,ib,ie) = 0.d0
-            
-            P3_pgs = -0.5d0 * we * r2_pgs
-            P3x_pgs = -we * x1
-            P3y_pgs = -we * x2
-            dlap3_pgs = -2.d0 * we
-            
-            dparam(3,ib,ie) = P3_pgs * phin(ib,ie)
-            d2param(3,3,ib,ie) = P3_pgs * dparam(3,ib,ie)
-            
-            ddparam(1,3,ib,ie) = P3x_pgs * phin(ib,ie) + P3_pgs * dphin(1,ib,ie)
-            ddparam(2,3,ib,ie) = P3y_pgs * phin(ib,ie) + P3_pgs * dphin(2,ib,ie)
-            
-            d2dparam(3,ib,ie) = (dlap3_pgs + 2.d0*(-wez_pgs*x1)*P3x_pgs + 2.d0*(-wez_pgs*x2)*P3y_pgs) * phin(ib,ie) &
-     &                        + P3_pgs * d2phin(ib,ie)
+          a=we*oparm(3,ib,iwf)
+          if(gauss_central(ib)) then
+            phin(ib,ie)=exp(-0.5d0*a*r2)
+            dphin(1,ib,ie)=-a*x*phin(ib,ie)
+            dphin(2,ib,ie)=-a*y*phin(ib,ie)
+            d2phin_xx(ib,ie)=a*(a*x*x-1.d0)*phin(ib,ie)
+            d2phin_yy(ib,ie)=a*(a*y*y-1.d0)*phin(ib,ie)
+            d2phin_xy(ib,ie)=a*a*x*y*phin(ib,ie)
+            d2phin(ib,ie)=d2phin_xx(ib,ie)+d2phin_yy(ib,ie)
+            dparam(:,ib,ie)=0.d0
+            d2param(:,:,ib,ie)=0.d0
+            ddparam(:,:,ib,ie)=0.d0
+            d2dparam(:,ib,ie)=0.d0
+            p3=-0.5d0*we*r2
+            p3x=-we*x
+            p3y=-we*y
+            dparam(3,ib,ie)=p3*phin(ib,ie)
+            d2param(3,3,ib,ie)=p3*dparam(3,ib,ie)
+            ddparam(1,3,ib,ie)=p3x*phin(ib,ie)+p3*dphin(1,ib,ie)
+            ddparam(2,3,ib,ie)=p3y*phin(ib,ie)+p3*dphin(2,ib,ie)
+            d2dparam(3,ib,ie)=(-2.d0*we+2.d0*a*we*r2)*phin(ib,ie)+p3*d2phin(ib,ie)
           else
-            ! --- DAMPED POLAR GAUSSIAN (UN-NORMALIZED) ---
-            wt_pgs = xg4
-            
-            c0_pgs = dcos(xg2)
-            s0_pgs = dsin(xg2)
-            
-            u0_pgs = x1*c0_pgs + x2*s0_pgs
-            v0_pgs = -x1*s0_pgs + x2*c0_pgs
-            
-            ! Hardcoded Damping crater targeting r = 1.0d-4 Bohr
-            !Cdamp_pgs = 1000.d0
-            gamma_damp = Cdamp_pgs * we
-            damp_arg = gamma_damp * r2_pgs
-            
-            ! Prevents dexp underflow
-            if (damp_arg .gt. 100.d0) then
-               ! Safe upper limit (prevents IEEE_UNDERFLOW_FLAG at large R)
-               ex_neg = 0.d0
-               hval_pgs = 0.d0
-               eX_H2_pgs = 0.d0
-               fdamp_pgs = 1.d0
-            elseif (damp_arg .lt. 1.d-8) then
-               ! Taylor expansion for r -> 0 (prevents 0/0 NaN crash)
-               ex_neg = 1.d0 - damp_arg ! or approximate if needed for consistency
-               fdamp_pgs = damp_arg
-               hval_pgs = 2.d0 / r2_pgs
-               eX_H2_pgs = 4.d0 / (r2_pgs * r2_pgs)
-            else
-               ! Standard evaluation
-               ex_neg = dexp(-damp_arg)
-               fdamp_pgs = 1.d0 - ex_neg
-               denom_pgs = 1.d0 - ex_neg
-               hval_pgs = 2.d0 * gamma_damp * ex_neg / denom_pgs
-               eX_H2_pgs = 4.d0 * gamma_damp * gamma_damp * ex_neg / (denom_pgs * denom_pgs)
-            endif
-            
-            E_val = -0.5d0 * wez_pgs * (r_pgs - xg1we_pgs)**2 &
-     &              + wt_pgs * (u0_pgs / r_pgs - 1.d0)
-            
-            phin(ib,ie) = fdamp_pgs * dexp(E_val)
-            
-            dlapdamp_pgs = 2.d0 * hval_pgs - r2_pgs * eX_H2_pgs
-            
-            Pxtot_pgs = x1 * hval_pgs - wez_pgs * x1 * (1.d0 - xg1we_pgs / r_pgs) &
-     &                  + wt_pgs * (c0_pgs / r_pgs - u0_pgs * x1 / r3_pgs)
-            
-            Pytot_pgs = x2 * hval_pgs - wez_pgs * x2 * (1.d0 - xg1we_pgs / r_pgs) &
-     &                  + wt_pgs * (s0_pgs / r_pgs - u0_pgs * x2 / r3_pgs)
-            
-            dlapE_pgs = -wez_pgs * (2.d0 - xg1we_pgs / r_pgs) - wt_pgs * u0_pgs / r3_pgs
-            
-            dphin(1,ib,ie) = Pxtot_pgs * phin(ib,ie)
-            dphin(2,ib,ie) = Pytot_pgs * phin(ib,ie)
-            d2phin(ib,ie) = (dlapdamp_pgs + dlapE_pgs + Pxtot_pgs*Pxtot_pgs + Pytot_pgs*Pytot_pgs) * phin(ib,ie)
-
-            ! 2D HESSIANS WITH DAMPING CHAIN RULE
-            dPxdamp_dx = hval_pgs - x1*x1 * eX_H2_pgs
-            dPydamp_dy = hval_pgs - x2*x2 * eX_H2_pgs
-            dPxdamp_dy = - x1*x2 * eX_H2_pgs
-            
-            dPxE_dx = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x1*x1/r3_pgs) &
-     &                + wt_pgs * ( -(2.d0*c0_pgs*x1 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x1*x1/(r_pgs*r3_pgs) )
-            dPyE_dy = -wez_pgs * (1.d0 - xg1we_pgs/r_pgs + xg1we_pgs*x2*x2/r3_pgs) &
-     &                + wt_pgs * ( -(2.d0*s0_pgs*x2 + u0_pgs)/r3_pgs + 3.d0*u0_pgs*x2*x2/(r_pgs*r3_pgs) )
-            dPxE_dy = -wez_pgs * (xg1we_pgs*x1*x2/r3_pgs) &
-     &                + wt_pgs * ( -(c0_pgs*x2 + s0_pgs*x1)/r3_pgs + 3.d0*u0_pgs*x1*x2/(r_pgs*r3_pgs) )
-     
-            dPx_dx_tot = dPxdamp_dx + dPxE_dx
-            dPy_dy_tot = dPydamp_dy + dPyE_dy
-            dPx_dy_tot = dPxdamp_dy + dPxE_dy
-            
-            d2phin_xx(ib,ie) = (dPx_dx_tot + Pxtot_pgs*Pxtot_pgs)*phin(ib,ie)
-            d2phin_yy(ib,ie) = (dPy_dy_tot + Pytot_pgs*Pytot_pgs)*phin(ib,ie)
-            d2phin_xy(ib,ie) = (dPx_dy_tot + Pxtot_pgs*Pytot_pgs)*phin(ib,ie)
-
-            ! 1st parameter derivatives (Normalization scalars stripped)
-            P1_pgs = wez_pgs * scale_r * (r_pgs - xg1we_pgs)
-            P2_pgs = wt_pgs * v0_pgs / r_pgs
-            P3_pgs = -0.5d0 * we * (r_pgs - xg1we_pgs)**2
-            P4_pgs = (u0_pgs / r_pgs - 1.d0)
-            
-            dparam(1,ib,ie) = P1_pgs * phin(ib,ie)
-            dparam(2,ib,ie) = P2_pgs * phin(ib,ie)
-            dparam(3,ib,ie) = P3_pgs * phin(ib,ie)
-            dparam(4,ib,ie) = P4_pgs * phin(ib,ie)
-            
-            ! 2nd parameter derivatives (Norm cross-terms zeroed)
-            P11_pgs = -wez_pgs * scale_r * scale_r
-            P13_pgs = we * scale_r * (r_pgs - xg1we_pgs)
-            P22_pgs = -wt_pgs * u0_pgs / r_pgs
-            P24_pgs = v0_pgs / r_pgs
-            P33_pgs = 0.d0
-            P44_pgs = 0.d0
-            
-            d2param(1,1,ib,ie) = P11_pgs * phin(ib,ie) + P1_pgs * dparam(1,ib,ie)
-            d2param(1,2,ib,ie) = P1_pgs * dparam(2,ib,ie)
-            d2param(1,3,ib,ie) = P13_pgs * phin(ib,ie) + P1_pgs * dparam(3,ib,ie)
-            d2param(1,4,ib,ie) = P1_pgs * dparam(4,ib,ie)
-            
-            d2param(2,2,ib,ie) = P22_pgs * phin(ib,ie) + P2_pgs * dparam(2,ib,ie)
-            d2param(2,3,ib,ie) = P2_pgs * dparam(3,ib,ie)
-            d2param(2,4,ib,ie) = P24_pgs * phin(ib,ie) + P2_pgs * dparam(4,ib,ie)
-            
-            d2param(3,3,ib,ie) = P33_pgs * phin(ib,ie) + P3_pgs * dparam(3,ib,ie)
-            d2param(3,4,ib,ie) = P3_pgs * dparam(4,ib,ie)
-            
-            d2param(4,4,ib,ie) = P44_pgs * phin(ib,ie) + P4_pgs * dparam(4,ib,ie)
-            
-            d2param(2,1,ib,ie) = d2param(1,2,ib,ie)
-            d2param(3,1,ib,ie) = d2param(1,3,ib,ie)
-            d2param(4,1,ib,ie) = d2param(1,4,ib,ie)
-            d2param(3,2,ib,ie) = d2param(2,3,ib,ie)
-            d2param(4,2,ib,ie) = d2param(2,4,ib,ie)
-            d2param(4,3,ib,ie) = d2param(3,4,ib,ie)
-            
-            ! Mixed spatial-parameter derivatives
-            P1x_pgs = wez_pgs * scale_r * x1 / r_pgs
-            P1y_pgs = wez_pgs * scale_r * x2 / r_pgs
-            
-            P2x_pgs = wt_pgs * (-s0_pgs / r_pgs - v0_pgs * x1 / r3_pgs)
-            P2y_pgs = wt_pgs * ( c0_pgs / r_pgs - v0_pgs * x2 / r3_pgs)
-            
-            P3x_pgs = -we * (1.d0 - xg1we_pgs / r_pgs) * x1
-            P3y_pgs = -we * (1.d0 - xg1we_pgs / r_pgs) * x2
-            
-            P4x_pgs = c0_pgs / r_pgs - u0_pgs * x1 / r3_pgs
-            P4y_pgs = s0_pgs / r_pgs - u0_pgs * x2 / r3_pgs
-            
-            ddparam(1,1,ib,ie) = P1x_pgs * phin(ib,ie) + P1_pgs * dphin(1,ib,ie)
-            ddparam(2,1,ib,ie) = P1y_pgs * phin(ib,ie) + P1_pgs * dphin(2,ib,ie)
-            
-            ddparam(1,2,ib,ie) = P2x_pgs * phin(ib,ie) + P2_pgs * dphin(1,ib,ie)
-            ddparam(2,2,ib,ie) = P2y_pgs * phin(ib,ie) + P2_pgs * dphin(2,ib,ie)
-            
-            ddparam(1,3,ib,ie) = P3x_pgs * phin(ib,ie) + P3_pgs * dphin(1,ib,ie)
-            ddparam(2,3,ib,ie) = P3y_pgs * phin(ib,ie) + P3_pgs * dphin(2,ib,ie)
-            
-            ddparam(1,4,ib,ie) = P4x_pgs * phin(ib,ie) + P4_pgs * dphin(1,ib,ie)
-            ddparam(2,4,ib,ie) = P4y_pgs * phin(ib,ie) + P4_pgs * dphin(2,ib,ie)
-            
-            ! Laplacians of parameter derivatives 
-            ! (dlap2_pgs negative sign mathematically corrected)
-            dlap1_pgs = wez_pgs * scale_r / r_pgs
-            dlap2_pgs = -wt_pgs * v0_pgs / r3_pgs
-            dlap3_pgs = -we * (2.d0 - xg1we_pgs / r_pgs)
-            dlap4_pgs = -u0_pgs / r3_pgs
-            
-            d2dparam(1,ib,ie) = (dlap1_pgs + 2.d0*Pxtot_pgs*P1x_pgs + 2.d0*Pytot_pgs*P1y_pgs) * phin(ib,ie) &
-     &                          + P1_pgs * d2phin(ib,ie)
-            d2dparam(2,ib,ie) = (dlap2_pgs + 2.d0*Pxtot_pgs*P2x_pgs + 2.d0*Pytot_pgs*P2y_pgs) * phin(ib,ie) &
-     &                          + P2_pgs * d2phin(ib,ie)
-            d2dparam(3,ib,ie) = (dlap3_pgs + 2.d0*Pxtot_pgs*P3x_pgs + 2.d0*Pytot_pgs*P3y_pgs) * phin(ib,ie) &
-     &                          + P3_pgs * d2phin(ib,ie)
-            d2dparam(4,ib,ie) = (dlap4_pgs + 2.d0*Pxtot_pgs*P4x_pgs + 2.d0*Pytot_pgs*P4y_pgs) * phin(ib,ie) &
-     &                          + P4_pgs * d2phin(ib,ie)
+            call evaluate_damped_polar_gaussian(x,y,oparm(1,ib,iwf)*scale_r,oparm(2,ib,iwf), &
+     &        oparm(3,ib,iwf),oparm(4,ib,iwf),we,scale_r,value,gradient,hessian, &
+     &        parameter_gradient,parameter_hessian,mixed,lap_parameter,.true.)
+            phin(ib,ie)=value
+            dphin(1:2,ib,ie)=gradient
+            d2phin_xx(ib,ie)=hessian(1,1)
+            d2phin_yy(ib,ie)=hessian(2,2)
+            d2phin_xy(ib,ie)=hessian(1,2)
+            d2phin(ib,ie)=hessian(1,1)+hessian(2,2)
+            dparam(:,ib,ie)=parameter_gradient
+            d2param(:,:,ib,ie)=parameter_hessian
+            ddparam(1:2,:,ib,ie)=mixed
+            d2dparam(:,ib,ie)=lap_parameter
           endif
-
         enddo
       enddo
-      
-      return
-      end
-
+      end subroutine deriv_polargauss_damped
 !-------------------------------------------------------------------------
 
       subroutine basis_fns_2dgauss_noncirc(iel,rvec_en,r_en)
@@ -3082,3 +2807,173 @@
       END SUBROUTINE show_large_q
 
 !**EndRM(3)
+
+!-----------------------------------------------------------------------
+      subroutine initialize_gaussian_basis
+! Establish central/ring identities once, after input and any initial sorting.
+! Ordinary VMC needs the same identities even when nparmot is zero.
+      use all_tools_mod
+      use coefs_mod
+      use optimo_mod
+      use orbpar_mod
+      use contrl_per_mod
+      use, intrinsic :: ieee_arithmetic
+      implicit none
+      integer :: ib,it,ip,ic,slave
+      double precision :: scale_r,cutoff
+      double precision :: w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+      common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
+      if(.not.ieee_is_finite(we)) call die ('initialize_gaussian_basis: non-finite frequency')
+      if(we.le.0.d0) call die ('initialize_gaussian_basis: frequency must be positive')
+      gauss_scale_r=we**(-2.d0/3.d0)
+      if(allocated(gauss_central)) deallocate(gauss_central)
+      allocate(gauss_central(nbasis))
+      gauss_central=.false.
+      if(.not.all(ieee_is_finite(oparm(:,:,1)))) call die ('initialize_gaussian_basis: non-finite parameter')
+      if(any(oparm(3,:,1).le.0.d0)) call die ('initialize_gaussian_basis: radial precision must be positive')
+      if(ibasis.eq.4) return
+      if(ibasis.ne.5.and.ibasis.ne.8) return
+      scale_r=gauss_scale_r
+      cutoff=1.d-6/sqrt(we)
+      gauss_central=oparm(1,:,1)*scale_r.lt.cutoff
+      if(any(oparm(1,:,1).lt.0.d0)) call die ('initialize_gaussian_basis: negative radius')
+      do ib=1,nbasis
+        if(gauss_central(ib)) cycle
+        if(oparm(4,ib,1).le.0.d0) call die ('initialize_gaussian_basis: angular/tangential parameter must be positive')
+      enddo
+      if(ibasis.eq.8) then
+        if(.not.ieee_is_finite(Cdamp_pgs)) call die ('initialize_gaussian_basis: non-finite damping')
+        if(Cdamp_pgs.le.0.d0) call die ('initialize_gaussian_basis: damping must be positive')
+      endif
+      if(nparmot.eq.0) return
+      do it=1,notype
+        if(it.eq.3) cycle
+        do ip=1,abs(nparmo(it))
+          if(gauss_central(iwo(ip,it))) then
+            write(6,'(a,2i6)') 'Inactive central parameter type and basis index: ',it,iwo(ip,it)
+            call die ('initialize_gaussian_basis: freeze central radius, angle and angular width')
+          endif
+        enddo
+        if(nparmo(it).ge.0) cycle
+        do ic=1,norb_constraints(it)
+          slave=orb_constraints(it,ic,1)
+          if(gauss_central(slave)) call die ('initialize_gaussian_basis: an inactive central parameter cannot be a slave')
+        enddo
+      enddo
+      end subroutine initialize_gaussian_basis
+
+
+!-----------------------------------------------------------------------
+      subroutine check_gaussian_basis(iwcheck)
+! Parameters stay fixed throughout one VMC calculation. Check each trial slot once.
+      use all_tools_mod
+      use coefs_mod
+      use orbpar_mod
+      use contrl_per_mod
+      use, intrinsic :: ieee_arithmetic
+      implicit none
+      integer iwcheck
+      if(.not.all(ieee_is_finite(oparm(:,:,iwcheck)))) &
+     &  call die ('check_gaussian_basis: non-finite parameter')
+      if(any(oparm(3,:,iwcheck).le.0.d0)) &
+     &  call die ('check_gaussian_basis: radial precision must be positive')
+      if(ibasis.eq.4) return
+      if(.not.allocated(gauss_central)) &
+     &  call die ('check_gaussian_basis: initialize_gaussian_basis was not called')
+      if(any(oparm(1,:,iwcheck).lt.0.d0)) &
+     &  call die ('check_gaussian_basis: radius must be nonnegative')
+      if(any(oparm(4,:,iwcheck).le.0.d0.and..not.gauss_central)) &
+     &  call die ('check_gaussian_basis: ring angular/tangential parameter must be positive')
+      end subroutine check_gaussian_basis
+
+!-----------------------------------------------------------------------
+subroutine evaluate_damped_polar_gaussian(x,y,radius,theta,zeta,kappa,frequency,scale_r, &
+                                           phi,gradient,hessian,par_grad,par_hess,mixed,lap_par,with_parameters)
+    ! Evaluate the original damped-polar ansatz for r>0. Products involving
+    ! (1-exp(-gamma*r*r))/r**2 are evaluated together, without singular log
+    ! derivatives or subtraction of large, nearly equal Laplacian terms.
+    use orbpar_mod
+    implicit none
+    double precision, intent(in) :: x,y,radius,theta,zeta,kappa,frequency,scale_r
+    double precision, intent(out) :: phi,gradient(2),hessian(2,2)
+    double precision, intent(out) :: par_grad(4),par_hess(4,4),mixed(2,4),lap_par(4)
+    logical, intent(in) :: with_parameters
+    double precision :: r,nx,ny,c,s,delta,a,gamma,t,exp_damp,damp,damp_over_r2
+    double precision :: damp_prime_over_r,damp_second,exponent,exp_e,er,et
+    double precision :: radial_first,radial_second,tangent_first,tangent_second,radial_tangent
+    double precision :: pp(4),qq(4,4),p_spatial(2,4),lap_phi,phi_over_r,phi_over_r2
+    integer :: i,j
+
+    phi=0.d0; gradient=0.d0; hessian=0.d0
+    par_grad=0.d0; par_hess=0.d0; mixed=0.d0; lap_par=0.d0
+    r=norm2([x,y])
+    nx=x/r; ny=y/r
+    c=nx*cos(theta)+ny*sin(theta)
+    s=-nx*sin(theta)+ny*cos(theta)
+    delta=r-radius
+    a=frequency*zeta
+    gamma=Cdamp_pgs*frequency
+    t=(gamma*r)*r
+    if(t.lt.1.d-4) then
+      damp_over_r2=gamma*(1.d0-t*(0.5d0-t*(1.d0/6.d0-t*(1.d0/24.d0-t/120.d0))))
+      damp=(r*damp_over_r2)*r
+      exp_damp=exp(-t)
+    elseif(t.gt.700.d0) then
+      damp=1.d0
+      damp_over_r2=(1.d0/r)/r
+      exp_damp=0.d0
+    else
+      exp_damp=exp(-t)
+      damp=1.d0-exp_damp
+      damp_over_r2=(damp/r)/r
+    endif
+    damp_prime_over_r=2.d0*gamma*exp_damp
+    damp_second=0.d0
+    if(exp_damp.ne.0.d0) damp_second=damp_prime_over_r*(1.d0-2.d0*t)
+    exponent=-0.5d0*a*delta*delta+kappa*(c-1.d0)
+    exp_e=exp(exponent)
+    phi=damp*exp_e
+    phi_over_r2=damp_over_r2*exp_e
+    phi_over_r=r*phi_over_r2
+    er=-a*delta
+    et=-kappa*s
+
+    radial_first=exp_e*(r*damp_prime_over_r+damp*er)
+    radial_second=exp_e*(damp_second+2.d0*r*damp_prime_over_r*er+damp*(er*er-a))
+    tangent_first=phi_over_r*et
+    tangent_second=exp_e*(damp_prime_over_r+r*damp_over_r2*er) &
+                     +phi_over_r2*(et*et-kappa*c)
+    radial_tangent=exp_e*(damp_prime_over_r+r*damp_over_r2*er-damp_over_r2)*et
+    gradient=[nx*radial_first-ny*tangent_first,ny*radial_first+nx*tangent_first]
+    hessian(1,1)=nx*nx*radial_second-2.d0*nx*ny*radial_tangent+ny*ny*tangent_second
+    hessian(2,2)=ny*ny*radial_second+2.d0*nx*ny*radial_tangent+nx*nx*tangent_second
+    hessian(1,2)=nx*ny*(radial_second-tangent_second)+(nx*nx-ny*ny)*radial_tangent
+    hessian(2,1)=hessian(1,2)
+    if(.not.with_parameters) return
+
+    pp=[a*scale_r*delta,kappa*s,-0.5d0*frequency*delta*delta,c-1.d0]
+    qq=0.d0
+    qq(1,1)=-a*scale_r*scale_r
+    qq(1,3)=frequency*scale_r*delta; qq(3,1)=qq(1,3)
+    qq(2,2)=-kappa*c
+    qq(2,4)=s; qq(4,2)=s
+    par_grad=pp*phi
+    do i=1,4
+      do j=1,4
+        par_hess(i,j)=(pp(i)*pp(j)+qq(i,j))*phi
+      enddo
+    enddo
+    p_spatial(:,1)=a*scale_r*[nx,ny]*phi
+    p_spatial(:,2)=kappa*c*[-ny,nx]*phi_over_r
+    p_spatial(:,3)=-frequency*delta*[nx,ny]*phi
+    p_spatial(:,4)=-s*[-ny,nx]*phi_over_r
+    do i=1,4
+      mixed(:,i)=pp(i)*gradient+p_spatial(:,i)
+    enddo
+    lap_phi=hessian(1,1)+hessian(2,2)
+    lap_par(1)=pp(1)*lap_phi+a*scale_r*(phi_over_r+2.d0*radial_first)
+    lap_par(2)=pp(2)*lap_phi+phi_over_r2*(-kappa*s+2.d0*kappa*c*et)
+    lap_par(3)=pp(3)*lap_phi-frequency*(2.d0*phi-radius*phi_over_r+2.d0*delta*radial_first)
+    lap_par(4)=pp(4)*lap_phi+phi_over_r2*(-c-2.d0*s*et)
+  end subroutine evaluate_damped_polar_gaussian
+

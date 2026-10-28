@@ -91,13 +91,10 @@
       exprk=dexp(-rk)
       sk2=sk*sk
 
-      dk=((rk+1)*exprk-1.d0)/sk2
+      call deriv_exp_scale(r,sk,exprk,dk,dk2,id)
       if(id.ge.1) then
         dr=-r*exprk
         dr2=(rk-1.d0)*exprk
-        if(id.eq.2) then
-          dk2=-rk*rk*exprk/(sk2*sk)-2/sk*dk
-        endif
       endif
 
       return
@@ -105,6 +102,42 @@
 
 !------------------------------------------------------------------------------
 
+      subroutine deriv_exp_scale(f,sk,expfk,dk,dk2,id)
+! Scale derivatives of (1-exp(-sk*f))/sk. The series avoids cancellation
+! of the first two derivatives when sk*f is small.
+      implicit real*8(a-h,o-z)
+
+      fk=sk*f
+      if(abs(fk).lt.0.1d0) then
+        dk=-f*f*(0.5d0+fk*(-1.d0/3+fk*(1.d0/8+fk*(-1.d0/30+ &
+     &    fk*(1.d0/144+fk*(-1.d0/840+fk*(1.d0/5760+fk*(-1.d0/45360+ &
+     &    fk*(1.d0/403200-fk/3991680)))))))))
+        if(id.eq.2) dk2=f*f*f*(1.d0/3+fk*(-1.d0/4+fk*(1.d0/10+fk*(-1.d0/36+ &
+     &    fk*(1.d0/168+fk*(-1.d0/960+fk*(1.d0/6480+fk*(-1.d0/50400+ &
+     &    fk*(1.d0/443520-fk/4354560)))))))))
+      else
+        sk2=sk*sk
+        dk=((fk+1)*expfk-1)/sk2
+        if(id.eq.2) dk2=-fk*fk*expfk/(sk2*sk)-2/sk*dk
+      endif
+      return
+      end
+
+!------------------------------------------------------------------------------
+      double precision function scale_exp_ratio(x)
+! Stable (1-exp(-x))/x for active scale optimization, including its limit at zero.
+      implicit real*8(a-h,o-z)
+      if(abs(x).lt.0.1d0) then
+        scale_exp_ratio=1.d0+x*(-0.5d0+x*(1.d0/6+x*(-1.d0/24+ &
+     &    x*(1.d0/120+x*(-1.d0/720+x*(1.d0/5040+x*(-1.d0/40320+ &
+     &    x*(1.d0/362880+x*(-1.d0/3628800+x/39916800)))))))))
+      else
+        scale_exp_ratio=(1.d0-exp(-x))/x
+      endif
+      return
+      end
+
+!------------------------------------------------------------------------------
       subroutine deriv_isc4(r,dk,dk2,dr,dr2,sk,id)
 
       implicit real*8(a-h,o-z)
@@ -143,15 +176,12 @@
         expfk=dexp(-fk)
         sk2=sk*sk
 
-        dk=((fk+1)*expfk-1)/sk2
+        call deriv_exp_scale(f,sk,expfk,dk,dk2,id)
         if(id.ge.1) then
           fp=1-2*rbyrc+rbyrc2
           fpp=2*cutjasi*(rbyrc-1)
           dr=-f*fp*expfk
           dr2=((fk-1)*fp*fp-f*fpp)*expfk
-          if(id.eq.2) then
-            dk2=-fk*fk*expfk/(sk2*sk)-2/sk*dk
-          endif
         endif
 
 ! perhaps following is redundant?
@@ -160,10 +190,7 @@
         rckby3=sk*cutjas*third
         exp=dexp(-rckby3)
 
-        dk=((rckby3+1)*exp-1)/(sk*sk)
-        if(id.eq.2) then
-          dk2=-rckby3*rckby3*exp/(sk*sk*sk)-2/sk*dk
-        endif
+        call deriv_exp_scale(third*cutjas,sk,exp,dk,dk2,id)
         dr=0
         dr2=0
 
@@ -281,15 +308,12 @@
       expfk=dexp(-fk)
       sk2=sk*sk
 
-      dk=((fk+1)*expfk-1)/sk2
+      call deriv_exp_scale(f,sk,expfk,dk,dk2,id)
       if(id.ge.1) then
         fp=2*r
         fpp=2
         dr=-f*fp*expfk
         dr2=((fk-1)*fp*fp-f*fpp)*expfk
-        if(id.eq.2) then
-          dk2=-fk*fk*expfk/(sk2*sk)-2/sk*dk
-        endif
       endif
 
       return
@@ -339,15 +363,12 @@
         expfk=dexp(-fk)
         sk2=sk*sk
 
-        dk=((fk+1)*expfk-1)/sk2
+        call deriv_exp_scale(f,sk,expfk,dk,dk2,id)
         if(id.ge.1) then
           fp=2*r*(1-2*rbyrc+rbyrc2)
           fpp=2*(1-4*rbyrc+3*rbyrc2)
           dr=-f*fp*expfk
           dr2=((fk-1)*fp*fp-f*fpp)*expfk
-          if(id.eq.2) then
-            dk2=-fk*fk*expfk/(sk2*sk)-2/sk*dk
-          endif
         endif
 
       else
@@ -356,10 +377,7 @@
         rckby3=sk*cutjas*third
         exp=dexp(-rckby3)
 
-        dk=((rckby3+1)*exp-1)/(sk*sk)
-        if(id.eq.2) then
-          dk2=-rckby3*rckby3*exp/(sk*sk*sk)-2/sk*dk
-        endif
+        call deriv_exp_scale(third*cutjas,sk,exp,dk,dk2,id)
         dr=0
         dr2=0
 

@@ -179,8 +179,13 @@
      & 'physical variable','average','rms error','rms','er*rt(pass)','sigma','','Tcor'
 
       if(nforce.eq.1) then
-        write(6,'("total E =        ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5,1x,f11.5,1x,f9.5,1x,"+-",1x,f9.5,1x,f8.2)') & !GO
-     &  efin,eerr,eerr*rtpass,eerr1*rtpass,sigma,error_sigma,tcsq*tcsq
+        if(abs(efin)>0.1d0) then
+          write(6,'("total E =        ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5,1x,f11.5,1x,f9.5,1x,"+-",1x,f9.5,1x,f8.2)') & !GO
+     &    efin,eerr,eerr*rtpass,eerr1*rtpass,sigma,error_sigma,tcsq*tcsq
+        else
+          write(6,'("total E =        ",1x,f14.9,1x,"+-",1x,f11.9,1x,f9.7,1x,f11.7,1x,f9.7,1x,"+-",1x,f9.7,1x,f8.2)') & !GO
+     &    efin,eerr,eerr*rtpass,eerr1*rtpass,sigma,error_sigma,tcsq*tcsq
+        endif
 
 !MS Jellium sphere
 ! eb_slf = Self-energy of the background charge
@@ -229,10 +234,17 @@
        &ifr,efin,eerr,eerr*rtpass,sigma,tcsq*tcsq
   110   write(6,'(''E_diff'',i3,'' ='',t13,f16.7,'' +-'',f11.7,f9.5)') &
      &  ifr,ffin,ferr,ferr*rtpass
-      write(6,'("potential E =    ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') pefin,peerr,peerr*rtpass !GO
-      write(6,'("interaction E =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') peifin,peierr,peierr*rtpass !GO
-      write(6,'("jf kinetic E =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tjffin,tjferr,tjferr*rtpass !GO
-      write(6,'("pb kinetic E =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tpbfin,tpberr,tpberr*rtpass !GO
+      if(abs(efin)>0.1d0) then
+        write(6,'("potential E =    ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') pefin,peerr,peerr*rtpass !GO
+        write(6,'("interaction E =  ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') peifin,peierr,peierr*rtpass !GO
+        write(6,'("jf kinetic E =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tjffin,tjferr,tjferr*rtpass !GO
+        write(6,'("pb kinetic E =   ",1x,f14.7,1x,"+-",1x,f11.7,1x,f9.5)') tpbfin,tpberr,tpberr*rtpass !GO
+      else
+        write(6,'("potential E =    ",1x,f14.9,1x,"+-",1x,f11.9,1x,f9.7)') pefin,peerr,peerr*rtpass !GO
+        write(6,'("interaction E =  ",1x,f14.9,1x,"+-",1x,f11.9,1x,f9.7)') peifin,peierr,peierr*rtpass !GO
+        write(6,'("jf kinetic E =   ",1x,f14.9,1x,"+-",1x,f11.9,1x,f9.7)') tjffin,tjferr,tjferr*rtpass !GO
+        write(6,'("pb kinetic E =   ",1x,f14.9,1x,"+-",1x,f11.9,1x,f9.7)') tpbfin,tpberr,tpberr*rtpass !GO
+      endif
 !JT         write(6,'(a,f12.7,a,f11.7)') 'Potential energy    =',pefin,' +-',peerr
 !JT         write(6,'(a,f12.7,a,f11.7)') 'Kinetic energy (JF) =',tjffin,' +-',tjferr
 !JT         write(6,'(a,f12.7,a,f11.7)') 'Kinetic energy (PB) =',tpbfin,' +-',tpberr

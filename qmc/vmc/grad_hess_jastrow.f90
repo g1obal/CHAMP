@@ -518,7 +518,7 @@
                if(nparms.eq.0) then
                  write(6,'(''i,j,top_j,bot_j,ratio='',i2,i3,1p2d11.3,0pf6.2)') i,j,top_j,bot_j,top_j/bot_j
                else
-                 write(6,'(''i,j,top_j,bot_j='',2i5,2es23.14e3)') i,j,top_j,bot_j
+                 write(6,'(''i,j,top_j,bot_j='',2i5,2es11.3)') i,j,top_j,bot_j
                endif
              endif
              botsum_j=botsum_j+bot_j
@@ -556,7 +556,7 @@
         if(nparmj.gt.0) ratio_j=topsum_j/botsum_j
       endif
 !     ratio_csf_j=topsum_csf_j/botsum_csf_j
-      if(ipr_opt.ge.-4) write(6,'(''ratio_j,grad_norm,grad_var_norm='',3es23.14e3)') ratio_j,grad_norm,grad_var_norm
+      if(ipr_opt.ge.-4) write(6,'(''ratio_j,grad_norm,grad_var_norm='',3es11.3)') ratio_j,grad_norm,grad_var_norm
 
 ! Note the "2" in 2*dj_dj_e(i,j) and 2*eave*dj_dj(i,j) is because d2j is not the
 ! second derivative of psi divided by psi, but rather the second derivative of the log of psi.

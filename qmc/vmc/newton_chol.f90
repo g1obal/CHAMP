@@ -93,7 +93,7 @@
           renorm_ovlp(i)=sqrt(ovlp(i,i))
         endif
    10 continue
-      if(ipr_opt.ge.1)  write(6,'(/,''renorm_ovlp='',100es23.14e3)') (renorm_ovlp(i),i=1,nparmp1)
+      if(ipr_opt.ge.1)  write(6,'(/,''renorm_ovlp='',100es11.3)') (renorm_ovlp(i),i=1,nparmp1)
 
 
 ! Linear method quantities
@@ -136,12 +136,12 @@
         write(6,'(/,''Hamiltonian and overlap matrices after renormalization'')')
         do 150 i=1,nparmp1
 ! 150     write(6,'(''ovlp='',20g12.4)') (ovlp(i,j),j=1,i)
-  150     write(6,'(''ovlp='',20es23.14e3)') (ovlp(i,j),j=1,i)
+  150     write(6,'(''ovlp='',20es11.3)') (ovlp(i,j),j=1,i)
         write(6,*)
 
         do 160 i=1,nparmp1
 ! 160     write(6,'(''ham='',20g12.4)') (ham(i,j),j=1,nparmp1)
-  160     write(6,'(''ham='',20es23.14e3)') (ham(i,j),j=1,nparmp1)
+  160     write(6,'(''ham='',20es11.3)') (ham(i,j),j=1,nparmp1)
         write(6,*)
       endif
       write(6,'(/,''diagonal H/O'',9f9.4)') (ham(i,i)/ovlp(i,i),i=1,nparmp1)
@@ -168,7 +168,7 @@
       if(.not.all(ieee_is_finite(grad_sav)).or..not.all(ieee_is_finite(hess_sav))) &
      &  call die ('ham_ovlp_grad_hess: non-finite normalized gradient/Hessian')
       grad_opt_norm=norm2(grad_sav)
-      if(ipr_opt.ge.-4) write(6,'(''grad_opt_norm='',9es23.14e3)') grad_opt_norm
+      if(ipr_opt.ge.-4) write(6,'(''grad_opt_norm='',9es11.3)') grad_opt_norm
 
       do 220 i=1,nparm
         grad(i)=grad_sav(i)
@@ -374,13 +374,13 @@
         do 30 j=1,nparm
    30     grad_cal(i)=grad_cal(i)+hess(i,j)*grad(j)
       dparm_norm=norm2(dparm)/sqrt(dble(nparm))
-!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9es23.14e3)')
-      if(ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,es23.14e3)') &
+!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9es11.3)')
+      if(ipr_opt.ge.-4) write(6,'(''newton_chol: iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,es11.3)') &
      &iadd_diag,add_diag(iadd_diag),dparm_norm
       if(ipr_eigs.ge.1 .and. ipr_opt.ge.1) write(6,'(''grad_cal='',9g12.4)') (grad_cal(i),i=1,nparm)
-!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',100es23.14e3)') (dparm(i),i=1,nparm)
+!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',100es11.3)') (dparm(i),i=1,nparm)
 
-      write(6,'(''dparm='',100es23.14e3)') (dparm(i),i=1,nparm)
+      write(6,'(''dparm='',100es11.3)') (dparm(i),i=1,nparm)
 
       do 40 i=1,nparm
         if(renorm_ovlp(i+1).lt.1.d0) then
@@ -390,11 +390,11 @@
       if(.not.all(ieee_is_finite(dparm))) goto 99
       if(ipr_opt.ge.-4) then
         imax_newton=maxloc(abs(dparm),1)
-        write(6,'(a,es12.4,a,i6,a,es12.4)') 'Physical step RMS=',norm2(dparm/sqrt(dble(nparm))), &
+        write(6,'(a,es11.3,a,i6,a,es11.3)') 'Physical step RMS=',norm2(dparm/sqrt(dble(nparm))), &
      &    ', largest component=',imax_newton,', value=',dparm(imax_newton)
       endif
 
-      write(6,'(''dparm='',100es23.14e3)') (dparm(i),i=1,nparm)
+      write(6,'(''dparm='',100es11.3)') (dparm(i),i=1,nparm)
 
       iflag=0
 ! Restore grad and hess to original value
@@ -405,7 +405,7 @@
    95     hess(i,j)=hess_sav(i,j)
 
       return
-   99 write(6,'(a,i6,a,es12.4)') 'Newton solve rejected, pivot=',ierr,', add_diag=',add_diag(iadd_diag)
+   99 write(6,'(a,i6,a,es11.3)') 'Newton solve rejected, pivot=',ierr,', add_diag=',add_diag(iadd_diag)
       iflag=1
       dparm=0.d0
       goto 94
@@ -516,10 +516,10 @@
       do 30 i=1,nparm
    30   dparm_norm=dparm_norm+dparm(i)**2
       dparm_norm=sqrt(dparm_norm/nparm)
-      if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''perturbation:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,es23.14e3)') &
+      if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''perturbation:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,es11.3)') &
      &iadd_diag,add_diag(iadd_diag),dparm_norm
-!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',100es23.14e3)') (dparm(i),i=1,nparm)
-      write(6,'(''dparm='',100es23.14e3)') (dparm(i),i=1,nparm)
+!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',100es11.3)') (dparm(i),i=1,nparm)
+      write(6,'(''dparm='',100es11.3)') (dparm(i),i=1,nparm)
 
 ! Restore grad to original value
 !     do 92 i=1,nparm
@@ -743,7 +743,7 @@
         do 28 i=nparmcsf+2,nparmp1
           term1=coef(1,i0)*ovlp_orig(1,i)
           term2=coef(1,i0)*ovlp_orig(1,1)
-          write(6,'(''term1,term2,ovlp_orig(1,i),ovlp_orig(i,1)'',9es23.14e3)') term1,term2,ovlp_orig(1,i),ovlp_orig(i,1)
+          write(6,'(''term1,term2,ovlp_orig(1,i),ovlp_orig(i,1)'',9es11.3)') term1,term2,ovlp_orig(1,i),ovlp_orig(i,1)
 ! Warning: First I had 2, then nparmcsf+2, now there is a switch
           if(mod(iopt/10000,10).eq.4) then
             iparm_min=nparmcsf+2
@@ -753,7 +753,7 @@
 !         do 27 j=2,nparmp1
 !         do 27 j=nparmcsf+2,nparmp1
           do 27 j=iparm_min,nparmp1
-!           write(6,'(''coef(j,i0),ovlp_orig(i,j),ovlp_orig(1,j),coef(j,i0)*ovlp_orig(i,j),term1,term2'',9es23.14e3)')
+!           write(6,'(''coef(j,i0),ovlp_orig(i,j),ovlp_orig(1,j),coef(j,i0)*ovlp_orig(i,j),term1,term2'',9es11.3)')
 !    &      coef(j,i0),ovlp_orig(i,j),ovlp_orig(1,j),coef(j,i0)*ovlp_orig(i,j),term1,term2
             term1=term1+coef(j,i0)*ovlp_orig(i,j)
    27       term2=term2+coef(j,i0)*ovlp_orig(1,j)
@@ -764,7 +764,7 @@
       endif
       write(6,'(''eigv  '',f10.3)') eigv(i0)
       write(6,'(''coef0,dnorm1,dnorm2 '',9f16.11)') coef(1,i0),dnorm1,dnorm2
-!     write(6,'(''dparm '',100es23.14e3)') (coef(i,i0)*dnorm1,i=2,nparmp1)
+!     write(6,'(''dparm '',100es11.3)') (coef(i,i0)*dnorm1,i=2,nparmp1)
       write(6,*)
 
       call alloc ('dparm', dparm, nparm)
@@ -787,10 +787,10 @@
       do 60 iparm=1,nparm
    60   dparm_norm=dparm_norm+dparm(iparm)**2
       dparm_norm=sqrt(dparm_norm/nparm)
-!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,es23.14e3)')
-      if(ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9es23.14e3)') &
+!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.2,es11.3)')
+      if(ipr_opt.ge.-4) write(6,'(''linear:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9es11.3)') &
      &iadd_diag,add_diag(iadd_diag),dparm_norm
-      write(6,'(''dparm='',100es23.14e3)') (dparm(i),i=1,nparm)
+      write(6,'(''dparm='',100es11.3)') (dparm(i),i=1,nparm)
 
 ! Restore ham and ovlp to original value
       do 95 i=1,nparmp1
@@ -874,7 +874,7 @@
 !       do 30 j=1,nparm
 !  30     grad_cal(i)=grad_cal(i)+hess(i,j)*grad(j)
 !     dparm_norm=sqrt(dparm_norm/nparm)
-!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9es23.14e3)')
+!     if(ipr_eigs.ge.1 .and. ipr_opt.ge.-4) write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,9es11.3)')
 !    &iadd_diag,add_diag(iadd_diag),dparm_norm
 !     if(ipr_eigs.ge.1 .and. ipr_opt.ge.1) write(6,'(''grad_cal='',9g12.4)') (grad_cal(i),i=1,nparm)
 !     if(ipr_eigs.ge.1 .and. ipr_opt.ge.0) write(6,'(''dparm='',9f15.9)') (dparm(i),i=1,nparm)
@@ -986,7 +986,7 @@
         if(scalek(iadd_diag).le.0.d0) goto 900
         dparm_norm=abs(dparm(nparmcsf+nparmot+1))
         if(dparm_norm.gt.min(.1d0,.5d0*upd_scale_ref)) then
-          write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es23.14e3, &
+          write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es11.3, &
      &    '' iflag=1. This is a bad move because the scalek change exceeds min(0.1,0.5*scalek_ref)'')') &
      &    iadd_diag,add_diag(iadd_diag),dparm_norm
           goto 900
@@ -1011,7 +1011,7 @@
         dparm_norm=sqrt(dparm_norm/nparmcsf)
         if(dparm_norm.gt.1.d0) then
           iflag=1
-          write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es23.14e3, &
+          write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es11.3, &
      &    '' iflag=1 This is a bad move because dparm_norm>1 for csf params'')') iadd_diag,add_diag(iadd_diag),dparm_norm
         endif
       endif
@@ -1048,13 +1048,13 @@
           if(ibasis.eq.5 .or. ibasis.eq.8) then
             if(dparm_norm .gt. 0.5d0) then
               iflag=1
-              write(6,'(''iadd_diag='',i2,'' dparm_norm='',es23.14e3, &
+              write(6,'(''iadd_diag='',i2,'' dparm_norm='',es11.3, &
      &        '' iflag=1. Bad move: dparm_norm > 0.5 for otype 1 params'')') iadd_diag, dparm_norm
             endif
           else
             if(dparm_norm.gt.1/(3*scalek(iadd_diag))) then
               iflag=1
-              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es23.14e3, &
+              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es11.3, &
      &        '' iflag=1. This is a bad move because dparm_norm>1/3scalek for otype 1 params'')') &
      &      iadd_diag,add_diag(iadd_diag),dparm_norm
             endif
@@ -1070,13 +1070,13 @@
           if(ibasis.eq.5 .or. ibasis.eq.8) then
             if(dparm_norm .gt. 0.5d0) then
               iflag=1
-              write(6,'(''iadd_diag='',i2,'' dparm_norm='',es23.14e3, &
+              write(6,'(''iadd_diag='',i2,'' dparm_norm='',es11.3, &
      &        '' iflag=1. Bad move: dparm_norm > 0.5 for otype 2 params'')') iadd_diag, dparm_norm
             endif
           elseif(ibasis.eq.4 .or. ibasis.eq.6 .or. ibasis.eq.7) then
             if(dparm_norm.gt.1/(3*scalek(iadd_diag))) then
               iflag=1
-              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es23.14e3, &
+              write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es11.3, &
      &        '' iflag=1. This is a bad move because dparm_norm>1/3scalek for otype 2 params'')') &
      &        iadd_diag,add_diag(iadd_diag),dparm_norm
             endif
@@ -1096,7 +1096,7 @@
           dparm_norm = sqrt(dparm_norm / abs(nparmo(3)))
           if(dparm_norm .gt. 0.5d0) then
             iflag=1
-            write(6,'(''iadd_diag='',i2,'' dparm_norm='',es23.14e3, &
+            write(6,'(''iadd_diag='',i2,'' dparm_norm='',es11.3, &
      &      '' iflag=1. Bad move: dparm_norm > 0.5 for otype 3 params'')') iadd_diag, dparm_norm
           endif
           ! Limit each width step as well as the RMS; do not bound its absolute value.
@@ -1121,7 +1121,7 @@
             dparm_norm = sqrt(dparm_norm / abs(nparmo(4)))
             if(dparm_norm .gt. 0.5d0) then
               iflag=1
-              write(6,'(''iadd_diag='',i2,'' dparm_norm='',es23.14e3, &
+              write(6,'(''iadd_diag='',i2,'' dparm_norm='',es11.3, &
      &        '' iflag=1. Bad move: dparm_norm > 0.5 for otype 4 params'')') iadd_diag, dparm_norm
             endif
             ! Limit each width step as well as the RMS; do not bound its absolute value.
@@ -1150,7 +1150,7 @@
         if((ndim.eq.3 .and. dparm_norm.gt.max(10.d0,1.d0/(5*scalek(iadd_diag)))) .or. &
      &     (ndim.eq.2 .and. dparm_norm.gt.max(500.d0,1.d0/(5*scalek(iadd_diag))))) then
           iflag=1
-          write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es23.14e3, &
+          write(6,'(''iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es11.3, &
      &    '' iflag=1. This is a bad move because dparm_norm > 10 or 500 (ndim=3,2) or 1/5*scalek for jastrow params'')') &
      &    iadd_diag,add_diag(iadd_diag),dparm_norm
         endif
@@ -1165,7 +1165,7 @@
       dparm_norm=sqrt(dparm_norm/nparm)
       if((ndim.eq.3 .and. dparm_norm.gt.10.d0) .or. (ndim.eq.2 .and. dparm_norm.gt.500.d0)) then
         iflag=1
-        write(6,'(''update_params:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es23.14e3, &
+        write(6,'(''update_params:iadd_diag,add_diag(iadd_diag),dparm_norm='',i2,d12.4,es11.3, &
      &  '' iflag=1 This is a bad move because dparm_norm>10 or 500 (ndim=3,2)'')') iadd_diag,add_diag(iadd_diag),dparm_norm
       endif
 
@@ -1415,7 +1415,7 @@
       a4(:,:,iadd_diag)=upd_a_old
       b(:,:,iadd_diag)=upd_b_old
       c(:,:,iadd_diag)=upd_c_old
-      write(6,'(a,i3,a,es12.4)') 'update_params: rejected trial restored, slot=',iadd_diag, &
+      write(6,'(a,i3,a,es11.3)') 'update_params: rejected trial restored, slot=',iadd_diag, &
      &  ', add_diag=',add_diag(iadd_diag)
       return
       end

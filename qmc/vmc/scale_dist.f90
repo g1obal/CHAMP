@@ -231,15 +231,15 @@
    35     asymp_jasb(i,iw)=sspinn*asymp_jasb(i,iw)
       endif
       if((ijas.eq.4.or.ijas.eq.5).and.ipr.ge.0) then
-        write(6,'(''ifr,asymp_r_en,asymp_r_ee='',i2,2es23.14e3)') iw,asymp_r_en(iw),asymp_r_ee(iw)
-        write(6,'(''ifr,asympa='',i2,10es23.14e3)') iw,(asymp_jasa(it,iw),it=1,nctype)
-        write(6,'(''ifr,asympb='',i2,10es23.14e3)') iw,(asymp_jasb(i,iw),i=1,2)
-        write(6,'(''ifr,dasymp_r_en,dasymp_r_ee='',i2,2es23.14e3)') iw,dasymp_r_en(iw),dasymp_r_ee(iw)
-        write(6,'(''ifr,dasympa='',i2,10es23.14e3)') iw,(dasymp_jasa(it,iw),it=1,nctype)
-        write(6,'(''ifr,dasympb='',i2,10es23.14e3)') iw,(dasymp_jasb(i,iw),i=1,2)
-        write(6,'(''ifr,d2asymp_r_en,d2asymp_r_ee='',i2,2es23.14e3)') iw,d2asymp_r_en(iw),d2asymp_r_ee(iw)
-        write(6,'(''ifr,d2asympa='',i2,10es23.14e3)') iw,(d2asymp_jasa(it,iw),it=1,nctype)
-        write(6,'(''ifr,d2asympb='',i2,10es23.14e3)') iw,(d2asymp_jasb(i,iw),i=1,2)
+        write(6,'(''ifr,asymp_r_en,asymp_r_ee='',i2,2es11.3)') iw,asymp_r_en(iw),asymp_r_ee(iw)
+        write(6,'(''ifr,asympa='',i2,10es11.3)') iw,(asymp_jasa(it,iw),it=1,nctype)
+        write(6,'(''ifr,asympb='',i2,10es11.3)') iw,(asymp_jasb(i,iw),i=1,2)
+        write(6,'(''ifr,dasymp_r_en,dasymp_r_ee='',i2,2es11.3)') iw,dasymp_r_en(iw),dasymp_r_ee(iw)
+        write(6,'(''ifr,dasympa='',i2,10es11.3)') iw,(dasymp_jasa(it,iw),it=1,nctype)
+        write(6,'(''ifr,dasympb='',i2,10es11.3)') iw,(dasymp_jasb(i,iw),i=1,2)
+        write(6,'(''ifr,d2asymp_r_en,d2asymp_r_ee='',i2,2es11.3)') iw,d2asymp_r_en(iw),d2asymp_r_ee(iw)
+        write(6,'(''ifr,d2asympa='',i2,10es11.3)') iw,(d2asymp_jasa(it,iw),it=1,nctype)
+        write(6,'(''ifr,d2asympb='',i2,10es11.3)') iw,(d2asymp_jasb(i,iw),i=1,2)
       endif
 
       return

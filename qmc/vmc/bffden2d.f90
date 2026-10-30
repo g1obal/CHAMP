@@ -62,7 +62,8 @@
       n_skip_bff = 0
       do iring = 1, nrings_bff
          m_shell = conf_bff(iring)
-         if (m_shell .gt. 1) then
+         ! For a singleton this gives |Q_1|=1, which carries no ordering information.
+         if (m_shell .gt. 0) then
             C_o = 0.d0; S_o = 0.d0
             C_n = 0.d0; S_n = 0.d0
             do k = 1, m_shell
@@ -136,12 +137,12 @@
          dTheta_o_bff = Thetaout_o_bff - Thetain_o_bff
          dTheta_n_bff = Thetaout_n_bff - Thetain_n_bff
 
-         ! Wrap rigidly to [-pi/M_bff, pi/M_bff] using modulo to fold the convolution tails
-         dTheta_o_bff = modulo(dTheta_o_bff + pi/dble(M_bff), 2.d0*pi/dble(M_bff)) - pi/dble(M_bff)
-         dTheta_n_bff = modulo(dTheta_n_bff + pi/dble(M_bff), 2.d0*pi/dble(M_bff)) - pi/dble(M_bff)
+         ! Fold by the common harmonic of these two rings, not the selected BFF ring.
+         dTheta_o_bff = modulo(dTheta_o_bff + pi/dble(M_ir_bff), 2.d0*pi/dble(M_ir_bff)) - pi/dble(M_ir_bff)
+         dTheta_n_bff = modulo(dTheta_n_bff + pi/dble(M_ir_bff), 2.d0*pi/dble(M_ir_bff)) - pi/dble(M_ir_bff)
 
-         ! Set binning range to the modulo bounds (adds 5% padding to eliminate empty zeros)
-         range_half_bff = pi / dble(M_bff)
+         ! Set binning range to the modulo bounds.
+         range_half_bff = pi / dble(M_ir_bff)
 
          ibin_o_bff = int((dTheta_o_bff + range_half_bff) / (2.d0 * range_half_bff) * NIRBINS_bff) + 1
          if (ibin_o_bff .lt. 1) ibin_o_bff = 1
@@ -157,12 +158,9 @@
       ! ---------------------------------------------------------
       ! M-fold Target Angle & Coordinate Transformation
       ! ---------------------------------------------------------
-      n_skip_bff = 0
-      do i = 1, nrings_bff
-         if (conf_bff(i) .eq. M_bff) exit
-         n_skip_bff = n_skip_bff + conf_bff(i)
-      end do
-      if (n_skip_bff + M_bff .gt. nelec) n_skip_bff = 0 
+      ! conf_bff is ordered from the innermost to the outermost radial shell.
+      ! Equal shell populations are distinguished by ring_id_bff.
+      n_skip_bff = sum(conf_bff(1:ring_id_bff-1))
 
       C_o = 0.d0; S_o = 0.d0
       C_n = 0.d0; S_n = 0.d0

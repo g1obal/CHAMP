@@ -69,6 +69,7 @@
       character*80000 input_line
       
       logical insidelist !GO
+      integer :: ibff_a, ibff_b, ibff_rem
 
       common /dot/ w0,we,bext,emag,emaglz,emagsz,glande,p1,p2,p3,p4,rring
       common /cyldot/ cyldot_v, cyldot_s, cyldot_rho !GO
@@ -88,7 +89,7 @@
 !     namelist /opt_list/ igradhess
       namelist /opt_list/ iring_coulomb, iantiferromagnetic, iper_gaussian_type, xmax,xfix,fmax1,fmax2,rring,ifixe,nv,idot,ifourier &
      &,iperturb,ang_perturb,amp_perturb,shrp_perturb,omg_perturb,rmin,rmax,nmeshr,nmesht,icoosys,dot_bump_height,dot_bump_radius &
-     &,nmeshk1,izigzag,zzdelyr,gndot_k,oparm3_max,oparm3_min,Cdamp_pgs,M_bff,nrings_bff,conf_bff,icalc_L2,icalc_S2
+     &,nmeshk1,izigzag,zzdelyr,gndot_k,oparm3_max,oparm3_min,Cdamp_pgs,ring_id_bff,nrings_bff,conf_bff,icalc_L2,icalc_S2
 
       common /jel_sph1/ dn_background,rs_jel,radius_b ! RM
 
@@ -1573,7 +1574,9 @@
       oparm3_max = huge(oparm3_max) ! GO
       oparm3_min = -huge(oparm3_min) ! GO
       Cdamp_pgs = 1000 !GO
-      M_bff = 0 ! Default values for M-fold BFF density ! GO
+      ring_id_bff = 0 ! Zero disables BFF density; shells are numbered inside out.
+      M_bff = 0 ! Derived from conf_bff(ring_id_bff) after reading the input.
+      M_ir_bff = 0
       nrings_bff = 0 ! Default values for M-fold BFF density ! GO
       conf_bff = 0 ! Default values for M-fold BFF density ! GO
       icalc_L2 = 0
@@ -1591,6 +1594,34 @@
         write(6,'(/,a30,/)') section
         read(5,opt_list)
         write(6,opt_list)
+      endif
+
+! Check the fixed BFF setup once, before sampling or indexing the shell list.
+      if(ring_id_bff.lt.0) stop 'ring_id_bff must be zero or a positive shell index'
+      if(ring_id_bff.gt.0) then
+        if(ndim.ne.2.or.iperiodic.ne.0) stop 'BFF density requires a nonperiodic 2D system'
+        if(icoosys.ne.1) stop 'BFF density requires the Cartesian density grid (icoosys=1)'
+        if(ifixe.gt.-2) stop 'BFF density requires ifixe=-2, -3 or -4'
+        if(nrings_bff.lt.1.or.nrings_bff.gt.size(conf_bff)) stop 'invalid nrings_bff'
+        if(ring_id_bff.gt.nrings_bff) stop 'ring_id_bff exceeds nrings_bff'
+        if(any(conf_bff(1:nrings_bff).le.0)) stop 'conf_bff populations must be positive'
+        if(sum(conf_bff(1:nrings_bff)).ne.nelec) stop 'conf_bff populations must sum to nelec'
+        M_bff=conf_bff(ring_id_bff)
+        write(6,'(a,i4,a,i4,a,2i5)') 'BFF reference ring=',ring_id_bff,', derived M=',M_bff, &
+     &    ', radial ranks=',sum(conf_bff(1:ring_id_bff-1))+1,sum(conf_bff(1:ring_id_bff))
+
+! Relative shell orientations are defined modulo BOTH polygon symmetries.
+! Their invariant common harmonic is lcm(Min,Mout), independent of the BFF choice.
+        if(nrings_bff.ge.2) then
+          ibff_a=conf_bff(nrings_bff-1)
+          ibff_b=conf_bff(nrings_bff)
+          do while(ibff_b.ne.0)
+            ibff_rem=mod(ibff_a,ibff_b)
+            ibff_a=ibff_b
+            ibff_b=ibff_rem
+          enddo
+          M_ir_bff=(conf_bff(nrings_bff-1)/ibff_a)*conf_bff(nrings_bff)
+        endif
       endif
       call systemflush(6)
 

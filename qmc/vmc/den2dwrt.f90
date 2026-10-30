@@ -509,16 +509,20 @@
         endif
 
 !       1. Header: Write the parameters and Order Parameters mapped to all parsed rings
-        write(41,'("# M_bff: ", i4, ",  nrings_bff: ", i4, ",  conf_bff: ", 20i4)') M_bff, nrings_bff, (conf_bff(ir), ir=1,nrings_bff)
+        write(41,'("# ring_id_bff: ",i4,", M_bff: ",i4,", nrings_bff: ",i4,", conf_bff: ",20i4)') &
+     &    ring_id_bff,M_bff,nrings_bff,(conf_bff(ir),ir=1,nrings_bff)
         write(41,'("# M-fold Order Parameters: ", 20G15.6)') (psi_M_acc_bff(ir) * alg_weight / passes, ir=1,nrings_bff)
 
-        write(42,'("# M_bff: ", i4, ",  nrings_bff: ", i4, ",  conf_bff: ", 20i4)') M_bff, nrings_bff, (conf_bff(ir), ir=1,nrings_bff)
+        write(42,'("# ring_id_bff: ",i4,", M_bff: ",i4,", nrings_bff: ",i4,", conf_bff: ",20i4)') &
+     &    ring_id_bff,M_bff,nrings_bff,(conf_bff(ir),ir=1,nrings_bff)
         write(42,'("# M-fold Order Parameters: ", 20G15.6)') (psi_M_acc_bff(ir) * alg_weight / passes, ir=1,nrings_bff)
 
-        write(43,'("# M_bff: ", i4, ",  nrings_bff: ", i4, ",  conf_bff: ", 20i4)') M_bff, nrings_bff, (conf_bff(ir), ir=1,nrings_bff)
+        write(43,'("# ring_id_bff: ",i4,", M_bff: ",i4,", nrings_bff: ",i4,", conf_bff: ",20i4)') &
+     &    ring_id_bff,M_bff,nrings_bff,(conf_bff(ir),ir=1,nrings_bff)
         write(43,'("# M-fold Order Parameters: ", 20G15.6)') (psi_M_acc_bff(ir) * alg_weight / passes, ir=1,nrings_bff)
         
-        ! 2. Density Body (scale the grid term)
+        ! 2. Recompute the Cartesian grid factor: Fourier output may have changed term.
+        term = 1.d0/(passes*del1*del2)
         term = term * alg_weight
         
         do in1=-nax1,nax1
@@ -544,8 +548,8 @@
             open(49,status='scratch')
           endif
           
-          ! Extract theoretical limits based on M_bff modulo wrapping
-          range_half_bff = pi / dble(M_bff)
+          ! Same common-harmonic bounds as in bffden2d.
+          range_half_bff = pi / dble(M_ir_bff)
           del_phase_bff = 2.d0 * range_half_bff / dble(NIRBINS_bff)
           
           do in1_bff = 1, NIRBINS_bff

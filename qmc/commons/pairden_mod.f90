@@ -16,13 +16,14 @@ module pairden_mod
  integer ifixe
  integer, parameter :: NAX = 50
  
-! Variables for M-fold orientational order parameter
- integer :: M_bff, nrings_bff
+! Select a radial shell by index; M_bff is its derived population, not an input.
+ integer :: ring_id_bff, M_bff, nrings_bff
  integer, dimension(20) :: conf_bff
  double precision, allocatable :: bffden2d_t(:,:), bffden2d_u(:,:), bffden2d_d(:,:)
  double precision :: psi_M_acc_bff(20)
  
 ! Variables for Inter-Ring Phase Correlation
+ integer :: M_ir_bff ! Common harmonic of the two outermost shells.
  integer, parameter :: NIRBINS_bff = 100
  double precision, allocatable :: irphase_bff(:)
 
